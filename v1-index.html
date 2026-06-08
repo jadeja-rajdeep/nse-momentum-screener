@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NSE Momentum Screener</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00d4aa;
+    --accent2: #3b82f6;
+    --accent3: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --danger: #f43f5e;
+    --success: #10b981;
+    --warn: #f59e0b;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Sora', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* ---- HEADER ---- */
+  .site-header {
+    background: linear-gradient(135deg, #0d1421 0%, #111827 60%, #0d1f2d 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 24px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .site-header h1 {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin: 0;
+  }
+  .site-header .subtitle {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+  .data-date-badge {
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.3);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* ---- FILTER PANEL ---- */
+  .filter-panel {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+  }
+  .filter-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .form-control, .form-select {
+    background: var(--surface2) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text) !important;
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 5px 10px;
+    height: 32px;
+    border-radius: 6px;
+    transition: border-color 0.2s;
+  }
+  .form-control::placeholder { color: var(--muted); }
+  .form-control:focus, .form-select:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 2px rgba(0,212,170,0.15) !important;
+    outline: none;
+  }
+  .form-select option {
+    background: var(--surface2);
+    color: var(--text);
+  }
+  .range-group {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+  .range-group input { flex: 1; }
+  .range-sep { color: var(--muted); font-size: 11px; }
+
+  .btn-filter-clear {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 5px 12px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--sans);
+  }
+  .btn-filter-clear:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  /* toggle filters */
+  .btn-toggle-filters {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 12px;
+    padding: 5px 14px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--sans);
+    transition: all 0.2s;
+  }
+  .btn-toggle-filters:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* above avg checkboxes */
+  .abv-checks { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .abv-check-item { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+  .abv-check-item input[type=checkbox] {
+    accent-color: var(--accent);
+    width: 14px; height: 14px;
+  }
+  .abv-check-item label { font-size: 11px; color: var(--muted); cursor: pointer; margin: 0; }
+
+  /* ---- STATS BAR ---- */
+  .stats-bar {
+    background: var(--surface);
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .stat-item { display: flex; align-items: center; gap: 6px; }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* ---- TABLE ---- */
+  .table-wrapper {
+    overflow-x: auto;
+    padding: 0 0 20px;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+  }
+  thead th {
+    background: var(--surface);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  thead th:hover { color: var(--accent); }
+  thead th.sort-asc::after { content: " ▲"; color: var(--accent); font-size: 8px; }
+  thead th.sort-desc::after { content: " ▼"; color: var(--accent); font-size: 8px; }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: rgba(0,212,170,0.04); }
+  tbody td {
+    padding: 7px 10px;
+    vertical-align: middle;
+    white-space: nowrap;
+    color: var(--text);
+  }
+
+  /* sticky first two columns */
+  th:nth-child(1), td:nth-child(1) {
+    position: sticky; left: 0; z-index: 5;
+    background: var(--surface);
+    min-width: 90px;
+  }
+  th:nth-child(2), td:nth-child(2) {
+    position: sticky; left: 90px; z-index: 5;
+    background: var(--surface);
+    min-width: 180px;
+    border-right: 1px solid var(--border);
+  }
+  tbody tr:hover td:nth-child(1),
+  tbody tr:hover td:nth-child(2) { background: #141e2e; }
+
+  .code-cell {
+    font-family: var(--mono);
+    font-weight: 700;
+    color: var(--accent2);
+    font-size: 11px;
+  }
+  .name-cell {
+    font-weight: 400;
+    color: var(--text);
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* RS badge */
+  .rs-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .rs-high { background: rgba(16,185,129,0.18); color: #10b981; }
+  .rs-mid  { background: rgba(245,158,11,0.18); color: #f59e0b; }
+  .rs-low  { background: rgba(244,63,94,0.18);  color: #f43f5e; }
+
+  /* Change % coloring */
+  .chng-pos { color: var(--success); font-family: var(--mono); }
+  .chng-neg { color: var(--danger);  font-family: var(--mono); }
+  .chng-neu { color: var(--muted);   font-family: var(--mono); }
+
+  /* Sector pill */
+  .sector-pill {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 12px;
+    background: rgba(59,130,246,0.12);
+    color: #93c5fd;
+    border: 1px solid rgba(59,130,246,0.2);
+    white-space: nowrap;
+  }
+
+  /* Above Avg badge */
+  .abv-yes { color: var(--success); font-size: 11px; }
+  .abv-no  { color: var(--muted);   font-size: 11px; }
+
+  /* number cells */
+  .num { font-family: var(--mono); text-align: right; }
+
+  /* pagination */
+  .pag-bar {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn-page {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--mono);
+  }
+  .btn-page:hover, .btn-page.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,212,170,0.08);
+  }
+  .btn-page:disabled { opacity: 0.3; cursor: default; }
+  .page-info { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .rows-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 4px 6px;
+    border-radius: 5px;
+    font-family: var(--mono);
+  }
+
+  /* loading */
+  #loading {
+    text-align: center;
+    padding: 60px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* error */
+  #error-msg {
+    display: none;
+    background: rgba(244,63,94,0.1);
+    border: 1px solid rgba(244,63,94,0.3);
+    color: #f43f5e;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  /* mobile */
+  @media (max-width: 768px) {
+    .site-header { padding: 12px 14px 10px; }
+    .filter-panel { padding: 10px 14px; }
+    .stats-bar { padding: 8px 14px; gap: 14px; }
+    .pag-bar { padding: 10px 14px; }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="site-header d-flex align-items-start justify-content-between flex-wrap gap-2">
+  <div>
+    <h1>⚡ NSE MOMENTUM SCREENER</h1>
+    <div class="subtitle">Relative Strength · Linearity · Sector · Volume · Market Cap</div>
+  </div>
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <span class="data-date-badge" id="data-date">Loading...</span>
+    <button class="btn-toggle-filters" id="toggleFiltersBtn" onclick="toggleFilters()">
+      <span>⚙</span> Filters
+    </button>
+  </div>
+</div>
+
+<!-- FILTER PANEL -->
+<div class="filter-panel" id="filterPanel">
+  <!-- Row 1 -->
+  <div class="row g-2 mb-2">
+    <!-- Search by code/name -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">Search Code / Name</div>
+      <input type="text" class="form-control" id="f_search" placeholder="e.g. TATA, Reliance…" oninput="applyFilters()">
+    </div>
+
+    <!-- Macro Economic Sector -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">Macro Eco Sector</div>
+      <select class="form-select" id="f_macro" onchange="applyFilters()">
+        <option value="">All</option>
+      </select>
+    </div>
+
+    <!-- Sector -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">Sector</div>
+      <select class="form-select" id="f_sector" onchange="applyFilters()">
+        <option value="">All</option>
+      </select>
+    </div>
+
+    <!-- Industry -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">Industry</div>
+      <select class="form-select" id="f_industry" onchange="applyFilters()">
+        <option value="">All</option>
+      </select>
+    </div>
+
+    <!-- Basic Industry -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">Basic Industry</div>
+      <select class="form-select" id="f_basic" onchange="applyFilters()">
+        <option value="">All</option>
+      </select>
+    </div>
+
+    <!-- Price Band -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-1">
+      <div class="filter-label">Price Band %</div>
+      <select class="form-select" id="f_priceband" onchange="applyFilters()">
+        <option value="">All</option>
+        <option value="2">2%</option>
+        <option value="5">5%</option>
+        <option value="10">10%</option>
+        <option value="20">20%</option>
+      </select>
+    </div>
+
+    <!-- Clear button -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-1 d-flex align-items-end">
+      <button class="btn-filter-clear w-100" onclick="clearFilters()">✕ Clear All</button>
+    </div>
+  </div>
+
+  <!-- Row 2: Range filters -->
+  <div class="row g-2 mb-2">
+    <!-- RS Total -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">RS Total (0–400)</div>
+      <div class="range-group">
+        <input type="number" class="form-control" id="f_rs_min" placeholder="Min" min="0" max="400" oninput="applyFilters()">
+        <span class="range-sep">–</span>
+        <input type="number" class="form-control" id="f_rs_max" placeholder="Max" min="0" max="400" oninput="applyFilters()">
+      </div>
+    </div>
+
+    <!-- Market Cap (Cr) -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">Market Cap (₹ Cr)</div>
+      <div class="range-group">
+        <input type="number" class="form-control" id="f_mcap_min" placeholder="Min" oninput="applyFilters()">
+        <span class="range-sep">–</span>
+        <input type="number" class="form-control" id="f_mcap_max" placeholder="Max" oninput="applyFilters()">
+      </div>
+    </div>
+
+    <!-- 1 Month RS -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">1M RS</div>
+      <div class="range-group">
+        <input type="number" class="form-control" id="f_rs1m_min" placeholder="Min" oninput="applyFilters()">
+        <span class="range-sep">–</span>
+        <input type="number" class="form-control" id="f_rs1m_max" placeholder="Max" oninput="applyFilters()">
+      </div>
+    </div>
+
+    <!-- 3M Linearity -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">3M Linearity (≥)</div>
+      <input type="number" class="form-control" id="f_lin3m_min" placeholder="e.g. 0.7" step="0.01" min="0" max="1" oninput="applyFilters()">
+    </div>
+
+    <!-- 1M Linearity -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">1M Linearity (≥)</div>
+      <input type="number" class="form-control" id="f_lin1m_min" placeholder="e.g. 0.7" step="0.01" min="0" max="1" oninput="applyFilters()">
+    </div>
+
+    <!-- PE -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">PE Ratio</div>
+      <div class="range-group">
+        <input type="number" class="form-control" id="f_pe_min" placeholder="Min" oninput="applyFilters()">
+        <span class="range-sep">–</span>
+        <input type="number" class="form-control" id="f_pe_max" placeholder="Max" oninput="applyFilters()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Close price range, 1-day change, Volume above avg checks -->
+  <div class="row g-2 align-items-end">
+    <!-- Close Price -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">Close Price (₹)</div>
+      <div class="range-group">
+        <input type="number" class="form-control" id="f_close_min" placeholder="Min" oninput="applyFilters()">
+        <span class="range-sep">–</span>
+        <input type="number" class="form-control" id="f_close_max" placeholder="Max" oninput="applyFilters()">
+      </div>
+    </div>
+
+    <!-- ROE -->
+    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+      <div class="filter-label">ROE (%)</div>
+      <div class="range-group">
+        <input type="number" class="form-control" id="f_roe_min" placeholder="Min" oninput="applyFilters()">
+        <span class="range-sep">–</span>
+        <input type="number" class="form-control" id="f_roe_max" placeholder="Max" oninput="applyFilters()">
+      </div>
+    </div>
+
+    <!-- Above Avg checkboxes -->
+    <div class="col-12 col-md-auto">
+      <div class="filter-label">Volume / Turnover / Delivery Above Avg</div>
+      <div class="abv-checks">
+        <label class="abv-check-item">
+          <input type="checkbox" id="f_vol_abv" onchange="applyFilters()">
+          <label for="f_vol_abv">Vol ↑</label>
+        </label>
+        <label class="abv-check-item">
+          <input type="checkbox" id="f_to_abv" onchange="applyFilters()">
+          <label for="f_to_abv">Turnover ↑</label>
+        </label>
+        <label class="abv-check-item">
+          <input type="checkbox" id="f_del_abv" onchange="applyFilters()">
+          <label for="f_del_abv">Delivery ↑</label>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar" id="statsBar">
+  <div class="stat-item">
+    <span class="stat-label">Showing</span>
+    <span class="stat-val" id="stat-showing">—</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Total</span>
+    <span class="stat-val" id="stat-total">—</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Avg RS Total</span>
+    <span class="stat-val" id="stat-avg-rs">—</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Avg Mcap (Cr)</span>
+    <span class="stat-val" id="stat-avg-mcap">—</span>
+  </div>
+  <div class="ms-auto d-flex align-items-center gap-6" style="gap:8px">
+    <span style="font-size:10px;color:var(--muted)">Rows/page</span>
+    <select class="rows-select" id="rowsPerPage" onchange="changeRowsPerPage()">
+      <option value="25">25</option>
+      <option value="50" selected>50</option>
+      <option value="100">100</option>
+      <option value="200">200</option>
+    </select>
+  </div>
+</div>
+
+<!-- ERROR -->
+<div id="error-msg"></div>
+
+<!-- TABLE -->
+<div class="table-wrapper" id="tableWrapper">
+  <div id="loading">
+    <div class="spinner"></div>
+    Loading stock data…
+  </div>
+  <table id="mainTable" style="display:none">
+    <thead>
+      <tr>
+        <th onclick="sortBy('Code')">Code</th>
+        <th onclick="sortBy('Name')">Name</th>
+        <th onclick="sortBy('Close')">Close ₹</th>
+        <th onclick="sortBy('1 Day Chng%')">1D Chg%</th>
+        <th onclick="sortBy('RS TOTAL')">RS Total</th>
+        <th onclick="sortBy('1 Month RS')">RS 1M</th>
+        <th onclick="sortBy('2 Months RS')">RS 2M</th>
+        <th onclick="sortBy('4 Months RS')">RS 4M</th>
+        <th onclick="sortBy('6 Months RS')">RS 6M</th>
+        <th onclick="sortBy('3 Month Linearity >= 0.5')">Lin 3M</th>
+        <th onclick="sortBy('1 Month Linearity >= 0.5')">Lin 1M</th>
+        <th onclick="sortBy('1 Month Chng%')">1M Chg%</th>
+        <th onclick="sortBy('2 Months Chng%')">2M Chg%</th>
+        <th onclick="sortBy('4 Months Chng%')">4M Chg%</th>
+        <th onclick="sortBy('6 Months Chng%')">6M Chg%</th>
+        <th onclick="sortBy('Market Cap')">MCap Cr</th>
+        <th onclick="sortBy('PE')">PE</th>
+        <th onclick="sortBy('ROE')">ROE%</th>
+        <th onclick="sortBy('Debt')">Debt</th>
+        <th onclick="sortBy('Macro Economic Sector')">Macro Sector</th>
+        <th onclick="sortBy('Sector')">Sector</th>
+        <th onclick="sortBy('Industry')">Industry</th>
+        <th onclick="sortBy('Volume')">Volume</th>
+        <th onclick="sortBy('Delivery %')">Del%</th>
+        <th onclick="sortBy('Volume Above Avg')">Vol↑</th>
+        <th onclick="sortBy('Delivery Above Avg')">Del↑</th>
+        <th onclick="sortBy('Price Band %')">Band%</th>
+        <th onclick="sortBy('Prom Hold %')">Prom%</th>
+        <th onclick="sortBy('EPS Latest Qtr %')">EPS Q1%</th>
+        <th onclick="sortBy('Sales Latest Qtr %')">Sales Q1%</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<!-- PAGINATION -->
+<div class="pag-bar" id="pagBar">
+  <button class="btn-page" id="btnPrev" onclick="prevPage()">‹ Prev</button>
+  <div id="pageButtons" class="d-flex gap-1 flex-wrap"></div>
+  <button class="btn-page" id="btnNext" onclick="nextPage()">Next ›</button>
+  <span class="page-info" id="pageInfo"></span>
+</div>
+
+<script>
+// ============ DATA ============
+const JSON_URL = 'm.json'; // same directory — works on GitHub Pages
+let allData = [];
+let filteredData = [];
+let sortCol = 'RS TOTAL';
+let sortDir = -1; // -1 = desc, 1 = asc
+let currentPage = 1;
+let rowsPerPage = 50;
+let filtersVisible = true;
+
+// ============ LOAD ============
+async function loadData() {
+  try {
+    const res = await fetch(JSON_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const raw = await res.json();
+
+    // PHPMyAdmin export format
+    let rows = [];
+    for (const block of raw) {
+      if (block.type === 'table' && block.data) {
+        rows = block.data;
+        break;
+      }
+    }
+    if (!rows.length) throw new Error('No data found in JSON');
+
+    allData = rows;
+
+    // Populate dropdowns
+    populateDropdown('f_macro', [...new Set(rows.map(r => r['Macro Economic Sector']).filter(Boolean))].sort());
+    populateDropdown('f_sector', [...new Set(rows.map(r => r['Sector']).filter(Boolean))].sort());
+    populateDropdown('f_industry', [...new Set(rows.map(r => r['Industry']).filter(Boolean))].sort());
+    populateDropdown('f_basic', [...new Set(rows.map(r => r['Basic Industry']).filter(Boolean))].sort());
+
+    // Date badge
+    const dates = rows.map(r => r.Date).filter(Boolean);
+    if (dates.length) {
+      document.getElementById('data-date').textContent = '📅 ' + dates[0];
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('mainTable').style.display = '';
+
+    applyFilters();
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    const el = document.getElementById('error-msg');
+    el.style.display = 'block';
+    el.textContent = '⚠ Could not load m.json — ' + e.message + '. Make sure m.json is in the same folder as this HTML file.';
+  }
+}
+
+function populateDropdown(id, options) {
+  const sel = document.getElementById(id);
+  options.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o; opt.textContent = o;
+    sel.appendChild(opt);
+  });
+}
+
+// ============ FILTERS ============
+function gv(id) { return document.getElementById(id)?.value?.trim() ?? ''; }
+function gc(id) { return document.getElementById(id)?.checked ?? false; }
+function gn(id) { const v = parseFloat(gv(id)); return isNaN(v) ? null : v; }
+
+function applyFilters() {
+  const search  = gv('f_search').toLowerCase();
+  const macro   = gv('f_macro');
+  const sector  = gv('f_sector');
+  const industry = gv('f_industry');
+  const basic   = gv('f_basic');
+  const band    = gv('f_priceband');
+
+  const rsMin   = gn('f_rs_min');    const rsMax   = gn('f_rs_max');
+  const mcMin   = gn('f_mcap_min');  const mcMax   = gn('f_mcap_max');
+  const rs1Min  = gn('f_rs1m_min');  const rs1Max  = gn('f_rs1m_max');
+  const lin3Min = gn('f_lin3m_min');
+  const lin1Min = gn('f_lin1m_min');
+  const peMin   = gn('f_pe_min');    const peMax   = gn('f_pe_max');
+  const clMin   = gn('f_close_min'); const clMax   = gn('f_close_max');
+  const roeMin  = gn('f_roe_min');   const roeMax  = gn('f_roe_max');
+
+  const volAbv  = gc('f_vol_abv');
+  const toAbv   = gc('f_to_abv');
+  const delAbv  = gc('f_del_abv');
+
+  filteredData = allData.filter(r => {
+    if (search) {
+      const code = (r.Code||'').toLowerCase();
+      const name = (r.Name||'').toLowerCase();
+      if (!code.includes(search) && !name.includes(search)) return false;
+    }
+    if (macro   && r['Macro Economic Sector'] !== macro)   return false;
+    if (sector  && r['Sector'] !== sector)                 return false;
+    if (industry && r['Industry'] !== industry)            return false;
+    if (basic   && r['Basic Industry'] !== basic)          return false;
+    if (band    && String(r['Price Band %']) !== band)     return false;
+
+    const rs = parseFloat(r['RS TOTAL']);
+    if (rsMin !== null && (isNaN(rs) || rs < rsMin)) return false;
+    if (rsMax !== null && (isNaN(rs) || rs > rsMax)) return false;
+
+    const mc = parseFloat(r['Market Cap']) / 1e7; // to Cr
+    if (mcMin !== null && (isNaN(mc) || mc < mcMin)) return false;
+    if (mcMax !== null && (isNaN(mc) || mc > mcMax)) return false;
+
+    const rs1 = parseFloat(r['1 Month RS']);
+    if (rs1Min !== null && (isNaN(rs1) || rs1 < rs1Min)) return false;
+    if (rs1Max !== null && (isNaN(rs1) || rs1 > rs1Max)) return false;
+
+    const lin3 = parseFloat(r['3 Month Linearity >= 0.5']);
+    if (lin3Min !== null && (isNaN(lin3) || lin3 < lin3Min)) return false;
+
+    const lin1 = parseFloat(r['1 Month Linearity >= 0.5']);
+    if (lin1Min !== null && (isNaN(lin1) || lin1 < lin1Min)) return false;
+
+    const pe = parseFloat(r['PE']);
+    if (peMin !== null && (isNaN(pe) || pe < peMin)) return false;
+    if (peMax !== null && (isNaN(pe) || pe > peMax)) return false;
+
+    const cl = parseFloat(r['Close']);
+    if (clMin !== null && (isNaN(cl) || cl < clMin)) return false;
+    if (clMax !== null && (isNaN(cl) || cl > clMax)) return false;
+
+    const roe = parseFloat(r['ROE']);
+    if (roeMin !== null && (isNaN(roe) || roe < roeMin)) return false;
+    if (roeMax !== null && (isNaN(roe) || roe > roeMax)) return false;
+
+    if (volAbv && r['Volume Above Avg'] !== 'Yes') return false;
+    if (toAbv  && r['Turnover Above Avg'] !== 'Yes') return false;
+    if (delAbv && r['Delivery Above Avg'] !== 'Yes') return false;
+
+    return true;
+  });
+
+  sortData();
+  currentPage = 1;
+  updateStats();
+  renderPage();
+  renderPagination();
+}
+
+function clearFilters() {
+  ['f_search','f_rs_min','f_rs_max','f_mcap_min','f_mcap_max',
+   'f_rs1m_min','f_rs1m_max','f_lin3m_min','f_lin1m_min',
+   'f_pe_min','f_pe_max','f_close_min','f_close_max',
+   'f_roe_min','f_roe_max'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['f_macro','f_sector','f_industry','f_basic','f_priceband'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['f_vol_abv','f_to_abv','f_del_abv'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = false;
+  });
+  applyFilters();
+}
+
+function toggleFilters() {
+  filtersVisible = !filtersVisible;
+  document.getElementById('filterPanel').style.display = filtersVisible ? '' : 'none';
+}
+
+// ============ SORT ============
+function sortBy(col) {
+  if (sortCol === col) { sortDir *= -1; }
+  else { sortCol = col; sortDir = -1; }
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+  });
+  const ths = document.querySelectorAll('thead th');
+  const cols = ['Code','Name','Close','1 Day Chng%','RS TOTAL','1 Month RS','2 Months RS','4 Months RS','6 Months RS','3 Month Linearity >= 0.5','1 Month Linearity >= 0.5','1 Month Chng%','2 Months Chng%','4 Months Chng%','6 Months Chng%','Market Cap','PE','ROE','Debt','Macro Economic Sector','Sector','Industry','Volume','Delivery %','Volume Above Avg','Delivery Above Avg','Price Band %','Prom Hold %','EPS Latest Qtr %','Sales Latest Qtr %'];
+  const idx = cols.indexOf(col);
+  if (idx >= 0) ths[idx].classList.add(sortDir === -1 ? 'sort-desc' : 'sort-asc');
+  sortData();
+  renderPage();
+}
+
+function sortData() {
+  filteredData.sort((a, b) => {
+    let av = a[sortCol], bv = b[sortCol];
+    if (av === null || av === undefined || av === '') return 1;
+    if (bv === null || bv === undefined || bv === '') return -1;
+    const an = parseFloat(av), bn = parseFloat(bv);
+    if (!isNaN(an) && !isNaN(bn)) return (an - bn) * sortDir;
+    return String(av).localeCompare(String(bv)) * sortDir;
+  });
+}
+
+// ============ RENDER ============
+function fNum(v, decimals=2) {
+  const n = parseFloat(v);
+  return isNaN(n) ? '—' : n.toFixed(decimals);
+}
+function fInt(v) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return '—';
+  return n.toLocaleString('en-IN');
+}
+function fCr(v) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return '—';
+  const cr = n / 1e7;
+  if (cr >= 10000) return (cr/1000).toFixed(1) + 'K';
+  if (cr >= 1000) return cr.toFixed(0);
+  return cr.toFixed(1);
+}
+function chngClass(v) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return 'chng-neu';
+  if (n > 0) return 'chng-pos';
+  if (n < 0) return 'chng-neg';
+  return 'chng-neu';
+}
+function chngStr(v, decimals=2) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return '—';
+  return (n > 0 ? '+' : '') + n.toFixed(decimals) + '%';
+}
+function rsBadge(v) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return '<span class="chng-neu">—</span>';
+  const cls = n >= 95 ? 'rs-high' : n >= 80 ? 'rs-mid' : 'rs-low';
+  return `<span class="rs-badge ${cls}">${n.toFixed(1)}</span>`;
+}
+function rsTotalBadge(v) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return '<span class="chng-neu">—</span>';
+  const cls = n >= 370 ? 'rs-high' : n >= 300 ? 'rs-mid' : 'rs-low';
+  return `<span class="rs-badge ${cls}">${n.toFixed(1)}</span>`;
+}
+function abvIcon(v) {
+  return v === 'Yes' ? '<span class="abv-yes">✓</span>' : '<span class="abv-no">·</span>';
+}
+
+function renderPage() {
+  const tbody = document.getElementById('tableBody');
+  const start = (currentPage - 1) * rowsPerPage;
+  const end   = Math.min(start + rowsPerPage, filteredData.length);
+  const page  = filteredData.slice(start, end);
+
+  tbody.innerHTML = page.map(r => `
+    <tr>
+      <td class="code-cell">${r.Code||'—'}</td>
+      <td class="name-cell" title="${r.Name||''}">${r.Name||'—'}</td>
+      <td class="num">${fNum(r.Close,2)}</td>
+      <td class="${chngClass(r['1 Day Chng%'])} num">${chngStr(r['1 Day Chng%'])}</td>
+      <td>${rsTotalBadge(r['RS TOTAL'])}</td>
+      <td>${rsBadge(r['1 Month RS'])}</td>
+      <td>${rsBadge(r['2 Months RS'])}</td>
+      <td>${rsBadge(r['4 Months RS'])}</td>
+      <td>${rsBadge(r['6 Months RS'])}</td>
+      <td class="num">${fNum(r['3 Month Linearity >= 0.5'],3)}</td>
+      <td class="num">${fNum(r['1 Month Linearity >= 0.5'],3)}</td>
+      <td class="${chngClass(r['1 Month Chng%'])} num">${chngStr(r['1 Month Chng%'])}</td>
+      <td class="${chngClass(r['2 Months Chng%'])} num">${chngStr(r['2 Months Chng%'])}</td>
+      <td class="${chngClass(r['4 Months Chng%'])} num">${chngStr(r['4 Months Chng%'])}</td>
+      <td class="${chngClass(r['6 Months Chng%'])} num">${chngStr(r['6 Months Chng%'])}</td>
+      <td class="num">${fCr(r['Market Cap'])}</td>
+      <td class="num">${fNum(r.PE,1)}</td>
+      <td class="num">${fNum(r.ROE,1)}</td>
+      <td class="num">${fNum(r.Debt,0)}</td>
+      <td><span class="sector-pill">${r['Macro Economic Sector']||'—'}</span></td>
+      <td style="color:var(--muted);font-size:11px">${r['Sector']||'—'}</td>
+      <td style="color:var(--muted);font-size:11px">${r['Industry']||'—'}</td>
+      <td class="num">${fInt(r.Volume)}</td>
+      <td class="num">${fNum(r['Delivery %'],1)}</td>
+      <td>${abvIcon(r['Volume Above Avg'])}</td>
+      <td>${abvIcon(r['Delivery Above Avg'])}</td>
+      <td class="num">${r['Price Band %']||'—'}</td>
+      <td class="num">${fNum(r['Prom Hold %'],1)}</td>
+      <td class="${chngClass(r['EPS Latest Qtr %'])} num">${chngStr(r['EPS Latest Qtr %'],0)}</td>
+      <td class="${chngClass(r['Sales Latest Qtr %'])} num">${chngStr(r['Sales Latest Qtr %'],0)}</td>
+    </tr>
+  `).join('');
+}
+
+// ============ STATS ============
+function updateStats() {
+  document.getElementById('stat-total').textContent = allData.length.toLocaleString('en-IN');
+  document.getElementById('stat-showing').textContent = filteredData.length.toLocaleString('en-IN');
+
+  const rsVals = filteredData.map(r => parseFloat(r['RS TOTAL'])).filter(v => !isNaN(v));
+  const avgRs = rsVals.length ? (rsVals.reduce((a,b)=>a+b,0)/rsVals.length).toFixed(1) : '—';
+  document.getElementById('stat-avg-rs').textContent = avgRs;
+
+  const mcVals = filteredData.map(r => parseFloat(r['Market Cap'])/1e7).filter(v => !isNaN(v));
+  const avgMc = mcVals.length ? Math.round(mcVals.reduce((a,b)=>a+b,0)/mcVals.length).toLocaleString('en-IN') : '—';
+  document.getElementById('stat-avg-mcap').textContent = avgMc;
+}
+
+// ============ PAGINATION ============
+function renderPagination() {
+  const total = Math.ceil(filteredData.length / rowsPerPage);
+  const pageButtons = document.getElementById('pageButtons');
+  document.getElementById('btnPrev').disabled = currentPage <= 1;
+  document.getElementById('btnNext').disabled = currentPage >= total;
+  document.getElementById('pageInfo').textContent =
+    `Page ${currentPage} of ${total} · ${filteredData.length} stocks`;
+
+  // Build page numbers: show up to 7 around current
+  let pages = [];
+  if (total <= 9) {
+    for (let i=1;i<=total;i++) pages.push(i);
+  } else {
+    pages = [1];
+    if (currentPage > 4) pages.push('…');
+    for (let i=Math.max(2,currentPage-2);i<=Math.min(total-1,currentPage+2);i++) pages.push(i);
+    if (currentPage < total-3) pages.push('…');
+    pages.push(total);
+  }
+
+  pageButtons.innerHTML = pages.map(p =>
+    p === '…'
+      ? `<span class="btn-page" style="cursor:default;opacity:0.4">…</span>`
+      : `<button class="btn-page ${p===currentPage?'active':''}" onclick="goToPage(${p})">${p}</button>`
+  ).join('');
+}
+
+function prevPage() { if (currentPage > 1) { currentPage--; renderPage(); renderPagination(); scrollTop(); } }
+function nextPage() { const t=Math.ceil(filteredData.length/rowsPerPage); if(currentPage<t){currentPage++;renderPage();renderPagination();scrollTop();} }
+function goToPage(p) { currentPage=p; renderPage(); renderPagination(); scrollTop(); }
+function changeRowsPerPage() { rowsPerPage=parseInt(document.getElementById('rowsPerPage').value); currentPage=1; renderPage(); renderPagination(); }
+function scrollTop() { document.getElementById('tableWrapper').scrollIntoView({behavior:'smooth',block:'start'}); }
+
+// ============ INIT ============
+loadData();
+</script>
+</body>
+</html>
