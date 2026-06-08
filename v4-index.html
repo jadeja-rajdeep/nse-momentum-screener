@@ -246,9 +246,7 @@
     font-weight: 700;
     color: var(--accent2);
     font-size: 11px;
-    transition: color 0.15s;
   }
-  .code-cell:hover { color: var(--accent); text-decoration: underline; }
   .name-cell {
     font-weight: 400;
     color: var(--text);
@@ -369,136 +367,6 @@
     .stats-bar { padding: 8px 14px; gap: 14px; }
     .pag-bar { padding: 10px 14px; }
   }
-
-  /* On mobile: abandon flex/overflow layout, let the whole page scroll naturally */
-  @media (max-width: 768px) {
-    body {
-      height: auto;
-      overflow: auto;
-    }
-    .table-wrapper {
-      overflow-x: auto;
-      overflow-y: visible;
-      flex: none;
-      min-height: 0;
-    }
-    thead th {
-      position: static; /* no sticky on mobile to avoid broken layout */
-    }
-    th:nth-child(1), td:nth-child(1),
-    th:nth-child(2), td:nth-child(2) {
-      position: static;
-    }
-    .pag-bar {
-      position: static;
-    }
-  }
-
-  /* ---- PEER MODAL ---- */
-  .peer-modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 9999;
-    padding: 16px;
-    overflow-y: auto;
-    backdrop-filter: blur(3px);
-  }
-  .peer-modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
-  .peer-modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    width: 100%;
-    max-width: 1100px;
-    margin: auto;
-    overflow: hidden;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-  }
-  .peer-modal-header {
-    background: linear-gradient(135deg, #0d1421 0%, #111827 100%);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 20px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .peer-modal-title {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--accent);
-  }
-  .peer-modal-meta {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 3px;
-  }
-  .peer-modal-close {
-    background: rgba(244,63,94,0.1);
-    border: 1px solid rgba(244,63,94,0.3);
-    color: #f43f5e;
-    font-size: 16px;
-    width: 32px; height: 32px;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: all 0.15s;
-  }
-  .peer-modal-close:hover { background: rgba(244,63,94,0.25); }
-  .peer-modal-body { padding: 20px; overflow-x: auto; }
-  .peer-section-title {
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    margin: 0 0 10px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .peer-section-title .peer-count {
-    background: rgba(0,212,170,0.12);
-    border: 1px solid rgba(0,212,170,0.25);
-    color: var(--accent);
-    font-size: 10px;
-    padding: 1px 7px;
-    border-radius: 10px;
-  }
-  .peer-section + .peer-section { margin-top: 28px; }
-  .peer-table-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid var(--border); }
-  .peer-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 11.5px;
-  }
-  .peer-table thead th {
-    background: #0d1421;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 9.5px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    padding: 7px 10px;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-    position: static;
-    cursor: default;
-  }
-  .peer-table tbody tr { border-bottom: 1px solid rgba(30,45,69,0.5); }
-  .peer-table tbody tr:hover { background: rgba(0,212,170,0.04); }
-  .peer-table tbody td { padding: 6px 10px; white-space: nowrap; vertical-align: middle; }
-  .peer-table .self-row td { background: rgba(0,212,170,0.07); }
-  .peer-table .self-row td:first-child { border-left: 2px solid var(--accent); }
 
   /* holdings mini display */
   .holdings-cell { font-family: var(--mono); font-size: 10px; line-height: 1.6; }
@@ -876,20 +744,6 @@
   <div id="pageButtons" class="d-flex gap-1 flex-wrap"></div>
   <button class="btn-page" id="btnNext" onclick="nextPage()">Next ›</button>
   <span class="page-info" id="pageInfo"></span>
-</div>
-
-<!-- PEER MODAL -->
-<div class="peer-modal-overlay" id="peerModal" onclick="closePeerModalOnOverlay(event)">
-  <div class="peer-modal">
-    <div class="peer-modal-header">
-      <div>
-        <div class="peer-modal-title" id="peerModalTitle">Peers</div>
-        <div class="peer-modal-meta" id="peerModalMeta"></div>
-      </div>
-      <button class="peer-modal-close" onclick="closePeerModal()">✕</button>
-    </div>
-    <div class="peer-modal-body" id="peerModalBody"></div>
-  </div>
 </div>
 
 <script>
@@ -1315,7 +1169,7 @@ function renderPage() {
 
   tbody.innerHTML = page.map(r => `
     <tr>
-      <td class="code-cell peer-link" data-code="${(r.Code||'').replace(/"/g,'&quot;')}" title="Click for peer comparison" style="cursor:pointer">${r.Code||'—'}</td>
+      <td class="code-cell">${r.Code||'—'}</td>
       <td class="name-cell" title="${r.Name||''}">${r.Name||'—'}</td>
       <td class="num">${fNum(r.Close,2)}</td>
       <td class="${chngClass(r['1 Day Chng%'])} num">${chngStr(r['1 Day Chng%'])}</td>
@@ -1406,90 +1260,7 @@ function goToPage(p) { currentPage=p; renderPage(); renderPagination(); scrollTo
 function changeRowsPerPage() { rowsPerPage=parseInt(document.getElementById('rowsPerPage').value); currentPage=1; renderPage(); renderPagination(); }
 function scrollTop() { document.getElementById('tableWrapper').scrollTop = 0; }
 
-// ============ PEER MODAL ============
-function openPeerModal(code) {
-  const stock = allData.find(r => r.Code === code);
-  if (!stock) return;
-
-  const basicIndustry = stock['Basic Industry'] || '';
-  const industry      = stock['Industry'] || '';
-
-  // Title
-  document.getElementById('peerModalTitle').textContent =
-    `⚡ ${stock.Code} — ${stock.Name}`;
-  document.getElementById('peerModalMeta').textContent =
-    `${stock['Macro Economic Sector']||''} › ${industry} › ${basicIndustry}`;
-
-  // Build two peer lists
-  const basicPeers    = allData.filter(r => r['Basic Industry'] === basicIndustry && basicIndustry);
-  const industryPeers = allData.filter(r => r['Industry'] === industry && industry);
-
-  // Sort both by RS TOTAL desc
-  const byRS = (a, b) => (parseFloat(b['RS TOTAL'])||0) - (parseFloat(a['RS TOTAL'])||0);
-  basicPeers.sort(byRS);
-  industryPeers.sort(byRS);
-
-  const body = document.getElementById('peerModalBody');
-  body.innerHTML =
-    `<div class="peer-section">${renderPeerTable('Basic Industry Peers', basicIndustry, basicPeers, code)}</div>` +
-    `<div class="peer-section">${renderPeerTable('Industry Peers', industry, industryPeers, code)}</div>`;
-
-  document.getElementById('peerModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function renderPeerTable(sectionLabel, groupName, rows, selfCode) {
-  const cols = [
-    { label: 'Code',       key: r => `<span style="font-family:var(--mono);font-weight:700;color:var(--accent2);font-size:11px">${r.Code||'—'}</span>` },
-    { label: 'Name',       key: r => `<span style="max-width:160px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.Name||''}">${r.Name||'—'}</span>` },
-    { label: 'RS Total',   key: r => rsTotalBadge(r['RS TOTAL']) },
-    { label: 'EPS Q1%',    key: r => `<span class="${chngClass(r['EPS Latest Qtr %'])} num">${chngStr(r['EPS Latest Qtr %'],0)}</span>` },
-    { label: 'EPS Q2%',    key: r => `<span class="${chngClass(r['EPS Prev Qtr %'])} num">${chngStr(r['EPS Prev Qtr %'],0)}</span>` },
-    { label: 'Sales Q1%',  key: r => `<span class="${chngClass(r['Sales Latest Qtr %'])} num">${chngStr(r['Sales Latest Qtr %'],0)}</span>` },
-    { label: 'Sales Q2%',  key: r => `<span class="${chngClass(r['Sales Prev Qtr %'])} num">${chngStr(r['Sales Prev Qtr %'],0)}</span>` },
-    { label: 'MCap Cr',    key: r => `<span class="num">${fCr(r['Market Cap'])}</span>` },
-    { label: 'Band%',      key: r => `<span class="num">${r['Price Band %']||'—'}</span>` },
-    { label: 'Lin 1M',     key: r => `<span class="num">${fNum(r['1 Month Linearity >= 0.5'],3)}</span>` },
-    { label: 'Lin 3M',     key: r => `<span class="num">${fNum(r['3 Month Linearity >= 0.5'],3)}</span>` },
-  ];
-
-  const ths = cols.map(c => `<th>${c.label}</th>`).join('');
-  const trs = rows.map(r => {
-    const isSelf = r.Code === selfCode;
-    const tds = cols.map(c => `<td>${c.key(r)}</td>`).join('');
-    return `<tr class="${isSelf ? 'self-row' : ''}">${tds}</tr>`;
-  }).join('');
-
-  return `
-    <div class="peer-section-title">
-      ${sectionLabel}: <em style="color:var(--text);font-style:normal">${groupName}</em>
-      <span class="peer-count">${rows.length} stocks</span>
-    </div>
-    <div class="peer-table-wrap">
-      <table class="peer-table">
-        <thead><tr>${ths}</tr></thead>
-        <tbody>${trs}</tbody>
-      </table>
-    </div>`;
-}
-
-function closePeerModal() {
-  document.getElementById('peerModal').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function closePeerModalOnOverlay(e) {
-  if (e.target === document.getElementById('peerModal')) closePeerModal();
-}
-
-// Close on Escape key
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePeerModal(); });
-
 // ============ INIT ============
-document.getElementById('tableBody').addEventListener('click', e => {
-  const cell = e.target.closest('.peer-link');
-  if (cell) openPeerModal(cell.dataset.code);
-});
 loadData();
 </script>
 </body>
