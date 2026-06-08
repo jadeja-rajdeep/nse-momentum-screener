@@ -693,12 +693,9 @@
                 margin: 1px 2px 1px 0;
                 white-space: nowrap;
             }
-            /* All Index column hidden by default */
-            .col-allindex {
-                display: none;
-            }
-            .col-allindex-visible .col-allindex {
-                display: table-cell;
+            ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
             }
             ::-webkit-scrollbar-track {
                 background: var(--bg);
@@ -1236,29 +1233,6 @@
                 class="ms-auto d-flex align-items-center gap-6"
                 style="gap: 8px"
             >
-                <label
-                    style="
-                        display: flex;
-                        align-items: center;
-                        gap: 6px;
-                        cursor: pointer;
-                        font-size: 11px;
-                        color: var(--muted);
-                    "
-                >
-                    <input
-                        type="checkbox"
-                        id="toggleAllIndex"
-                        onchange="toggleAllIndexCol()"
-                        style="
-                            accent-color: var(--accent);
-                            width: 13px;
-                            height: 13px;
-                        "
-                    />
-                    Show All Index
-                </label>
-                <span style="color: var(--border)">|</span>
                 <span style="font-size: 10px; color: var(--muted)"
                     >Rows/page</span
                 >
@@ -1331,7 +1305,7 @@
                             Sales Q1%
                         </th>
                         <th onclick="sortBy('Sales Prev Qtr %')">Sales Q2%</th>
-                        <th class="col-allindex">All Index</th>
+                        <th>All Index</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -2012,7 +1986,7 @@
       <td class="${chngClass(r["EPS Prev Qtr %"])} num">${chngStr(r["EPS Prev Qtr %"], 0)}</td>
       <td class="${chngClass(r["Sales Latest Qtr %"])} num">${chngStr(r["Sales Latest Qtr %"], 0)}</td>
       <td class="${chngClass(r["Sales Prev Qtr %"])} num">${chngStr(r["Sales Prev Qtr %"], 0)}</td>
-      <td class="all-index-cell col-allindex">${formatAllIndex(r["All Index"])}</td>
+      <td class="all-index-cell">${formatAllIndex(r["All Index"])}</td>
     </tr>
   `,
                     )
@@ -2253,13 +2227,6 @@
             document.addEventListener("keydown", (e) => {
                 if (e.key === "Escape") closePeerModal();
             });
-
-            function toggleAllIndexCol() {
-                const show = document.getElementById("toggleAllIndex").checked;
-                document
-                    .getElementById("mainTable")
-                    .classList.toggle("col-allindex-visible", show);
-            }
 
             // ============ INIT ============
             document
