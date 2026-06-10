@@ -813,7 +813,7 @@
                         onchange="applyFilters()"
                     >
                         <option value="">All</option>
-                        <option value="0">0%</option>
+                        <option value="0">No Limit</option>
                         <option value="2">2%</option>
                         <option value="5">5%</option>
                         <option value="10">10%</option>
@@ -1657,7 +1657,7 @@
                     if (rsMax !== null && (isNaN(rs) || rs > rsMax))
                         return false;
 
-                    const mc = parseFloat(r["Market Cap"]) / 10_000_000;
+                    const mc = parseFloat(r["Market Cap"]) / 1e7;
                     if (mcMin !== null && (isNaN(mc) || mc < mcMin))
                         return false;
                     if (mcMax !== null && (isNaN(mc) || mc > mcMax))
@@ -1899,32 +1899,33 @@
                 if (isNaN(n)) return "—";
                 return n.toLocaleString("en-IN");
             }
-            // Volume: raw shares → K / M
+            // Volume: raw shares → M / K
             function fVol(v) {
                 const n = parseFloat(v);
                 if (isNaN(n)) return "—";
-                if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";
-                if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+                if (n >= 1e7) return (n / 1e7).toFixed(2) + " Cr";
+                if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+                if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
                 return n.toFixed(0);
             }
-            // Turnover: raw rupees → Cr (1 Cr = 10,000,000)
+            // Turnover: raw rupees → Cr / M / K
             function fTurnover(v) {
                 const n = parseFloat(v);
                 if (isNaN(n)) return "—";
-                const cr = n / 10_000_000;
+                const cr = n / 1e7;
                 if (cr >= 1000) return (cr / 1000).toFixed(2) + "K Cr";
                 if (cr >= 1) return cr.toFixed(2) + " Cr";
-                if (cr >= 0.01) return (cr * 100).toFixed(1) + "L";
-                return n.toLocaleString("en-IN");
+                const lakh = n / 1e5;
+                if (lakh >= 1) return lakh.toFixed(2) + "L";
+                return (n / 1000).toFixed(1) + "K";
             }
             function fCr(v) {
                 const n = parseFloat(v);
                 if (isNaN(n)) return "—";
-                const cr = n / 10_000_000;
-                if (cr >= 100_000) return (cr / 1_000).toFixed(1) + "K Cr";
-                if (cr >= 1_000) return (cr / 1_000).toFixed(2) + "K Cr";
-                if (cr >= 1) return cr.toFixed(2) + " Cr";
-                return cr.toFixed(2) + " Cr";
+                const cr = n / 1e7;
+                if (cr >= 10000) return (cr / 1000).toFixed(1) + "K";
+                if (cr >= 1000) return cr.toFixed(0);
+                return cr.toFixed(1);
             }
             function chngClass(v) {
                 const n = parseFloat(v);
@@ -2041,18 +2042,13 @@
                 document.getElementById("stat-avg-rs").textContent = avgRs;
 
                 const mcVals = filteredData
-                    .map((r) => parseFloat(r["Market Cap"]) / 10_000_000)
+                    .map((r) => parseFloat(r["Market Cap"]) / 1e7)
                     .filter((v) => !isNaN(v));
-                const avgMcRaw = mcVals.length
-                    ? mcVals.reduce((a, b) => a + b, 0) / mcVals.length
-                    : null;
-                const avgMc =
-                    avgMcRaw === null
-                        ? "—"
-                        : avgMcRaw >= 1000
-                          ? (avgMcRaw / 1000).toFixed(1) + "K Cr"
-                          : Math.round(avgMcRaw).toLocaleString("en-IN") +
-                            " Cr";
+                const avgMc = mcVals.length
+                    ? Math.round(
+                          mcVals.reduce((a, b) => a + b, 0) / mcVals.length,
+                      ).toLocaleString("en-IN")
+                    : "—";
                 document.getElementById("stat-avg-mcap").textContent = avgMc;
             }
 
