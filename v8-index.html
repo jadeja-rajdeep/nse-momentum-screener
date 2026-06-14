@@ -728,22 +728,6 @@
         <input type="number" class="form-control" id="f_to_max" placeholder="Max" oninput="applyFilters()">
       </div>
     </div>
-
-    <!-- Prom Hold % -->
-    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-      <div class="filter-label">Prom Hold %</div>
-      <div class="range-group">
-        <input type="number" class="form-control" id="f_prom_min" placeholder="Min" min="0" max="100" oninput="applyFilters()">
-        <span class="range-sep">–</span>
-        <input type="number" class="form-control" id="f_prom_max" placeholder="Max" min="0" max="100" oninput="applyFilters()">
-      </div>
-    </div>
-
-    <!-- Narrow Range -->
-    <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-      <div class="filter-label">Narrow Range (≥ days)</div>
-      <input type="number" class="form-control" id="f_nr_min" placeholder="e.g. 4" min="1" oninput="applyFilters()">
-    </div>
   </div>
 
   <!-- Row 4: EPS / Sales filters + above avg checks -->
@@ -858,7 +842,6 @@
         <th onclick="sortBy('Code')">Code</th>
         <th onclick="sortBy('Name')">Name</th>
         <th onclick="sortBy('Close')">Close ₹</th>
-        <th onclick="sortBy('Narrow Range')" title="Narrow Range Days">NR</th>
         <th onclick="sortBy('1 Day Chng%')">1D Chg%</th>
         <th onclick="sortBy('RS TOTAL')">RS Total</th>
         <th onclick="sortBy('1 Month RS')">RS 1M</th>
@@ -1106,8 +1089,6 @@ function applyFilters() {
   const clMin   = gn('f_close_min'); const clMax   = gn('f_close_max');
   const roeMin  = gn('f_roe_min');   const roeMax  = gn('f_roe_max');
   const toMin   = gn('f_to_min');    const toMax   = gn('f_to_max');
-  const promMin = gn('f_prom_min');  const promMax = gn('f_prom_max');
-  const nrMin   = gn('f_nr_min');
   const eps1Min = gn('f_eps1_min');  const eps1Max = gn('f_eps1_max');
   const eps2Min = gn('f_eps2_min');  const eps2Max = gn('f_eps2_max');
   const sal1Min = gn('f_sal1_min');  const sal1Max = gn('f_sal1_max');
@@ -1171,16 +1152,9 @@ function applyFilters() {
     if (roeMin !== null && (isNaN(roe) || roe < roeMin)) return false;
     if (roeMax !== null && (isNaN(roe) || roe > roeMax)) return false;
 
-    const to = parseFloat(r['Net Turnover']) / 10_000_000;
+    const to = parseFloat(r['Net Turnover']) / 1e7; // Cr
     if (toMin !== null && (isNaN(to) || to < toMin)) return false;
     if (toMax !== null && (isNaN(to) || to > toMax)) return false;
-
-    const prom = parseFloat(r['Prom Hold %']);
-    if (promMin !== null && (isNaN(prom) || prom < promMin)) return false;
-    if (promMax !== null && (isNaN(prom) || prom > promMax)) return false;
-
-    const nr = parseFloat(r['Narrow Range']);
-    if (nrMin !== null && (isNaN(nr) || nr < nrMin)) return false;
 
     const eps1 = parseFloat(r['EPS Latest Qtr %']);
     if (eps1Min !== null && (isNaN(eps1) || eps1 < eps1Min)) return false;
@@ -1219,7 +1193,6 @@ function clearFilters() {
    'f_lin3m_min','f_lin1m_min',
    'f_pe_min','f_pe_max','f_close_min','f_close_max',
    'f_roe_min','f_roe_max','f_to_min','f_to_max',
-   'f_prom_min','f_prom_max','f_nr_min',
    'f_eps1_min','f_eps1_max','f_eps2_min','f_eps2_max',
    'f_sal1_min','f_sal1_max','f_sal2_min','f_sal2_max'].forEach(id => {
     const el = document.getElementById(id);
@@ -1254,7 +1227,7 @@ function sortBy(col) {
     th.classList.remove('sort-asc','sort-desc');
   });
   const ths = document.querySelectorAll('thead th');
-  const cols = ['Code','Name','Close','Narrow Range','1 Day Chng%','RS TOTAL','1 Month RS','2 Months RS','4 Months RS','6 Months RS','3 Month Linearity >= 0.5','1 Month Linearity >= 0.5','1 Month Chng%','2 Months Chng%','4 Months Chng%','6 Months Chng%','Market Cap','PE','ROE','Debt','Macro Economic Sector','Sector','Industry','Basic Industry','Volume','Net Turnover','Delivery %','Volume Above Avg','Delivery Above Avg','Price Band %','Prom Hold %','EPS Latest Qtr %','EPS Prev Qtr %','Sales Latest Qtr %','Sales Prev Qtr %','All Index'];
+  const cols = ['Code','Name','Close','1 Day Chng%','RS TOTAL','1 Month RS','2 Months RS','4 Months RS','6 Months RS','3 Month Linearity >= 0.5','1 Month Linearity >= 0.5','1 Month Chng%','2 Months Chng%','4 Months Chng%','6 Months Chng%','Market Cap','PE','ROE','Debt','Macro Economic Sector','Sector','Industry','Basic Industry','Volume','Net Turnover','Delivery %','Volume Above Avg','Delivery Above Avg','Price Band %','Prom Hold %','EPS Latest Qtr %','EPS Prev Qtr %','Sales Latest Qtr %','Sales Prev Qtr %','All Index'];
   const idx = cols.indexOf(col);
   if (idx >= 0) ths[idx].classList.add(sortDir === -1 ? 'sort-desc' : 'sort-asc');
   sortData();
@@ -1354,7 +1327,6 @@ function renderPage() {
       <td class="code-cell peer-link" data-code="${(r.Code||'').replace(/"/g,'&quot;')}" title="Click for peer comparison" style="cursor:pointer">${r.Code||'—'}</td>
       <td class="name-cell tv-link" data-code="${(r.Code||'').replace(/"/g,'&quot;')}" title="Open on TradingView" style="cursor:pointer">${r.Name||'—'}</td>
       <td class="num">${fNum(r.Close,2)}</td>
-      <td class="num">${r['Narrow Range'] && r['Narrow Range'] !== '0' ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r['Narrow Range']}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
       <td class="${chngClass(r['1 Day Chng%'])} num">${chngStr(r['1 Day Chng%'])}</td>
       <td>${rsTotalBadge(r['RS TOTAL'])}</td>
       <td>${rsBadge(r['1 Month RS'])}</td>
