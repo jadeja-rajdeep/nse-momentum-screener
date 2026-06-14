@@ -211,9 +211,11 @@
   thead th.sort-asc::after { content: " ▲"; color: var(--accent); font-size: 8px; }
   thead th.sort-desc::after { content: " ▼"; color: var(--accent); font-size: 8px; }
 
-  tbody tr.tradable-row { background: rgba(0,212,170,0.04); }
-  tbody tr.tradable-row td:nth-child(1) { border-left: 2px solid var(--accent); }
-  tbody tr.tradable-row:hover { background: rgba(0,212,170,0.09); }
+  tbody tr {
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: rgba(0,212,170,0.04); }
   tbody td {
     padding: 7px 10px;
     vertical-align: middle;
@@ -362,55 +364,7 @@
     font-size: 12px;
   }
 
-  /* Is Tradable filter checkbox */
-  .tradable-check-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    background: rgba(0,212,170,0.07);
-    border: 1px solid rgba(0,212,170,0.3);
-    padding: 6px 14px;
-    border-radius: 8px;
-    transition: all 0.2s;
-  }
-  .tradable-check-item:hover {
-    background: rgba(0,212,170,0.14);
-    border-color: rgba(0,212,170,0.6);
-  }
-  .tradable-check-item input[type=checkbox] {
-    accent-color: var(--accent);
-    width: 15px; height: 15px;
-    cursor: pointer;
-  }
-  .tradable-check-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--accent);
-    letter-spacing: 0.03em;
-    cursor: pointer;
-  }
-
-  /* Is Tradable pill in table */
-  .pill-tradable {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(0,212,170,0.15);
-    border: 1px solid rgba(0,212,170,0.4);
-    color: var(--accent);
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 20px;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-  }
-  .pill-not-tradable {
-    color: var(--muted);
-    font-size: 11px;
-  }
+  /* mobile */
   @media (max-width: 768px) {
     .site-header { padding: 12px 14px 10px; }
     .filter-panel { padding: 10px 14px; }
@@ -852,14 +806,6 @@
         </label>
       </div>
     </div>
-
-    <!-- Is Tradable -->
-    <div class="col-12 col-md-auto d-flex align-items-end">
-      <label class="tradable-check-item">
-        <input type="checkbox" id="f_tradable" onchange="applyFilters()">
-        <span class="tradable-check-label">⚡ Is Tradable</span>
-      </label>
-    </div>
   </div>
 </div>
 
@@ -913,7 +859,6 @@
         <th onclick="sortBy('Name')">Name</th>
         <th onclick="sortBy('Close')">Close ₹</th>
         <th onclick="sortBy('Narrow Range')" title="Narrow Range Days">NR</th>
-        <th onclick="sortBy('Is Tradable')">Tradable</th>
         <th onclick="sortBy('1 Day Chng%')">1D Chg%</th>
         <th onclick="sortBy('RS TOTAL')">RS Total</th>
         <th onclick="sortBy('1 Month RS')">RS 1M</th>
@@ -1171,7 +1116,6 @@ function applyFilters() {
   const volAbv  = gc('f_vol_abv');
   const toAbv   = gc('f_to_abv');
   const delAbv  = gc('f_del_abv');
-  const tradableOnly = gc('f_tradable');
 
   filteredData = allData.filter(r => {
     if (search) {
@@ -1257,7 +1201,6 @@ function applyFilters() {
     if (volAbv && r['Volume Above Avg'] !== 'Yes') return false;
     if (toAbv  && r['Turnover Above Avg'] !== 'Yes') return false;
     if (delAbv && r['Delivery Above Avg'] !== 'Yes') return false;
-    if (tradableOnly && r['Is Tradable'] != 1) return false;
 
     return true;
   });
@@ -1291,7 +1234,7 @@ function clearFilters() {
   rebuildSectorDropdown('');
   rebuildIndustryDropdown('', '');
   rebuildBasicDropdown('', '', '');
-  ['f_vol_abv','f_to_abv','f_del_abv','f_tradable'].forEach(id => {
+  ['f_vol_abv','f_to_abv','f_del_abv'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.checked = false;
   });
@@ -1311,7 +1254,7 @@ function sortBy(col) {
     th.classList.remove('sort-asc','sort-desc');
   });
   const ths = document.querySelectorAll('thead th');
-  const cols = ['Code','Name','Close','Narrow Range','Is Tradable','1 Day Chng%','RS TOTAL','1 Month RS','2 Months RS','4 Months RS','6 Months RS','3 Month Linearity >= 0.5','1 Month Linearity >= 0.5','1 Month Chng%','2 Months Chng%','4 Months Chng%','6 Months Chng%','Market Cap','PE','ROE','Debt','Macro Economic Sector','Sector','Industry','Basic Industry','Volume','Net Turnover','Delivery %','Volume Above Avg','Delivery Above Avg','Price Band %','Prom Hold %','EPS Latest Qtr %','EPS Prev Qtr %','Sales Latest Qtr %','Sales Prev Qtr %','All Index'];
+  const cols = ['Code','Name','Close','Narrow Range','1 Day Chng%','RS TOTAL','1 Month RS','2 Months RS','4 Months RS','6 Months RS','3 Month Linearity >= 0.5','1 Month Linearity >= 0.5','1 Month Chng%','2 Months Chng%','4 Months Chng%','6 Months Chng%','Market Cap','PE','ROE','Debt','Macro Economic Sector','Sector','Industry','Basic Industry','Volume','Net Turnover','Delivery %','Volume Above Avg','Delivery Above Avg','Price Band %','Prom Hold %','EPS Latest Qtr %','EPS Prev Qtr %','Sales Latest Qtr %','Sales Prev Qtr %','All Index'];
   const idx = cols.indexOf(col);
   if (idx >= 0) ths[idx].classList.add(sortDir === -1 ? 'sort-desc' : 'sort-asc');
   sortData();
@@ -1407,12 +1350,11 @@ function renderPage() {
   const page  = filteredData.slice(start, end);
 
   tbody.innerHTML = page.map(r => `
-    <tr${r['Is Tradable'] == 1 ? ' class="tradable-row"' : ''}>
+    <tr>
       <td class="code-cell peer-link" data-code="${(r.Code||'').replace(/"/g,'&quot;')}" title="Click for peer comparison" style="cursor:pointer">${r.Code||'—'}</td>
       <td class="name-cell tv-link" data-code="${(r.Code||'').replace(/"/g,'&quot;')}" title="Open on TradingView" style="cursor:pointer">${r.Name||'—'}</td>
       <td class="num">${fNum(r.Close,2)}</td>
       <td class="num">${r['Narrow Range'] && r['Narrow Range'] !== '0' ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r['Narrow Range']}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
-      <td>${r['Is Tradable'] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
       <td class="${chngClass(r['1 Day Chng%'])} num">${chngStr(r['1 Day Chng%'])}</td>
       <td>${rsTotalBadge(r['RS TOTAL'])}</td>
       <td>${rsBadge(r['1 Month RS'])}</td>
