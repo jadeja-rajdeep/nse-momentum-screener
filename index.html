@@ -1251,6 +1251,22 @@
                 .filter-panel {
                     overflow: auto !important;
                 }
+
+                #mainTable #tableBody th:nth-child(2),
+                #mainTable #tableBody td:nth-child(2),
+                .name-cell {
+                    width: 100px !important;
+                    min-width: 100px !important;
+                    max-width: 100px !important;
+                }
+            }
+            @media screen and (max-height: 665px) {
+                body {
+                    overflow: auto !important;
+                }
+                .filter-panel {
+                    overflow: auto !important;
+                }
             }
 
             /* ---- PEER MODAL ---- */
@@ -3032,7 +3048,7 @@
                     filtersVisible ? "" : "none";
             }
             //for smaller devices make by default close.
-            if (window.innerWidth <= 768) {
+            if (window.innerWidth <= 768 || window.innerHeight <= 665) {
                 toggleFilters();
             }
 
