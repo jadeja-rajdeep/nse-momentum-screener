@@ -1,0 +1,20 @@
+{
+  "name": "NSE Momentum Screener",
+  "short_name": "NSE Screener",
+  "description": "NSE stock screener with RS ratings, sector filters, momentum analytics and peer comparison.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0f1a",
+  "theme_color": "#00d4aa",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%230b0f1a'/%3E%3Cpolyline points='80,320 170,220 240,280 330,140 432,200' fill='none' stroke='%2300d4aa' stroke-width='36' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='432' cy='200' r='28' fill='%2300d4aa'/%3E%3Ctext x='256' y='440' text-anchor='middle' font-family='monospace' font-size='72' font-weight='bold' fill='%2300d4aa'%3ENSE%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "business"],
+  "lang": "en-IN"
+}
