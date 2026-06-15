@@ -967,19 +967,15 @@
   /*
    * MOBILE LAYOUT FIX
    * Targets: portrait phones (max-width:768px) AND landscape phones/small tablets
-   * On these devices we fully abandon the desktop flex/overflow:hidden layout.
-   * Setting both html and body ensures Chrome Android respects the scroll.
+   * (pointer:coarse = touch device, max-height:640px catches landscape phones)
+   * On these devices we abandon the flex/overflow:hidden desktop layout and let
+   * the entire page scroll naturally so filters + table + pagination are all reachable.
    */
   @media (max-width: 768px),
          (pointer: coarse) and (max-height: 640px) {
-    html {
-      height: auto !important;
-      overflow: auto !important;
-    }
     body {
       height: auto !important;
       min-height: 100vh;
-      display: block !important;
       overflow-x: hidden !important;
       overflow-y: auto !important;
     }
@@ -987,16 +983,21 @@
       overflow-x: auto;
       overflow-y: visible !important;
       flex: none !important;
-      height: auto !important;
       min-height: 100px;
+      /* let the table be as tall as it needs */
       max-height: none !important;
     }
     thead th {
       position: static !important;
     }
+    th:nth-child(1), td:nth-child(1),
+    th:nth-child(2), td:nth-child(2) {
+      /* keep col-sticky on landscape since horizontal scroll still works */
+    }
     .pag-bar {
       position: static !important;
-      padding-bottom: 20px;
+      /* ensure it's always visible at bottom of natural flow */
+      padding-bottom: 16px;
     }
   }
 
