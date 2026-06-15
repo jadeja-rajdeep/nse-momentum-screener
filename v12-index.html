@@ -622,206 +622,8 @@
   }
   .btn-save-confirm:hover { background: rgba(0,212,170,0.22); }
 
-  /* ---- TV WATCHLIST BUTTON ---- */
-  .btn-tv-watchlist {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(245,158,11,0.1);
-    border: 1px solid rgba(245,158,11,0.35);
-    color: var(--accent3);
-    font-size: 11px;
-    font-weight: 600;
-    font-family: var(--sans);
-    padding: 4px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    animation: tv-pulse 2s ease-in-out infinite;
-  }
-  .btn-tv-watchlist:hover {
-    background: rgba(245,158,11,0.2);
-    border-color: var(--accent3);
-    animation: none;
-  }
-  @keyframes tv-pulse {
-    0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
-    50%      { box-shadow: 0 0 0 4px rgba(245,158,11,0.15); }
-  }
-
-  /* ---- TV MODAL ---- */
-  .tv-modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 9999;
-    align-items: flex-start;
-    justify-content: center;
-    backdrop-filter: blur(3px);
-    padding: 20px;
-    overflow-y: auto;
-  }
-  .tv-modal-overlay.open { display: flex; }
-  .tv-modal {
-    background: var(--surface);
-    border: 1px solid rgba(245,158,11,0.25);
-    border-radius: 12px;
-    width: 100%;
-    max-width: 680px;
-    margin: auto;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-  }
-  .tv-modal-header {
-    background: linear-gradient(135deg, #0d1421, #1a1500);
-    border-bottom: 1px solid rgba(245,158,11,0.2);
-    padding: 16px 20px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    border-radius: 12px 12px 0 0;
-  }
-  .tv-modal-title {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--accent3);
-  }
-  .tv-modal-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .tv-modal-body { padding: 20px; }
-
-  /* chunk size selector */
-  .tv-step { margin-bottom: 18px; }
-  .tv-step-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 10px;
-    letter-spacing: 0.02em;
-  }
-  .tv-chunk-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-  }
-  .tv-chunk-opt {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-size: 12px;
-  }
-  .tv-chunk-opt:has(input:checked) {
-    border-color: var(--accent3);
-    background: rgba(245,158,11,0.1);
-  }
-  .tv-chunk-opt input[type=radio] { accent-color: var(--accent3); }
-  .tv-chunk-opt span { font-family: var(--mono); font-weight: 700; color: var(--text); }
-  .tv-chunk-opt em { font-style: normal; font-size: 10px; color: var(--muted); }
-  .tv-chunk-custom { gap: 6px; }
-  .tv-custom-input {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    width: 70px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    outline: none;
-  }
-  .tv-custom-input:focus { border-color: var(--accent3); }
-
-  /* chunk output cards */
-  .tv-chunks-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
-    margin-top: 4px;
-  }
-  .tv-chunk-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .tv-chunk-card-header {
-    background: #0d1421;
-    padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-  }
-  .tv-chunk-name {
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--accent3);
-  }
-  .tv-chunk-count {
-    font-size: 10px;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
-  .tv-chunk-textarea {
-    width: 100%;
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 10px;
-    padding: 10px 12px;
-    resize: none;
-    height: 90px;
-    outline: none;
-    line-height: 1.7;
-  }
-  .tv-chunk-textarea:focus { color: var(--text); }
-  .tv-chunk-card-footer {
-    padding: 6px 10px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 6px;
-  }
-  .tv-copy-btn {
-    flex: 1;
-    background: rgba(0,212,170,0.08);
-    border: 1px solid rgba(0,212,170,0.25);
-    color: var(--accent);
-    font-size: 11px;
-    font-family: var(--sans);
-    padding: 5px 0;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-weight: 600;
-  }
-  .tv-copy-btn:hover { background: rgba(0,212,170,0.18); }
-  .tv-copy-btn.copied {
-    background: rgba(16,185,129,0.15);
-    border-color: rgba(16,185,129,0.4);
-    color: var(--success);
-  }
-  .tv-howto {
-    margin-top: 16px;
-    background: rgba(59,130,246,0.06);
-    border: 1px solid rgba(59,130,246,0.2);
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.8;
-  }
-  .tv-howto strong { color: var(--accent2); font-weight: 600; }
+  @media (max-width: 768px) {
+    .site-header { padding: 12px 14px 10px; }
     .filter-panel { padding: 10px 14px; }
     .stats-bar { padding: 8px 14px; gap: 14px; }
     .pag-bar { padding: 10px 14px; }
@@ -1355,11 +1157,6 @@
     <span class="stat-label">Avg Mcap (Cr)</span>
     <span class="stat-val" id="stat-avg-mcap">—</span>
   </div>
-  <!-- TV Watchlist button — only visible when a filter is active -->
-  <button class="btn-tv-watchlist" id="btnTvWatchlist" onclick="openTvModal()" style="display:none" title="Export filtered stocks to TradingView watchlist">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    TV Watchlist
-  </button>
   <div class="ms-auto d-flex align-items-center gap-6" style="gap:8px">
     <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--muted)">
       <input type="checkbox" id="toggleAllIndex" onchange="toggleAllIndexCol()" style="accent-color:var(--accent);width:13px;height:13px">
@@ -1450,49 +1247,6 @@
       <button class="peer-modal-close" onclick="closePeerModal()">✕</button>
     </div>
     <div class="peer-modal-body" id="peerModalBody"></div>
-  </div>
-</div>
-
-<!-- TV WATCHLIST MODAL -->
-<div class="tv-modal-overlay" id="tvModal" onclick="closeTvModalOnOverlay(event)">
-  <div class="tv-modal">
-    <div class="tv-modal-header">
-      <div>
-        <div class="tv-modal-title">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          TradingView Watchlist Export
-        </div>
-        <div class="tv-modal-meta" id="tvModalMeta"></div>
-      </div>
-      <button class="peer-modal-close" onclick="closeTvModal()">✕</button>
-    </div>
-    <div class="tv-modal-body">
-
-      <!-- Step 1: chunk size -->
-      <div class="tv-step">
-        <div class="tv-step-label">How many stocks per watchlist? <span style="color:var(--muted);font-weight:400">(TradingView plan limits)</span></div>
-        <div class="tv-chunk-options">
-          <label class="tv-chunk-opt"><input type="radio" name="tvChunk" value="30" checked> <span>30</span> <em>Free</em></label>
-          <label class="tv-chunk-opt"><input type="radio" name="tvChunk" value="100"> <span>100</span> <em>Essential</em></label>
-          <label class="tv-chunk-opt"><input type="radio" name="tvChunk" value="500"> <span>500</span> <em>Plus</em></label>
-          <label class="tv-chunk-opt"><input type="radio" name="tvChunk" value="1000"> <span>1000</span> <em>Premium+</em></label>
-          <label class="tv-chunk-opt tv-chunk-custom">
-            <input type="radio" name="tvChunk" value="custom">
-            <span>Custom:</span>
-            <input type="number" id="tvCustomChunk" class="tv-custom-input" placeholder="e.g. 50" min="1" max="5000"
-              onfocus="document.querySelector('input[name=tvChunk][value=custom]').checked=true"
-              oninput="renderTvChunks()">
-          </label>
-        </div>
-        <div style="font-size:10px;color:var(--muted);margin-top:6px">
-          All chunk sizes are suggestions — TradingView allows manual split during import. Each watchlist will be named automatically.
-        </div>
-      </div>
-
-      <!-- Chunks output -->
-      <div id="tvChunksWrap"></div>
-
-    </div>
   </div>
 </div>
 
@@ -1994,10 +1748,6 @@ function updateStats() {
   const avgMcRaw = mcVals.length ? mcVals.reduce((a,b)=>a+b,0)/mcVals.length : null;
   const avgMc = avgMcRaw === null ? '—' : avgMcRaw >= 1000 ? (avgMcRaw/1000).toFixed(1)+'K Cr' : Math.round(avgMcRaw).toLocaleString('en-IN')+' Cr';
   document.getElementById('stat-avg-mcap').textContent = avgMc;
-
-  // Show TV Watchlist button only when a filter is active (filteredData differs from allData)
-  const isFiltered = filteredData.length > 0 && filteredData.length < allData.length;
-  document.getElementById('btnTvWatchlist').style.display = isFiltered ? '' : 'none';
 }
 
 // ============ PAGINATION ============
@@ -2112,7 +1862,7 @@ function closePeerModalOnOverlay(e) {
 
 // Close on Escape key
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closePeerModal(); closeSaveModal(); closeTvModal(); }
+  if (e.key === 'Escape') { closePeerModal(); closeSaveModal(); }
 });
 
 function toggleAllIndexCol() {
@@ -2446,112 +2196,6 @@ function clearMultiSearch(reapply = true) {
   multiSearchActive = false;
   document.getElementById('multiBanner').style.display = 'none';
   if (reapply) applyFilters();
-}
-
-// ============ TV WATCHLIST ============
-function toTvSymbol(code) {
-  // NSE: replace & with _ for TradingView symbol naming
-  return 'NSE:' + (code || '').replace(/&/g, '_');
-}
-
-function getTvChunkSize() {
-  const sel = document.querySelector('input[name="tvChunk"]:checked');
-  if (!sel) return 30;
-  if (sel.value === 'custom') {
-    const v = parseInt(document.getElementById('tvCustomChunk').value);
-    return (v > 0) ? v : 30;
-  }
-  return parseInt(sel.value);
-}
-
-function openTvModal() {
-  const count = filteredData.length;
-  document.getElementById('tvModalMeta').textContent =
-    `${count} stock${count !== 1 ? 's' : ''} from current filtered results · Exchange: NSE`;
-  document.getElementById('tvModal').classList.add('open');
-  renderTvChunks();
-
-  // Attach change handlers to radio buttons
-  document.querySelectorAll('input[name="tvChunk"]').forEach(r => {
-    r.onchange = renderTvChunks;
-  });
-}
-
-function closeTvModal() {
-  document.getElementById('tvModal').classList.remove('open');
-}
-function closeTvModalOnOverlay(e) {
-  if (e.target === document.getElementById('tvModal')) closeTvModal();
-}
-
-function renderTvChunks() {
-  const chunkSize = getTvChunkSize();
-  const symbols = filteredData.map(r => toTvSymbol(r.Code));
-  const total = symbols.length;
-
-  // Split into chunks
-  const chunks = [];
-  for (let i = 0; i < total; i += chunkSize) {
-    chunks.push(symbols.slice(i, i + chunkSize));
-  }
-
-  const wrap = document.getElementById('tvChunksWrap');
-  if (!chunks.length) { wrap.innerHTML = ''; return; }
-
-  const totalChunks = chunks.length;
-  const chunkCards = chunks.map((chunk, idx) => {
-    const name = totalChunks === 1
-      ? 'NSE Momentum Watchlist'
-      : `NSE Momentum ${idx + 1} of ${totalChunks}`;
-    const text = chunk.join(',');
-    const cardId = `tvchunk-${idx}`;
-    return `
-      <div class="tv-chunk-card">
-        <div class="tv-chunk-card-header">
-          <span class="tv-chunk-name">📋 ${name}</span>
-          <span class="tv-chunk-count">${chunk.length} stocks</span>
-        </div>
-        <textarea class="tv-chunk-textarea" id="${cardId}" readonly>${text}</textarea>
-        <div class="tv-chunk-card-footer">
-          <button class="tv-copy-btn" onclick="copyTvChunk('${cardId}', this)">
-            📋 Copy
-          </button>
-        </div>
-      </div>`;
-  }).join('');
-
-  wrap.innerHTML = `
-    <div style="font-size:10px;color:var(--muted);margin-bottom:10px;font-family:var(--mono)">
-      ${total} stocks → ${totalChunks} watchlist${totalChunks > 1 ? 's' : ''} of ≤${chunkSize} each
-    </div>
-    <div class="tv-chunks-grid">${chunkCards}</div>
-    <div class="tv-howto">
-      <strong>How to import into TradingView:</strong><br>
-      1. Open TradingView → Watchlist panel (right sidebar)<br>
-      2. Click <strong>⋮ → Import Watchlist</strong> (or "+ New List" then import)<br>
-      3. Paste the copied text and click <strong>Import</strong><br>
-      4. Repeat for each chunk if you have multiple watchlists
-    </div>`;
-}
-
-function copyTvChunk(id, btn) {
-  const ta = document.getElementById(id);
-  if (!ta) return;
-  navigator.clipboard.writeText(ta.value).then(() => {
-    btn.textContent = '✓ Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.textContent = '📋 Copy';
-      btn.classList.remove('copied');
-    }, 2000);
-  }).catch(() => {
-    // Fallback for older browsers
-    ta.select();
-    document.execCommand('copy');
-    btn.textContent = '✓ Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2000);
-  });
 }
 
 // ============ INIT ============
