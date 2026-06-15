@@ -1244,10 +1244,12 @@
              * On these devices we fully abandon the desktop flex/overflow:hidden layout.
              * Setting both html and body ensures Chrome Android respects the scroll.
              */
-            @media (max-width: 768px),
-                (pointer: coarse) and (max-height: 640px) {
+            @media screen and (max-width: 768px) {
                 body {
-                    overflow-y: auto !important;
+                    overflow: auto !important;
+                }
+                .filter-panel {
+                    overflow: auto !important;
                 }
             }
 
@@ -3028,6 +3030,10 @@
                 filtersVisible = !filtersVisible;
                 document.getElementById("filterPanel").style.display =
                     filtersVisible ? "" : "none";
+            }
+            //for smaller devices make by default close.
+            if (window.innerWidth <= 768) {
+                toggleFilters();
             }
 
             function toggleSavedPanel() {
