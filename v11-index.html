@@ -630,48 +630,27 @@
     .saved-panel { padding: 10px 14px; }
   }
 
-  /*
-   * MOBILE LAYOUT FIX
-   * Targets: portrait phones (max-width:768px) AND landscape phones/small tablets
-   * (pointer:coarse = touch device, max-height:640px catches landscape phones)
-   * On these devices we abandon the flex/overflow:hidden desktop layout and let
-   * the entire page scroll naturally so filters + table + pagination are all reachable.
-   */
-  @media (max-width: 768px),
-         (pointer: coarse) and (max-height: 640px) {
+  /* On mobile: abandon flex/overflow layout, let the whole page scroll naturally */
+  @media (max-width: 768px) {
     body {
-      height: auto !important;
-      min-height: 100vh;
-      overflow-x: hidden !important;
-      overflow-y: auto !important;
+      height: auto;
+      overflow: auto;
     }
     .table-wrapper {
       overflow-x: auto;
-      overflow-y: visible !important;
-      flex: none !important;
-      min-height: 100px;
-      /* let the table be as tall as it needs */
-      max-height: none !important;
+      overflow-y: visible;
+      flex: none;
+      min-height: 0;
     }
     thead th {
-      position: static !important;
+      position: static; /* no sticky on mobile to avoid broken layout */
     }
     th:nth-child(1), td:nth-child(1),
     th:nth-child(2), td:nth-child(2) {
-      /* keep col-sticky on landscape since horizontal scroll still works */
+      position: static;
     }
     .pag-bar {
-      position: static !important;
-      /* ensure it's always visible at bottom of natural flow */
-      padding-bottom: 16px;
-    }
-  }
-
-  /* Portrait phones only: also disable col-sticky (too narrow) */
-  @media (max-width: 600px) {
-    th:nth-child(1), td:nth-child(1),
-    th:nth-child(2), td:nth-child(2) {
-      position: static !important;
+      position: static;
     }
   }
 
