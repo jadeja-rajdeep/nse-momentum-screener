@@ -4987,22 +4987,11 @@ function mselOnChange(field) {
             let newSwWaiting = null;
 
             // Capture the browser's native install prompt
-            const PWA_DISMISS_KEY = "pwa_install_dismissed_at";
-            const PWA_DISMISS_DAYS = 15;
-
-            function isInstallToastSnoozed() {
-                const dismissedAt = localStorage.getItem(PWA_DISMISS_KEY);
-                if (!dismissedAt) return false;
-                const elapsedMs = Date.now() - parseInt(dismissedAt, 10);
-                const elapsedDays = elapsedMs / (1000 * 60 * 60 * 24);
-                return elapsedDays < PWA_DISMISS_DAYS;
-            }
-
             window.addEventListener("beforeinstallprompt", (e) => {
                 e.preventDefault();
                 deferredInstallPrompt = e;
-                // Only show if user hasn't dismissed within the last 15 days
-                if (!isInstallToastSnoozed()) {
+                // Only show if user hasn't dismissed before
+                if (!localStorage.getItem("pwa_install_dismissed")) {
                     setTimeout(() => showPwaToast("install"), 3000);
                 }
             });
@@ -5059,7 +5048,6 @@ function mselOnChange(field) {
             // Show app-installed confirmation
             window.addEventListener("appinstalled", () => {
                 dismissPwaToast("install");
-                localStorage.removeItem(PWA_DISMISS_KEY);
                 console.log("[PWA] App installed successfully");
             });
 
@@ -5074,10 +5062,7 @@ function mselOnChange(field) {
                     type === "install" ? "pwaInstallToast" : "pwaUpdateToast";
                 document.getElementById(id).classList.remove("show");
                 if (type === "install")
-                    localStorage.setItem(
-                        PWA_DISMISS_KEY,
-                        Date.now().toString(),
-                    );
+                    localStorage.setItem("pwa_install_dismissed", "1");
             }
 
             function applyPwaUpdate() {
