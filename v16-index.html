@@ -135,156 +135,6 @@
                 background: var(--surface2);
                 color: var(--text);
             }
-
-            /* ---- MULTI-SELECT DROPDOWN (custom, no library) ---- */
-            .msel {
-                position: relative;
-            }
-            .msel-trigger {
-                background: var(--surface2);
-                border: 1px solid var(--border);
-                color: var(--text);
-                font-family: var(--sans);
-                font-size: 12px;
-                padding: 5px 10px;
-                height: 32px;
-                border-radius: 6px;
-                width: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 6px;
-                cursor: pointer;
-                transition: border-color 0.2s;
-                user-select: none;
-            }
-            .msel-trigger:hover {
-                border-color: var(--muted);
-            }
-            .msel.open .msel-trigger {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.15);
-            }
-            .msel-trigger-label {
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                flex: 1;
-                min-width: 0;
-            }
-            .msel-trigger-label.placeholder {
-                color: var(--muted);
-            }
-            .msel-trigger-label.has-value {
-                color: var(--accent);
-                font-weight: 600;
-            }
-            .msel-caret {
-                font-size: 9px;
-                color: var(--muted);
-                flex-shrink: 0;
-                transition: transform 0.15s;
-            }
-            .msel.open .msel-caret {
-                transform: rotate(180deg);
-            }
-            .msel-panel {
-                display: none;
-                position: absolute;
-                top: calc(100% + 4px);
-                left: 0;
-                min-width: 100%;
-                width: max-content;
-                max-width: 320px;
-                background: var(--surface2);
-                border: 1px solid var(--accent);
-                border-radius: 8px;
-                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-                z-index: 200;
-                overflow: hidden;
-            }
-            .msel.open .msel-panel {
-                display: flex;
-                flex-direction: column;
-            }
-            .msel-search {
-                background: var(--surface);
-                border: none;
-                border-bottom: 1px solid var(--border);
-                color: var(--text);
-                font-family: var(--sans);
-                font-size: 12px;
-                padding: 7px 10px;
-                outline: none;
-                width: 100%;
-            }
-            .msel-search::placeholder {
-                color: var(--muted);
-            }
-            .msel-actions {
-                display: flex;
-                gap: 6px;
-                padding: 6px 8px;
-                border-bottom: 1px solid var(--border);
-                background: var(--surface);
-            }
-            .msel-action-btn {
-                background: transparent;
-                border: 1px solid var(--border);
-                color: var(--muted);
-                font-size: 10px;
-                padding: 2px 8px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-family: var(--sans);
-                transition: all 0.15s;
-            }
-            .msel-action-btn:hover {
-                border-color: var(--accent);
-                color: var(--accent);
-            }
-            .msel-options {
-                max-height: 230px;
-                overflow-y: auto;
-                padding: 4px 0;
-            }
-            .msel-opt {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 6px 10px;
-                font-size: 12px;
-                color: var(--text);
-                cursor: pointer;
-                transition: background 0.1s;
-            }
-            .msel-opt:hover {
-                background: rgba(0, 212, 170, 0.08);
-            }
-            .msel-opt input[type="checkbox"] {
-                accent-color: var(--accent);
-                width: 13px;
-                height: 13px;
-                cursor: pointer;
-                flex-shrink: 0;
-            }
-            .msel-opt-label {
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                flex: 1;
-            }
-            .msel-empty {
-                padding: 12px;
-                font-size: 11px;
-                color: var(--muted);
-                text-align: center;
-                font-style: italic;
-            }
-            .msel-disabled .msel-trigger {
-                opacity: 0.5;
-                cursor: default;
-            }
             .range-group {
                 display: flex;
                 gap: 5px;
@@ -1399,10 +1249,7 @@
                     overflow: auto !important;
                 }
                 .filter-panel {
-                    overflow: visible !important;
-                }
-                .msel-panel {
-                    max-width: min(320px, calc(100vw - 32px));
+                    overflow: auto !important;
                 }
 
                 #mainTable #tableBody th:nth-child(2),
@@ -1418,7 +1265,7 @@
                     overflow: auto !important;
                 }
                 .filter-panel {
-                    overflow: visible !important;
+                    overflow: auto !important;
                 }
             }
 
@@ -1777,222 +1624,66 @@
                 <!-- Macro Economic Sector -->
                 <div class="col-12 col-sm-6 col-md-3 col-xl-2">
                     <div class="filter-label">Macro Eco Sector</div>
-                    <div class="msel" id="msel_f_macro" data-field="f_macro">
-                        <div class="msel-trigger">
-                            <span class="msel-trigger-label placeholder"
-                                >All</span
-                            >
-                            <span class="msel-caret">▼</span>
-                        </div>
-                        <div class="msel-panel">
-                            <input
-                                type="text"
-                                class="msel-search"
-                                placeholder="Search…"
-                            />
-                            <div class="msel-actions">
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="all"
-                                >
-                                    Select All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="none"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                            <div class="msel-options"></div>
-                        </div>
-                    </div>
+                    <select
+                        class="form-select"
+                        id="f_macro"
+                        onchange="onMacroChange()"
+                    >
+                        <option value="">All</option>
+                    </select>
                 </div>
 
                 <!-- Sector -->
                 <div class="col-12 col-sm-6 col-md-3 col-xl-2">
                     <div class="filter-label">Sector</div>
-                    <div class="msel" id="msel_f_sector" data-field="f_sector">
-                        <div class="msel-trigger">
-                            <span class="msel-trigger-label placeholder"
-                                >All</span
-                            >
-                            <span class="msel-caret">▼</span>
-                        </div>
-                        <div class="msel-panel">
-                            <input
-                                type="text"
-                                class="msel-search"
-                                placeholder="Search…"
-                            />
-                            <div class="msel-actions">
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="all"
-                                >
-                                    Select All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="none"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                            <div class="msel-options"></div>
-                        </div>
-                    </div>
+                    <select
+                        class="form-select"
+                        id="f_sector"
+                        onchange="onSectorChange()"
+                    >
+                        <option value="">All</option>
+                    </select>
                 </div>
 
                 <!-- Industry -->
                 <div class="col-12 col-sm-6 col-md-3 col-xl-2">
                     <div class="filter-label">Industry</div>
-                    <div
-                        class="msel"
-                        id="msel_f_industry"
-                        data-field="f_industry"
+                    <select
+                        class="form-select"
+                        id="f_industry"
+                        onchange="onIndustryChange()"
                     >
-                        <div class="msel-trigger">
-                            <span class="msel-trigger-label placeholder"
-                                >All</span
-                            >
-                            <span class="msel-caret">▼</span>
-                        </div>
-                        <div class="msel-panel">
-                            <input
-                                type="text"
-                                class="msel-search"
-                                placeholder="Search…"
-                            />
-                            <div class="msel-actions">
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="all"
-                                >
-                                    Select All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="none"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                            <div class="msel-options"></div>
-                        </div>
-                    </div>
+                        <option value="">All</option>
+                    </select>
                 </div>
 
                 <!-- Basic Industry -->
                 <div class="col-12 col-sm-6 col-md-3 col-xl-2">
                     <div class="filter-label">Basic Industry</div>
-                    <div class="msel" id="msel_f_basic" data-field="f_basic">
-                        <div class="msel-trigger">
-                            <span class="msel-trigger-label placeholder"
-                                >All</span
-                            >
-                            <span class="msel-caret">▼</span>
-                        </div>
-                        <div class="msel-panel">
-                            <input
-                                type="text"
-                                class="msel-search"
-                                placeholder="Search…"
-                            />
-                            <div class="msel-actions">
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="all"
-                                >
-                                    Select All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="none"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                            <div class="msel-options"></div>
-                        </div>
-                    </div>
+                    <select
+                        class="form-select"
+                        id="f_basic"
+                        onchange="applyFilters()"
+                    >
+                        <option value="">All</option>
+                    </select>
                 </div>
 
                 <!-- Price Band -->
                 <div class="col-12 col-sm-6 col-md-3 col-xl-1">
                     <div class="filter-label">Price Band %</div>
-                    <div
-                        class="msel"
-                        id="msel_f_priceband"
-                        data-field="f_priceband"
+                    <select
+                        class="form-select"
+                        id="f_priceband"
+                        onchange="applyFilters()"
                     >
-                        <div class="msel-trigger">
-                            <span class="msel-trigger-label placeholder"
-                                >All</span
-                            >
-                            <span class="msel-caret">▼</span>
-                        </div>
-                        <div class="msel-panel">
-                            <div class="msel-actions">
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="all"
-                                >
-                                    Select All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="none"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                            <div class="msel-options">
-                                <label class="msel-opt"
-                                    ><input
-                                        type="checkbox"
-                                        value="0" /><span
-                                        class="msel-opt-label"
-                                        >0% (No Limit)</span
-                                    ></label
-                                >
-                                <label class="msel-opt"
-                                    ><input type="checkbox" value="2" /><span
-                                        class="msel-opt-label"
-                                        >2%</span
-                                    ></label
-                                >
-                                <label class="msel-opt"
-                                    ><input type="checkbox" value="5" /><span
-                                        class="msel-opt-label"
-                                        >5%</span
-                                    ></label
-                                >
-                                <label class="msel-opt"
-                                    ><input type="checkbox" value="10" /><span
-                                        class="msel-opt-label"
-                                        >10%</span
-                                    ></label
-                                >
-                                <label class="msel-opt"
-                                    ><input type="checkbox" value="20" /><span
-                                        class="msel-opt-label"
-                                        >20%</span
-                                    ></label
-                                >
-                            </div>
-                        </div>
-                    </div>
+                        <option value="">All</option>
+                        <option value="0">0% (No Limit)</option>
+                        <option value="2">2%</option>
+                        <option value="5">5%</option>
+                        <option value="10">10%</option>
+                        <option value="20">20%</option>
+                    </select>
                 </div>
 
                 <!-- Clear + Save buttons -->
@@ -2907,186 +2598,7 @@
             let rowsPerPage = 50;
             let filtersVisible = true;
 
-            // ============ MULTI-SELECT WIDGET (lightweight, no library) ============
-// State: each field id -> array of selected string values (empty array = "All")
-const mselState = {
-    f_macro: [],
-    f_sector: [],
-    f_industry: [],
-    f_basic: [],
-    f_priceband: [],
-};
-
-// Cascade-aware option lists per field (set externally when rebuilding cascade)
-const mselOptions = {
-    f_macro: [],
-    f_sector: [],
-    f_industry: [],
-    f_basic: [],
-    f_priceband: ["0", "2", "5", "10", "20"],
-};
-const mselOptionLabels = {
-    0: "0% (No Limit)",
-    2: "2%",
-    5: "5%",
-    10: "10%",
-    20: "20%",
-};
-
-function mselSetOptions(field, options) {
-    mselOptions[field] = options;
-    // Drop any selected values that no longer exist in the new option list
-    mselState[field] = mselState[field].filter((v) => options.includes(v));
-    mselRenderOptions(field);
-    mselUpdateTrigger(field);
-}
-
-function mselRenderOptions(field) {
-    const widget = document.getElementById("msel_" + field);
-    if (!widget) return;
-    const optsWrap = widget.querySelector(".msel-options");
-    const searchInput = widget.querySelector(".msel-search");
-    const filterText = searchInput ? searchInput.value.trim().toLowerCase() : "";
-
-    const options = mselOptions[field] || [];
-    const visible = filterText
-        ? options.filter((o) => o.toLowerCase().includes(filterText))
-        : options;
-
-    if (!visible.length) {
-        optsWrap.innerHTML = `<div class="msel-empty">No options found</div>`;
-        return;
-    }
-
-    const selected = new Set(mselState[field]);
-    optsWrap.innerHTML = visible
-        .map((o) => {
-            const label = field === "f_priceband" ? mselOptionLabels[o] || o + "%" : o;
-            const checked = selected.has(o) ? "checked" : "";
-            const safe = o.replace(/"/g, "&quot;");
-            return `<label class="msel-opt"><input type="checkbox" value="${safe}" ${checked}><span class="msel-opt-label" title="${label}">${label}</span></label>`;
-        })
-        .join("");
-}
-
-function mselUpdateTrigger(field) {
-    const widget = document.getElementById("msel_" + field);
-    if (!widget) return;
-    const labelEl = widget.querySelector(".msel-trigger-label");
-    const sel = mselState[field];
-    if (!sel.length) {
-        labelEl.textContent = "All";
-        labelEl.classList.add("placeholder");
-        labelEl.classList.remove("has-value");
-    } else if (sel.length === 1) {
-        const label = field === "f_priceband" ? (mselOptionLabels[sel[0]] || sel[0] + "%") : sel[0];
-        labelEl.textContent = label;
-        labelEl.classList.remove("placeholder");
-        labelEl.classList.add("has-value");
-    } else {
-        labelEl.textContent = `${sel.length} selected`;
-        labelEl.classList.remove("placeholder");
-        labelEl.classList.add("has-value");
-    }
-}
-
-function mselGetSelected(field) {
-    return mselState[field] || [];
-}
-
-function mselSetSelected(field, values) {
-    const valid = (mselOptions[field] || []);
-    mselState[field] = (values || []).filter((v) => valid.includes(v));
-    mselRenderOptions(field);
-    mselUpdateTrigger(field);
-}
-
-function mselClear(field) {
-    mselState[field] = [];
-    mselRenderOptions(field);
-    mselUpdateTrigger(field);
-}
-
-function mselCloseAll(exceptField) {
-    document.querySelectorAll(".msel.open").forEach((w) => {
-        if (!exceptField || w.id !== "msel_" + exceptField) {
-            w.classList.remove("open");
-        }
-    });
-}
-
-// Event delegation — one set of listeners handles all 5 widgets
-document.addEventListener("click", (e) => {
-    const widget = e.target.closest(".msel");
-
-    // Click on trigger → toggle open/close
-    const trigger = e.target.closest(".msel-trigger");
-    if (trigger && widget) {
-        const isOpen = widget.classList.contains("open");
-        mselCloseAll();
-        if (!isOpen) {
-            widget.classList.add("open");
-            const search = widget.querySelector(".msel-search");
-            if (search) setTimeout(() => search.focus(), 30);
-        }
-        return;
-    }
-
-    // Click on action buttons (Select All / Clear)
-    const actBtn = e.target.closest(".msel-action-btn");
-    if (actBtn && widget) {
-        const field = widget.dataset.field;
-        if (actBtn.dataset.act === "all") {
-            mselSetSelected(field, [...mselOptions[field]]);
-        } else {
-            mselClear(field);
-        }
-        mselOnChange(field);
-        return;
-    }
-
-    // Click on a checkbox option
-    const optLabel = e.target.closest(".msel-opt");
-    if (optLabel && widget) {
-        // allow native checkbox toggle to happen, then sync state on next tick
-        const field = widget.dataset.field;
-        setTimeout(() => {
-            const checked = [
-                ...widget.querySelectorAll(".msel-options input[type=checkbox]:checked"),
-            ].map((cb) => cb.value);
-            mselState[field] = checked;
-            mselUpdateTrigger(field);
-            mselOnChange(field);
-        }, 0);
-        return;
-    }
-
-    // Click outside any widget → close all
-    if (!widget) mselCloseAll();
-});
-
-// Live filter search inside dropdown panel
-document.addEventListener("input", (e) => {
-    if (e.target.classList.contains("msel-search")) {
-        const widget = e.target.closest(".msel");
-        if (widget) mselRenderOptions(widget.dataset.field);
-    }
-});
-
-// Wire up cascade + filter triggers per field
-function mselOnChange(field) {
-    if (field === "f_macro") {
-        onMacroChange();
-    } else if (field === "f_sector") {
-        onSectorChange();
-    } else if (field === "f_industry") {
-        onIndustryChange();
-    } else {
-        applyFilters();
-    }
-}
-
-// ============ LOAD ============
+            // ============ LOAD ============
             // Hierarchy lookup maps built once at load
             let macroToSectors = {}; // macro → Set of sectors
             let sectorToIndustries = {}; // sector → Set of industries
@@ -3140,12 +2652,12 @@ function mselOnChange(field) {
                                 .filter(Boolean),
                         ),
                     ].sort();
-                    mselSetOptions("f_macro", macros);
+                    populateDropdown("f_macro", macros);
 
                     // Sector/Industry/Basic start fully populated
-                    rebuildSectorDropdown([]);
-                    rebuildIndustryDropdown([], []);
-                    rebuildBasicDropdown([], [], []);
+                    rebuildSectorDropdown("");
+                    rebuildIndustryDropdown("", "");
+                    rebuildBasicDropdown("", "", "");
 
                     // Date badge
                     const dates = rows.map((r) => r.Date).filter(Boolean);
@@ -3168,18 +2680,22 @@ function mselOnChange(field) {
                 }
             }
 
-            // Note: populateDropdown is superseded by mselSetOptions (see MULTI-SELECT WIDGET block above)
+            function populateDropdown(id, options) {
+                const sel = document.getElementById(id);
+                // keep first "All" option, replace rest
+                while (sel.options.length > 1) sel.remove(1);
+                options.forEach((o) => {
+                    const opt = document.createElement("option");
+                    opt.value = o;
+                    opt.textContent = o;
+                    sel.appendChild(opt);
+                });
+            }
 
-            // macros: array of selected macro values (0, 1, or many)
-            function rebuildSectorDropdown(macros) {
+            function rebuildSectorDropdown(macro) {
                 let sectors;
-                if (macros && macros.length) {
-                    const set = new Set();
-                    macros.forEach((m) => {
-                        if (macroToSectors[m])
-                            macroToSectors[m].forEach((s) => set.add(s));
-                    });
-                    sectors = [...set].sort();
+                if (macro && macroToSectors[macro]) {
+                    sectors = [...macroToSectors[macro]].sort();
                 } else {
                     sectors = [
                         ...new Set(
@@ -3187,29 +2703,20 @@ function mselOnChange(field) {
                         ),
                     ].sort();
                 }
-                mselSetOptions("f_sector", sectors);
+                populateDropdown("f_sector", sectors);
             }
 
-            function rebuildIndustryDropdown(macros, sectors) {
+            function rebuildIndustryDropdown(macro, sector) {
                 let industries;
-                if (sectors && sectors.length) {
+                if (sector && sectorToIndustries[sector]) {
+                    industries = [...sectorToIndustries[sector]].sort();
+                } else if (macro && macroToSectors[macro]) {
+                    // all industries under this macro's sectors
+                    const secs = macroToSectors[macro];
                     const set = new Set();
-                    sectors.forEach((s) => {
+                    secs.forEach((s) => {
                         if (sectorToIndustries[s])
                             sectorToIndustries[s].forEach((i) => set.add(i));
-                    });
-                    industries = [...set].sort();
-                } else if (macros && macros.length) {
-                    const set = new Set();
-                    macros.forEach((m) => {
-                        if (macroToSectors[m]) {
-                            macroToSectors[m].forEach((s) => {
-                                if (sectorToIndustries[s])
-                                    sectorToIndustries[s].forEach((i) =>
-                                        set.add(i),
-                                    );
-                            });
-                        }
                     });
                     industries = [...set].sort();
                 } else {
@@ -3219,46 +2726,32 @@ function mselOnChange(field) {
                         ),
                     ].sort();
                 }
-                mselSetOptions("f_industry", industries);
+                populateDropdown("f_industry", industries);
             }
 
-            function rebuildBasicDropdown(macros, sectors, industries) {
+            function rebuildBasicDropdown(macro, sector, industry) {
                 let basics;
-                if (industries && industries.length) {
+                if (industry && industryToBasics[industry]) {
+                    basics = [...industryToBasics[industry]].sort();
+                } else if (sector && sectorToIndustries[sector]) {
+                    const inds = sectorToIndustries[sector];
                     const set = new Set();
-                    industries.forEach((i) => {
+                    inds.forEach((i) => {
                         if (industryToBasics[i])
                             industryToBasics[i].forEach((b) => set.add(b));
                     });
                     basics = [...set].sort();
-                } else if (sectors && sectors.length) {
+                } else if (macro && macroToSectors[macro]) {
+                    const secs = macroToSectors[macro];
                     const set = new Set();
-                    sectors.forEach((s) => {
-                        if (sectorToIndustries[s]) {
+                    secs.forEach((s) => {
+                        if (sectorToIndustries[s])
                             sectorToIndustries[s].forEach((i) => {
                                 if (industryToBasics[i])
                                     industryToBasics[i].forEach((b) =>
                                         set.add(b),
                                     );
                             });
-                        }
-                    });
-                    basics = [...set].sort();
-                } else if (macros && macros.length) {
-                    const set = new Set();
-                    macros.forEach((m) => {
-                        if (macroToSectors[m]) {
-                            macroToSectors[m].forEach((s) => {
-                                if (sectorToIndustries[s]) {
-                                    sectorToIndustries[s].forEach((i) => {
-                                        if (industryToBasics[i])
-                                            industryToBasics[i].forEach((b) =>
-                                                set.add(b),
-                                            );
-                                    });
-                                }
-                            });
-                        }
                     });
                     basics = [...set].sort();
                 } else {
@@ -3270,39 +2763,31 @@ function mselOnChange(field) {
                         ),
                     ].sort();
                 }
-                mselSetOptions("f_basic", basics);
+                populateDropdown("f_basic", basics);
             }
 
-            // Cascade handlers — read current multi-select state and rebuild children
+            // Cascade handlers
             function onMacroChange() {
-                const macros = mselGetSelected("f_macro");
-                rebuildSectorDropdown(macros);
-                rebuildIndustryDropdown(macros, mselGetSelected("f_sector"));
-                rebuildBasicDropdown(
-                    macros,
-                    mselGetSelected("f_sector"),
-                    mselGetSelected("f_industry"),
-                );
+                const macro = gv("f_macro");
+                rebuildSectorDropdown(macro);
+                rebuildIndustryDropdown(macro, "");
+                rebuildBasicDropdown(macro, "", "");
                 applyFilters();
             }
 
             function onSectorChange() {
-                const macros = mselGetSelected("f_macro");
-                const sectors = mselGetSelected("f_sector");
-                rebuildIndustryDropdown(macros, sectors);
-                rebuildBasicDropdown(
-                    macros,
-                    sectors,
-                    mselGetSelected("f_industry"),
-                );
+                const macro = gv("f_macro");
+                const sector = gv("f_sector");
+                rebuildIndustryDropdown(macro, sector);
+                rebuildBasicDropdown(macro, sector, "");
                 applyFilters();
             }
 
             function onIndustryChange() {
-                const macros = mselGetSelected("f_macro");
-                const sectors = mselGetSelected("f_sector");
-                const industries = mselGetSelected("f_industry");
-                rebuildBasicDropdown(macros, sectors, industries);
+                const macro = gv("f_macro");
+                const sector = gv("f_sector");
+                const industry = gv("f_industry");
+                rebuildBasicDropdown(macro, sector, industry);
                 applyFilters();
             }
 
@@ -3320,11 +2805,11 @@ function mselOnChange(field) {
 
             function applyFilters() {
                 const search = gv("f_search").toLowerCase();
-                const macros = mselGetSelected("f_macro");
-                const sectors = mselGetSelected("f_sector");
-                const industries = mselGetSelected("f_industry");
-                const basics = mselGetSelected("f_basic");
-                const bands = mselGetSelected("f_priceband");
+                const macro = gv("f_macro");
+                const sector = gv("f_sector");
+                const industry = gv("f_industry");
+                const basic = gv("f_basic");
+                const band = gv("f_priceband");
 
                 const rsMin = gn("f_rs_min");
                 const rsMax = gn("f_rs_max");
@@ -3372,27 +2857,12 @@ function mselOnChange(field) {
                         if (!code.includes(search) && !name.includes(search))
                             return false;
                     }
-                    if (
-                        macros.length &&
-                        !macros.includes(r["Macro Economic Sector"])
-                    )
+                    if (macro && r["Macro Economic Sector"] !== macro)
                         return false;
-                    if (sectors.length && !sectors.includes(r["Sector"]))
-                        return false;
-                    if (
-                        industries.length &&
-                        !industries.includes(r["Industry"])
-                    )
-                        return false;
-                    if (
-                        basics.length &&
-                        !basics.includes(r["Basic Industry"])
-                    )
-                        return false;
-                    if (
-                        bands.length &&
-                        !bands.includes(String(r["Price Band %"]))
-                    )
+                    if (sector && r["Sector"] !== sector) return false;
+                    if (industry && r["Industry"] !== industry) return false;
+                    if (basic && r["Basic Industry"] !== basic) return false;
+                    if (band && String(r["Price Band %"]) !== band)
                         return false;
 
                     const rs = parseFloat(r["RS TOTAL"]);
@@ -3555,16 +3025,14 @@ function mselOnChange(field) {
                     if (el) el.value = "";
                 });
                 ["f_priceband"].forEach((id) => {
-                    mselClear(id);
+                    const el = document.getElementById(id);
+                    if (el) el.value = "";
                 });
-                // Reset cascading dropdowns + clear all selections
-                mselClear("f_macro");
-                mselClear("f_sector");
-                mselClear("f_industry");
-                mselClear("f_basic");
-                rebuildSectorDropdown([]);
-                rebuildIndustryDropdown([], []);
-                rebuildBasicDropdown([], [], []);
+                // Reset cascading dropdowns
+                document.getElementById("f_macro").value = "";
+                rebuildSectorDropdown("");
+                rebuildIndustryDropdown("", "");
+                rebuildBasicDropdown("", "", "");
                 ["f_vol_abv", "f_to_abv", "f_del_abv", "f_tradable"].forEach(
                     (id) => {
                         const el = document.getElementById(id);
@@ -4065,11 +3533,11 @@ function mselOnChange(field) {
             // All filter field definitions for capture/restore
             const FILTER_FIELDS = [
                 { id: "f_search", type: "text" },
-                { id: "f_macro", type: "mselect" },
-                { id: "f_sector", type: "mselect" },
-                { id: "f_industry", type: "mselect" },
-                { id: "f_basic", type: "mselect" },
-                { id: "f_priceband", type: "mselect" },
+                { id: "f_macro", type: "select" },
+                { id: "f_sector", type: "select" },
+                { id: "f_industry", type: "select" },
+                { id: "f_basic", type: "select" },
+                { id: "f_priceband", type: "select" },
                 { id: "f_rs_min", type: "num" },
                 { id: "f_rs_max", type: "num" },
                 { id: "f_rs1m_min", type: "num" },
@@ -4171,11 +3639,6 @@ function mselOnChange(field) {
             function captureFilters() {
                 const state = {};
                 FILTER_FIELDS.forEach(({ id, type }) => {
-                    if (type === "mselect") {
-                        const sel = mselGetSelected(id);
-                        if (sel.length) state[id] = [...sel];
-                        return;
-                    }
                     const el = document.getElementById(id);
                     if (!el) return;
                     if (type === "check") {
@@ -4190,60 +3653,43 @@ function mselOnChange(field) {
             function restoreFilters(state) {
                 // Reset all first
                 FILTER_FIELDS.forEach(({ id, type }) => {
-                    if (type === "mselect") {
-                        mselClear(id);
-                        return;
-                    }
                     const el = document.getElementById(id);
                     if (!el) return;
                     if (type === "check") el.checked = false;
                     else el.value = "";
                 });
                 // Restore cascade dropdowns to full
-                rebuildSectorDropdown([]);
-                rebuildIndustryDropdown([], []);
-                rebuildBasicDropdown([], [], []);
-
-                // Restore multi-select fields first, rebuilding cascade as we go
-                const macros = state.f_macro || [];
-                const sectors = state.f_sector || [];
-                const industries = state.f_industry || [];
-                const basics = state.f_basic || [];
-                const bands = state.f_priceband || [];
-
-                if (macros.length) {
-                    mselSetOptions(
-                        "f_macro",
-                        mselOptions.f_macro.length
-                            ? mselOptions.f_macro
-                            : macros,
-                    );
-                    mselSetSelected("f_macro", macros);
-                    rebuildSectorDropdown(macros);
-                }
-                if (sectors.length) {
-                    rebuildIndustryDropdown(macros, sectors);
-                    mselSetSelected("f_sector", sectors);
-                }
-                if (industries.length) {
-                    rebuildBasicDropdown(macros, sectors, industries);
-                    mselSetSelected("f_industry", industries);
-                }
-                if (basics.length) {
-                    mselSetSelected("f_basic", basics);
-                }
-                if (bands.length) {
-                    mselSetSelected("f_priceband", bands);
-                }
-
-                // Restore remaining text/number/checkbox fields
+                rebuildSectorDropdown("");
+                rebuildIndustryDropdown("", "");
+                rebuildBasicDropdown("", "", "");
+                // Apply saved state
                 Object.entries(state).forEach(([id, val]) => {
-                    const field = FILTER_FIELDS.find((f) => f.id === id);
-                    if (!field || field.type === "mselect") return;
                     const el = document.getElementById(id);
                     if (!el) return;
-                    if (field.type === "check") el.checked = !!val;
-                    else el.value = val;
+                    const field = FILTER_FIELDS.find((f) => f.id === id);
+                    if (!field) return;
+                    if (field.type === "check") {
+                        el.checked = !!val;
+                    } else {
+                        el.value = val;
+                        // trigger cascade if needed
+                        if (id === "f_macro") {
+                            rebuildSectorDropdown(val);
+                            rebuildIndustryDropdown(val, "");
+                            rebuildBasicDropdown(val, "", "");
+                        }
+                        if (id === "f_sector") {
+                            rebuildIndustryDropdown(state.f_macro || "", val);
+                            rebuildBasicDropdown(state.f_macro || "", val, "");
+                        }
+                        if (id === "f_industry") {
+                            rebuildBasicDropdown(
+                                state.f_macro || "",
+                                state.f_sector || "",
+                                val,
+                            );
+                        }
+                    }
                 });
                 applyFilters();
             }
@@ -4251,18 +3697,11 @@ function mselOnChange(field) {
             function runFilterState(state) {
                 // Run a filter state and return matching rows (without touching the UI)
                 const get = (id) => state[id] || "";
-                const getArr = (id) => state[id] || [];
                 const gnum = (id) => {
                     const v = parseFloat(state[id]);
                     return isNaN(v) ? null : v;
                 };
                 const gbool = (id) => !!state[id];
-
-                const macros = getArr("f_macro");
-                const sectors = getArr("f_sector");
-                const industries = getArr("f_industry");
-                const basics = getArr("f_basic");
-                const bands = getArr("f_priceband");
 
                 return allData.filter((r) => {
                     const search = get("f_search").toLowerCase();
@@ -4273,25 +3712,25 @@ function mselOnChange(field) {
                             return false;
                     }
                     if (
-                        macros.length &&
-                        !macros.includes(r["Macro Economic Sector"])
+                        get("f_macro") &&
+                        r["Macro Economic Sector"] !== get("f_macro")
                     )
                         return false;
-                    if (sectors.length && !sectors.includes(r["Sector"]))
+                    if (get("f_sector") && r["Sector"] !== get("f_sector"))
                         return false;
                     if (
-                        industries.length &&
-                        !industries.includes(r["Industry"])
-                    )
-                        return false;
-                    if (
-                        basics.length &&
-                        !basics.includes(r["Basic Industry"])
+                        get("f_industry") &&
+                        r["Industry"] !== get("f_industry")
                     )
                         return false;
                     if (
-                        bands.length &&
-                        !bands.includes(String(r["Price Band %"]))
+                        get("f_basic") &&
+                        r["Basic Industry"] !== get("f_basic")
+                    )
+                        return false;
+                    if (
+                        get("f_priceband") &&
+                        String(r["Price Band %"]) !== get("f_priceband")
                     )
                         return false;
 
@@ -4360,10 +3799,7 @@ function mselOnChange(field) {
                     .map((id) => {
                         const val = state[id];
                         const label = FIELD_LABELS[id] || id;
-                        let display;
-                        if (val === true) display = "Yes";
-                        else if (Array.isArray(val)) display = val.join(", ");
-                        else display = val;
+                        const display = val === true ? "Yes" : val;
                         return `<div class="ss-preview-row"><span class="ss-preview-key">${label}:</span><span class="ss-preview-val">${display}</span></div>`;
                     })
                     .join("");
@@ -4935,7 +4371,6 @@ function mselOnChange(field) {
                 });
             loadData();
             renderSavedList();
-            mselUpdateTrigger("f_priceband"); // sync trigger label for the static HTML checkboxes
         </script>
         <!-- PWA: Install prompt toast -->
         <div class="pwa-toast" id="pwaInstallToast">
