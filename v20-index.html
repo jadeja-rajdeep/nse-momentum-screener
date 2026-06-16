@@ -3106,41 +3106,17 @@
             let sectorToIndustries = {}; // sector → Set of industries
             let industryToBasics = {}; // industry → Set of basic industries
 
+            const DATA_DATE_KEY = "nse_screener_data_date";
             const DATA_CACHE_NAME = "nse-screener-data-v1"; // must match sw.js DATA_CACHE
-            const NSE_PUBLISH_HOUR_IST = 17; // NSE publishes updated data ~5 PM IST after market close
 
-            // Get current date/time in IST (Asia/Kolkata), independent of the
-            // visitor's actual browser/device timezone.
-            function getIstNow() {
-                // en-CA gives YYYY-MM-DD; combined with explicit hour/minute parts
-                const parts = new Intl.DateTimeFormat("en-CA", {
-                    timeZone: "Asia/Kolkata",
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                }).formatToParts(new Date());
-                const get = (type) => parts.find((p) => p.type === type)?.value;
-                return {
-                    dateStr: `${get("year")}-${get("month")}-${get("day")}`, // YYYY-MM-DD in IST
-                    hour: parseInt(get("hour"), 10),
-                };
-            }
-
-            // Try to read m.json straight from the Cache Storage (no network).
-            // Serves from cache when either:
-            //  (a) the cached file's own Date already matches today (IST), or
-            //  (b) the cached file's Date is BEFORE today (could be 1 day old
-            //      on a normal day, or 2-3+ days old after a weekend/holiday
-            //      break) AND it's still before 5 PM IST — meaning NSE hasn't
-            //      published a newer update yet, so the cached data is still
-            //      the most current available regardless of the gap.
+            // Try to read m.json straight from the Cache Storage (no network)
+            // if today's date matches the date we last successfully loaded.
             async function tryLoadFromCacheIfFresh() {
-                if (!("caches" in window)) return null; // Cache API unavailable (no SW support)
+                const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD, local time
+                const lastLoadedDate = localStorage.getItem(DATA_DATE_KEY);
+                if (lastLoadedDate !== today) return null; // new day — must hit network
 
-                const { dateStr: todayIst, hour: hourIst } = getIstNow();
+                if (!("caches" in window)) return null; // Cache API unavailable (no SW support)
 
                 try {
                     const cache = await caches.open(DATA_CACHE_NAME);
@@ -3148,6 +3124,9 @@
                     if (!cachedRes) return null;
                     const raw = await cachedRes.json();
 
+                    // Double-check the cached file's own Date field actually
+                    // says today — guards against a stale cache entry that
+                    // happens to share the same localStorage stamp.
                     let rows = [];
                     for (const block of raw) {
                         if (block.type === "table" && block.data) {
@@ -3156,16 +3135,7 @@
                         }
                     }
                     const innerDate = rows[0]?.Date;
-                    if (!innerDate) return null;
-
-                    const isToday = innerDate === todayIst;
-                    // innerDate <= todayIst works correctly as a plain string
-                    // comparison because both are YYYY-MM-DD (lexicographic
-                    // order matches chronological order in this format).
-                    const isOlderButPrePublish =
-                        innerDate < todayIst && hourIst < NSE_PUBLISH_HOUR_IST;
-
-                    if (!isToday && !isOlderButPrePublish) return null;
+                    if (innerDate && innerDate !== today) return null;
 
                     return raw;
                 } catch {
@@ -3233,11 +3203,13 @@
                     rebuildIndustryDropdown([], []);
                     rebuildBasicDropdown([], [], []);
 
-                    // Date badge
+                    // Date badge + remember today as the last-loaded data date
                     const dates = rows.map((r) => r.Date).filter(Boolean);
                     if (dates.length) {
                         document.getElementById("data-date").textContent =
                             "📅 " + dates[0] + (fromCache ? " (cached)" : "");
+                        const today = new Date().toLocaleDateString("en-CA");
+                        localStorage.setItem(DATA_DATE_KEY, today);
                     }
 
                     document.getElementById("loading").style.display = "none";
