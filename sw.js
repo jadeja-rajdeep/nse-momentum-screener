@@ -1,7 +1,7 @@
 // NSE Momentum Screener — Service Worker
 // Bump CACHE_VERSION whenever you update index.html or any static asset.
 // m.json is always fetched fresh from network; cache is only a fallback.
-const CACHE_VERSION = "nse-screener-v4";
+const CACHE_VERSION = "nse-screener-v5";
 const DATA_CACHE = "nse-screener-data-v1";
 
 const STATIC_ASSETS = [

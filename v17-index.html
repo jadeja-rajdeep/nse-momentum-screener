@@ -5025,17 +5025,11 @@ function mselOnChange(field) {
                             console.warn("[PWA] SW registration failed:", err),
                         );
 
-                    // When SW takes control, reload ONLY if this is a genuine
-                    // update replacing an already-active controller — not the
-                    // very first install (which would cause an unwanted
-                    // reload/flicker on every first-time visit).
-                    const hadControllerBefore = !!navigator.serviceWorker
-                        .controller;
+                    // When SW takes control, reload to use new cache
                     let refreshing = false;
                     navigator.serviceWorker.addEventListener(
                         "controllerchange",
                         () => {
-                            if (!hadControllerBefore) return; // first install — no reload needed
                             if (!refreshing) {
                                 refreshing = true;
                                 window.location.reload();
