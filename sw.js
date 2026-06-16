@@ -1,7 +1,15 @@
 // NSE Momentum Screener — Service Worker
 // Bump CACHE_VERSION whenever you update index.html or any static asset.
-// m.json is always fetched fresh from network; cache is only a fallback.
-const CACHE_VERSION = "nse-screener-v6";
+//
+// m.json strategy: this SW always fetches m.json fresh from network and
+// updates DATA_CACHE on every successful response (cache is a fallback for
+// offline use). The PAGE (index.html) has a separate, faster optimization:
+// before even calling fetch(), it checks if today's date matches the last
+// successfully-loaded date (stored in localStorage) and, if so, reads
+// m.json directly out of this same DATA_CACHE — skipping the network
+// request entirely and saving the ~4MB download on repeat same-day visits.
+// Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
+const CACHE_VERSION = "nse-screener-v7";
 const DATA_CACHE = "nse-screener-data-v1";
 
 const STATIC_ASSETS = [
