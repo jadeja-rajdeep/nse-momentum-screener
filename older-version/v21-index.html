@@ -1010,226 +1010,6 @@
                 border: 1px solid var(--border);
             }
 
-            /* ---- HELP / GUIDE MODAL ---- */
-            .help-modal-overlay {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.75);
-                z-index: 10000;
-                align-items: flex-start;
-                justify-content: center;
-                backdrop-filter: blur(3px);
-                padding: 16px;
-                overflow-y: auto;
-            }
-            .help-modal-overlay.open {
-                display: flex;
-            }
-            .help-modal {
-                background: var(--surface);
-                border: 1px solid rgba(0, 212, 170, 0.25);
-                border-radius: 12px;
-                width: 100%;
-                max-width: 1080px;
-                margin: auto;
-                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
-                display: flex;
-                flex-direction: column;
-                max-height: calc(100vh - 32px);
-            }
-            .help-modal-header {
-                background: linear-gradient(135deg, #0d1421, #0a1f1a);
-                border-bottom: 1px solid rgba(0, 212, 170, 0.2);
-                padding: 16px 20px;
-                display: flex;
-                align-items: flex-start;
-                justify-content: space-between;
-                gap: 12px;
-                border-radius: 12px 12px 0 0;
-                flex-shrink: 0;
-            }
-            .help-modal-title {
-                font-family: var(--mono);
-                font-size: 13px;
-                font-weight: 700;
-                color: var(--accent);
-            }
-            .help-modal-meta {
-                font-size: 11px;
-                color: var(--muted);
-                margin-top: 3px;
-            }
-            .help-modal-body {
-                display: flex;
-                flex: 1;
-                min-height: 0;
-                overflow: hidden;
-            }
-            .help-tabs {
-                width: 220px;
-                flex-shrink: 0;
-                background: #0d1421;
-                border-right: 1px solid var(--border);
-                overflow-y: auto;
-                padding: 8px;
-            }
-            .help-tab {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 9px 10px;
-                border-radius: 7px;
-                font-size: 12px;
-                color: var(--muted);
-                cursor: pointer;
-                transition: all 0.15s;
-                margin-bottom: 2px;
-                white-space: nowrap;
-            }
-            .help-tab:hover {
-                background: rgba(0, 212, 170, 0.06);
-                color: var(--text);
-            }
-            .help-tab.active {
-                background: rgba(0, 212, 170, 0.12);
-                color: var(--accent);
-                font-weight: 600;
-            }
-            .help-tab-icon {
-                font-size: 14px;
-                flex-shrink: 0;
-            }
-            .help-content {
-                flex: 1;
-                overflow-y: auto;
-                padding: 22px 26px;
-                min-width: 0;
-            }
-            .help-section {
-                display: none;
-            }
-            .help-section.active {
-                display: block;
-                animation: help-fade-in 0.15s ease-out;
-            }
-            @keyframes help-fade-in {
-                from {
-                    opacity: 0;
-                    transform: translateY(4px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            .help-section h3 {
-                font-family: var(--mono);
-                font-size: 14px;
-                font-weight: 700;
-                color: var(--accent);
-                margin: 0 0 4px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            .help-section .help-tagline {
-                font-size: 11px;
-                color: var(--muted);
-                margin-bottom: 16px;
-                font-style: italic;
-            }
-            .help-block {
-                margin-bottom: 18px;
-            }
-            .help-block:last-child {
-                margin-bottom: 0;
-            }
-            .help-block-title {
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--text);
-                margin-bottom: 6px;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .help-block p {
-                font-size: 12px;
-                color: var(--muted);
-                line-height: 1.7;
-                margin: 0 0 8px;
-            }
-            .help-block ul {
-                margin: 0 0 8px;
-                padding-left: 18px;
-            }
-            .help-block li {
-                font-size: 12px;
-                color: var(--muted);
-                line-height: 1.7;
-                margin-bottom: 4px;
-            }
-            .help-block li strong {
-                color: var(--text);
-                font-weight: 600;
-            }
-            .help-kbd {
-                display: inline-block;
-                background: var(--surface2);
-                border: 1px solid var(--border);
-                border-radius: 4px;
-                padding: 1px 6px;
-                font-family: var(--mono);
-                font-size: 10px;
-                color: var(--accent2);
-            }
-            .help-tip {
-                background: rgba(0, 212, 170, 0.06);
-                border: 1px solid rgba(0, 212, 170, 0.2);
-                border-radius: 8px;
-                padding: 10px 14px;
-                font-size: 11.5px;
-                color: var(--text);
-                line-height: 1.7;
-                margin-top: 10px;
-            }
-            .help-tip strong {
-                color: var(--accent);
-            }
-            .help-rs-band {
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                font-family: var(--mono);
-                font-size: 11px;
-                font-weight: 700;
-                padding: 2px 8px;
-                border-radius: 4px;
-                margin-right: 6px;
-                margin-bottom: 4px;
-            }
-            @media (max-width: 700px) {
-                .help-modal-body {
-                    flex-direction: column;
-                }
-                .help-tabs {
-                    width: 100%;
-                    display: flex;
-                    overflow-x: auto;
-                    border-right: none;
-                    border-bottom: 1px solid var(--border);
-                    padding: 6px;
-                    gap: 4px;
-                }
-                .help-tab {
-                    margin-bottom: 0;
-                }
-                .help-content {
-                    padding: 18px 16px;
-                }
-            }
-
             /* Industry table */
             .ind-table {
                 width: 100%;
@@ -1975,17 +1755,6 @@
                 >
                     <span>⚙</span> Filters
                 </button>
-                <button
-                    class="btn-toggle-filters"
-                    onclick="openHelpModal()"
-                    style="
-                        border-color: rgba(0, 212, 170, 0.4);
-                        color: var(--accent);
-                    "
-                    title="How to use this screener"
-                >
-                    <span>❓</span> Help
-                </button>
             </div>
         </div>
 
@@ -2190,9 +1959,7 @@
                             </div>
                             <div class="msel-options">
                                 <label class="msel-opt"
-                                    ><input
-                                        type="checkbox"
-                                        value="0" /><span
+                                    ><input type="checkbox" value="0" /><span
                                         class="msel-opt-label"
                                         >0% (No Limit)</span
                                     ></label
@@ -3127,343 +2894,6 @@
             </div>
         </div>
 
-        <!-- HELP / GUIDE MODAL -->
-        <div
-            class="help-modal-overlay"
-            id="helpModal"
-            onclick="closeHelpModalOnOverlay(event)"
-        >
-            <div class="help-modal" onclick="event.stopPropagation()">
-                <div class="help-modal-header">
-                    <div>
-                        <div class="help-modal-title">
-                            ❓ NSE Momentum Screener — Guide
-                        </div>
-                        <div class="help-modal-meta">
-                            Everything this tool does, and how to get the most
-                            out of it
-                        </div>
-                    </div>
-                    <button class="peer-modal-close" onclick="closeHelpModal()">
-                        ✕
-                    </button>
-                </div>
-                <div class="help-modal-body">
-                    <div class="help-tabs" id="helpTabs">
-                        <div class="help-tab active" data-help-tab="overview">
-                            <span class="help-tab-icon">🏠</span> Overview
-                        </div>
-                        <div class="help-tab" data-help-tab="filters">
-                            <span class="help-tab-icon">⚙</span> Filters
-                        </div>
-                        <div class="help-tab" data-help-tab="cascade">
-                            <span class="help-tab-icon">🔗</span> Sector
-                            Cascade
-                        </div>
-                        <div class="help-tab" data-help-tab="table">
-                            <span class="help-tab-icon">📋</span> Table
-                            Columns
-                        </div>
-                        <div class="help-tab" data-help-tab="rs">
-                            <span class="help-tab-icon">💪</span> RS Rating
-                        </div>
-                        <div class="help-tab" data-help-tab="peer">
-                            <span class="help-tab-icon">🔍</span> Peer
-                            Comparison
-                        </div>
-                        <div class="help-tab" data-help-tab="chart">
-                            <span class="help-tab-icon">📈</span> TradingView
-                            Chart
-                        </div>
-                        <div class="help-tab" data-help-tab="industry">
-                            <span class="help-tab-icon">📊</span> Industry
-                            Performance
-                        </div>
-                        <div class="help-tab" data-help-tab="saved">
-                            <span class="help-tab-icon">📌</span> Saved
-                            Searches
-                        </div>
-                        <div class="help-tab" data-help-tab="watchlist">
-                            <span class="help-tab-icon">⚡</span> TV Watchlist
-                        </div>
-                        <div class="help-tab" data-help-tab="pwa">
-                            <span class="help-tab-icon">📲</span> Install App
-                        </div>
-                        <div class="help-tab" data-help-tab="tips">
-                            <span class="help-tab-icon">💡</span> Pro Tips
-                        </div>
-                    </div>
-
-                    <div class="help-content" id="helpContent">
-                        <!-- OVERVIEW -->
-                        <div class="help-section active" data-help-section="overview">
-                            <h3>🏠 What This Screener Does</h3>
-                            <div class="help-tagline">
-                                A single-file, no-login NSE stock screener built for momentum and relative-strength based research.
-                            </div>
-                            <div class="help-block">
-                                <p>This tool loads a daily snapshot of NSE-listed stocks (<span class="help-kbd">m.json</span>) and gives you fast, flexible ways to filter, rank, and compare them — entirely in your browser, with no server or account needed.</p>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">🧭 Core building blocks</div>
-                                <ul>
-                                    <li><strong>Filters</strong> — narrow thousands of stocks down to a focused list using sector, RS, market cap, fundamentals, and more.</li>
-                                    <li><strong>RS Rating</strong> — a composite Relative Strength score (0–400) ranking each stock's price momentum against the rest of the market.</li>
-                                    <li><strong>Peer Comparison</strong> — click any stock's code to instantly see how it stacks up against others in the same industry/basic industry.</li>
-                                    <li><strong>Industry Performance</strong> — a market-wide heatmap of average returns by sector/industry, drillable down to basic industry.</li>
-                                    <li><strong>Saved Searches</strong> — name and store filter combinations locally, re-run one or combine several at once.</li>
-                                    <li><strong>TradingView Export</strong> — turn any filtered result into a ready-to-import TradingView watchlist.</li>
-                                </ul>
-                            </div>
-                            <div class="help-tip">
-                                <strong>New here?</strong> Start with the <strong>Filters</strong> tab to learn the basics, then check <strong>RS Rating</strong> to understand the most important column in the table.
-                            </div>
-                        </div>
-
-                        <!-- FILTERS -->
-                        <div class="help-section" data-help-section="filters">
-                            <h3>⚙ Filters Panel</h3>
-                            <div class="help-tagline">Click the <span class="help-kbd">⚙ Filters</span> button in the header to show or hide this panel.</div>
-                            <div class="help-block">
-                                <div class="help-block-title">🔎 Text & dropdown filters</div>
-                                <ul>
-                                    <li><strong>Search Code/Name</strong> — instant text match on stock ticker or company name.</li>
-                                    <li><strong>Macro Sector / Sector / Industry / Basic Industry</strong> — multi-select dropdowns; tick multiple values in one dropdown for an OR match (e.g. Auto + IT), while different dropdowns combine with AND logic.</li>
-                                    <li><strong>Price Band %</strong> — NSE's circuit filter band (0/2/5/10/20%), also multi-select.</li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">📏 Range filters</div>
-                                <p>Most numeric fields (RS Total, RS 1M/2M/4M/6M, Market Cap, PE, Close Price, ROE, Turnover, Promoter Holding, EPS/Sales growth) accept a Min and/or Max — leave either blank for an open-ended range.</p>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">✅ Checkbox filters</div>
-                                <ul>
-                                    <li><strong>Volume / Turnover / Delivery Above Avg</strong> — flags stocks trading with unusually high activity.</li>
-                                    <li><strong>Is Tradable ⚡</strong> — the most important quick-filter; highlights stocks flagged as currently tradable, with a glowing row highlight in the table.</li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">🧹 Clearing & saving</div>
-                                <p>Use <span class="help-kbd">✕ Clear</span> to reset every filter at once. Use <span class="help-kbd">💾</span> next to it to save your current combination as a named search for later (see the Saved Searches tab).</p>
-                            </div>
-                        </div>
-
-                        <!-- CASCADE -->
-                        <div class="help-section" data-help-section="cascade">
-                            <h3>🔗 Sector Cascade Logic</h3>
-                            <div class="help-tagline">The four classification dropdowns are linked — selecting a parent narrows the children automatically.</div>
-                            <div class="help-block">
-                                <p>NSE classifies every stock into a 4-level hierarchy:</p>
-                                <p style="color:var(--accent);font-family:var(--mono);font-size:11px">Macro Economic Sector → Sector → Industry → Basic Industry</p>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">How the cascade behaves</div>
-                                <ul>
-                                    <li>Picking one or more <strong>Macro Sectors</strong> instantly limits the Sector dropdown to only the sectors that exist under those macro sectors — and does the same further down to Industry and Basic Industry.</li>
-                                    <li>Picking <strong>Sectors</strong> narrows Industry and Basic Industry the same way, regardless of what Macro Sector is selected.</li>
-                                    <li>Picking <strong>Industries</strong> narrows Basic Industry to just that industry's sub-categories.</li>
-                                    <li>Clearing a parent selection automatically widens its children back out.</li>
-                                </ul>
-                            </div>
-                            <div class="help-tip">
-                                <strong>Why this matters:</strong> you'll never accidentally pick a combination that returns zero stocks — every dropdown only ever shows options that actually exist given what's already selected above it.
-                            </div>
-                        </div>
-
-                        <!-- TABLE COLUMNS -->
-                        <div class="help-section" data-help-section="table">
-                            <h3>📋 Reading the Table</h3>
-                            <div class="help-tagline">Every column header is clickable to sort — click again to reverse direction.</div>
-                            <div class="help-block">
-                                <div class="help-block-title">Price & momentum</div>
-                                <ul>
-                                    <li><strong>Close</strong> — latest closing price.</li>
-                                    <li><strong>NR</strong> — Narrow Range day count; amber number shown only when ≥1, meaning the stock has been consolidating in a tight range for that many days (often a pre-breakout signal).</li>
-                                    <li><strong>1D/1M/2M/4M/6M Chg%</strong> — price change over each timeframe, green for gains, red for losses.</li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">RS & Linearity</div>
-                                <ul>
-                                    <li><strong>RS Total / RS 1M/2M/4M/6M</strong> — Relative Strength scores; see the dedicated RS Rating tab for how to read these.</li>
-                                    <li><strong>Lin 1M / Lin 3M</strong> — "linearity" of the price trend (0–1); higher means a smoother, steadier climb rather than a choppy one.</li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">Fundamentals</div>
-                                <ul>
-                                    <li><strong>MCap Cr / PE / ROE / Debt</strong> — standard fundamental metrics, market cap shown in Crores.</li>
-                                    <li><strong>EPS Q1%/Q2% and Sales Q1%/Q2%</strong> — latest and previous quarter YoY growth.</li>
-                                    <li><strong>Holdings %</strong> — combined Promoter (P), Employee Trust (E), and Public (D) shareholding in one compact cell.</li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">Activity & classification</div>
-                                <ul>
-                                    <li><strong>Volume / Turnover</strong> — shown compactly (K/M/Cr) rather than raw numbers.</li>
-                                    <li><strong>Vol↑ / Del↑</strong> — checkmarks for above-average volume/delivery.</li>
-                                    <li><strong>Tradable</strong> — ⚡ YES pill for stocks flagged as currently tradable; row also gets a subtle teal highlight.</li>
-                                    <li><strong>Macro Sector / Sector / Industry / Basic Industry</strong> — full classification path.</li>
-                                    <li><strong>All Index</strong> — hidden by default (tick "Show All Index" near the row-count selector to reveal); shows which NSE indices include the stock.</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- RS RATING -->
-                        <div class="help-section" data-help-section="rs">
-                            <h3>💪 Understanding RS Rating</h3>
-                            <div class="help-tagline">Relative Strength measures how a stock's price performance compares to the rest of the market — the single most important column here.</div>
-                            <div class="help-block">
-                                <p><strong>RS Total</strong> (0–400) is a composite score blending performance across the 21/42/84/126-day (1/2/4/6-month) windows, weighted so recent strength counts more without ignoring longer-term trend. <strong>RS 1M/2M/4M/6M</strong> are the individual timeframe scores feeding into it.</p>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">Reading the color-coded badges</div>
-                                <div>
-                                    <span class="help-rs-band" style="background:rgba(16,185,129,0.18);color:#10b981">RS Total ≥ 370</span> top-tier momentum leader<br>
-                                    <span class="help-rs-band" style="background:rgba(245,158,11,0.18);color:#f59e0b">RS Total 300–369</span> solid relative strength<br>
-                                    <span class="help-rs-band" style="background:rgba(244,63,94,0.18);color:#f43f5e">RS Total &lt; 300</span> lagging the market
-                                </div>
-                            </div>
-                            <div class="help-tip">
-                                <strong>How to use it:</strong> sort by RS Total descending to surface the market's strongest momentum names first, then layer on fundamental filters (PE, ROE, EPS growth) to narrow toward quality leaders rather than just any high-RS stock.
-                            </div>
-                        </div>
-
-                        <!-- PEER COMPARISON -->
-                        <div class="help-section" data-help-section="peer">
-                            <h3>🔍 Peer Comparison Popup</h3>
-                            <div class="help-tagline">Click any stock's <span class="help-kbd">Code</span> cell in the table to open it.</div>
-                            <div class="help-block">
-                                <p>The popup shows two ranked tables, both sorted by RS Total (highest first), with the clicked stock highlighted in teal so you can instantly see where it ranks:</p>
-                                <ul>
-                                    <li><strong>Basic Industry Peers</strong> — every stock sharing the exact same Basic Industry classification.</li>
-                                    <li><strong>Industry Peers</strong> — the broader set of stocks sharing the same Industry (a superset of the basic industry group).</li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <p>Each row shows RS Total, EPS Q1%/Q2%, Sales Q1%/Q2%, Market Cap, Price Band, and 1M/3M Linearity — enough to judge whether a stock is a leader or laggard within its own peer group, not just the broader market.</p>
-                            </div>
-                            <div class="help-tip">
-                                <strong>Why this matters:</strong> a stock with a modest RS Total can still be the strongest performer in a weak industry — and a high RS Total stock might just be riding a strong sector tailwind. Peer comparison reveals which is which.
-                            </div>
-                        </div>
-
-                        <!-- TRADINGVIEW CHART -->
-                        <div class="help-section" data-help-section="chart">
-                            <h3>📈 Instant TradingView Charts</h3>
-                            <div class="help-tagline">Click any stock's <span class="help-kbd">Name</span> cell to open it.</div>
-                            <div class="help-block">
-                                <p>Clicking a company name opens that stock's live chart directly on TradingView in a new tab — using the format <span class="help-kbd">NSE:SYMBOL</span> — so you can jump from screener to chart analysis in one click without searching manually.</p>
-                            </div>
-                            <div class="help-tip">
-                                Symbols containing <span class="help-kbd">&amp;</span> (e.g. M&amp;M) are automatically converted to <span class="help-kbd">_</span> to match TradingView's naming convention.
-                            </div>
-                        </div>
-
-                        <!-- INDUSTRY PERFORMANCE -->
-                        <div class="help-section" data-help-section="industry">
-                            <h3>📊 Industry Performance Heatmap</h3>
-                            <div class="help-tagline">Click <span class="help-kbd">📊 Industry</span> in the header.</div>
-                            <div class="help-block">
-                                <p>This is a market-wide view (not affected by your current filters) showing every Industry's average 1D/1M/2M/4M/6M % change across all its stocks, with heat-coloring — deeper green for stronger average gains, deeper red for steeper average declines.</p>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">Sorting & drilling down</div>
-                                <ul>
-                                    <li>Click any column header to sort by that timeframe.</li>
-                                    <li>Click any <strong>row</strong> to drill into that industry's Basic Industries, with the same heatmap and sorting, plus a breadcrumb showing the full path back to Macro Sector.</li>
-                                </ul>
-                            </div>
-                            <div class="help-tip">
-                                <strong>Use case:</strong> spot which industries are leading or lagging the market right now, then drill in to find exactly which sub-segment is driving that move before searching for individual stocks.
-                            </div>
-                        </div>
-
-                        <!-- SAVED SEARCHES -->
-                        <div class="help-section" data-help-section="saved">
-                            <h3>📌 Saved Searches</h3>
-                            <div class="help-tagline">Save filter combinations locally in your browser and re-run them anytime — even combine several at once.</div>
-                            <div class="help-block">
-                                <div class="help-block-title">Saving a search</div>
-                                <p>Set up any combination of filters, click the <span class="help-kbd">💾</span> button next to Clear, give it a name, and save. It's stored in your browser's local storage — it stays until you delete it or clear browser data, and is never sent anywhere.</p>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">Running searches</div>
-                                <ul>
-                                    <li>Click <span class="help-kbd">📌 Saved</span> in the header to open the panel.</li>
-                                    <li>Click the <strong>▶</strong> button on a single card to load that search — all matching filters get filled in and applied.</li>
-                                    <li>Tick the checkbox on <strong>two or more</strong> cards, then click <strong>Run Selected</strong> — each search runs independently, and the results are combined into one de-duplicated list (a stock matching multiple searches only appears once). A blue banner confirms which searches are active; click ✕ on it to return to normal filtering.</li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">Managing saved searches</div>
-                                <p>Use <strong>☐ All</strong> to select/deselect everything at once, and <strong>🗑 Delete</strong> to remove selected searches (with confirmation).</p>
-                            </div>
-                        </div>
-
-                        <!-- TV WATCHLIST -->
-                        <div class="help-section" data-help-section="watchlist">
-                            <h3>⚡ TradingView Watchlist Export</h3>
-                            <div class="help-tagline">Turn any filtered result into watchlists ready to import into TradingView.</div>
-                            <div class="help-block">
-                                <p>Once a filter is active (results are fewer than the full stock list), an amber <span class="help-kbd">⚡ TV Watchlist</span> button appears in the stats bar. Click it to open the export modal.</p>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">Choosing chunk size</div>
-                                <p>TradingView limits watchlist size by plan (30 on Free, 100 on Essential, 500 on Plus, 1000 on Premium+). Pick the matching option, or enter a custom number — your filtered stocks are automatically split into that many stocks per list.</p>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">Importing</div>
-                                <p>Each chunk shows a ready-to-copy text block in <span class="help-kbd">NSE:SYMBOL</span> format. Click <strong>📋 Copy</strong>, then in TradingView open the Watchlist panel → <strong>⋮ → Import Watchlist</strong> and paste.</p>
-                            </div>
-                            <div class="help-tip">
-                                Symbols with <span class="help-kbd">&amp;</span> are auto-converted to <span class="help-kbd">_</span> to match TradingView's symbol format.
-                            </div>
-                        </div>
-
-                        <!-- PWA -->
-                        <div class="help-section" data-help-section="pwa">
-                            <h3>📲 Installing as an App</h3>
-                            <div class="help-tagline">This screener works as a installable Progressive Web App for faster, app-like access.</div>
-                            <div class="help-block">
-                                <p>On supported browsers (Chrome, Edge, Samsung Internet on Android; Chrome/Edge on desktop), a prompt appears a few seconds after your first visit offering to install the screener to your home screen or desktop. You can dismiss it — it'll politely wait 15 days before asking again.</p>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">Why install it</div>
-                                <ul>
-                                    <li>Opens in its own window without browser address bars/tabs.</li>
-                                    <li>Static assets (HTML, CSS, fonts) load instantly from local cache after the first visit.</li>
-                                    <li>Same-day repeat visits often skip the data download entirely if nothing's changed yet.</li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">iPhone/iPad (Safari)</div>
-                                <p>Safari doesn't support the install prompt automatically — tap the <strong>Share</strong> icon, then <strong>Add to Home Screen</strong> manually.</p>
-                            </div>
-                        </div>
-
-                        <!-- PRO TIPS -->
-                        <div class="help-section" data-help-section="tips">
-                            <h3>💡 Pro Tips</h3>
-                            <div class="help-tagline">Small habits that get the most out of this screener.</div>
-                            <div class="help-block">
-                                <ul>
-                                    <li>Sort by <strong>RS Total</strong> first to find momentum leaders, then check their <strong>NR (Narrow Range)</strong> column for possible breakout setups.</li>
-                                    <li>Before buying into a "strong" stock, open its <strong>Peer Comparison</strong> popup — confirm it's actually a leader within its own industry, not just riding a sector-wide move.</li>
-                                    <li>Use <strong>Is Tradable ⚡</strong> as a first-pass filter if you only care about stocks you can currently act on.</li>
-                                    <li>Build a few go-to <strong>Saved Searches</strong> (e.g. "High RS + Low PE", "Narrow Range Setups") so daily screening takes seconds, not minutes.</li>
-                                    <li>Check the <strong>Industry Performance</strong> heatmap before diving into individual filters — it tells you which sectors are worth focusing on today.</li>
-                                    <li>Press <span class="help-kbd">Esc</span> to quickly close any open popup.</li>
-                                    <li>Click any sortable column header twice to flip between strongest-first and weakest-first ordering.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <script>
             // ============ DATA ============
             const JSON_URL = "m.json"; // same directory — works on GitHub Pages
@@ -3476,185 +2906,201 @@
             let filtersVisible = true;
 
             // ============ MULTI-SELECT WIDGET (lightweight, no library) ============
-// State: each field id -> array of selected string values (empty array = "All")
-const mselState = {
-    f_macro: [],
-    f_sector: [],
-    f_industry: [],
-    f_basic: [],
-    f_priceband: [],
-};
+            // State: each field id -> array of selected string values (empty array = "All")
+            const mselState = {
+                f_macro: [],
+                f_sector: [],
+                f_industry: [],
+                f_basic: [],
+                f_priceband: [],
+            };
 
-// Cascade-aware option lists per field (set externally when rebuilding cascade)
-const mselOptions = {
-    f_macro: [],
-    f_sector: [],
-    f_industry: [],
-    f_basic: [],
-    f_priceband: ["0", "2", "5", "10", "20"],
-};
-const mselOptionLabels = {
-    0: "0% (No Limit)",
-    2: "2%",
-    5: "5%",
-    10: "10%",
-    20: "20%",
-};
+            // Cascade-aware option lists per field (set externally when rebuilding cascade)
+            const mselOptions = {
+                f_macro: [],
+                f_sector: [],
+                f_industry: [],
+                f_basic: [],
+                f_priceband: ["0", "2", "5", "10", "20"],
+            };
+            const mselOptionLabels = {
+                0: "0% (No Limit)",
+                2: "2%",
+                5: "5%",
+                10: "10%",
+                20: "20%",
+            };
 
-function mselSetOptions(field, options) {
-    mselOptions[field] = options;
-    // Drop any selected values that no longer exist in the new option list
-    mselState[field] = mselState[field].filter((v) => options.includes(v));
-    mselRenderOptions(field);
-    mselUpdateTrigger(field);
-}
+            function mselSetOptions(field, options) {
+                mselOptions[field] = options;
+                // Drop any selected values that no longer exist in the new option list
+                mselState[field] = mselState[field].filter((v) =>
+                    options.includes(v),
+                );
+                mselRenderOptions(field);
+                mselUpdateTrigger(field);
+            }
 
-function mselRenderOptions(field) {
-    const widget = document.getElementById("msel_" + field);
-    if (!widget) return;
-    const optsWrap = widget.querySelector(".msel-options");
-    const searchInput = widget.querySelector(".msel-search");
-    const filterText = searchInput ? searchInput.value.trim().toLowerCase() : "";
+            function mselRenderOptions(field) {
+                const widget = document.getElementById("msel_" + field);
+                if (!widget) return;
+                const optsWrap = widget.querySelector(".msel-options");
+                const searchInput = widget.querySelector(".msel-search");
+                const filterText = searchInput
+                    ? searchInput.value.trim().toLowerCase()
+                    : "";
 
-    const options = mselOptions[field] || [];
-    const visible = filterText
-        ? options.filter((o) => o.toLowerCase().includes(filterText))
-        : options;
+                const options = mselOptions[field] || [];
+                const visible = filterText
+                    ? options.filter((o) =>
+                          o.toLowerCase().includes(filterText),
+                      )
+                    : options;
 
-    if (!visible.length) {
-        optsWrap.innerHTML = `<div class="msel-empty">No options found</div>`;
-        return;
-    }
+                if (!visible.length) {
+                    optsWrap.innerHTML = `<div class="msel-empty">No options found</div>`;
+                    return;
+                }
 
-    const selected = new Set(mselState[field]);
-    optsWrap.innerHTML = visible
-        .map((o) => {
-            const label = field === "f_priceband" ? mselOptionLabels[o] || o + "%" : o;
-            const checked = selected.has(o) ? "checked" : "";
-            const safe = o.replace(/"/g, "&quot;");
-            return `<label class="msel-opt"><input type="checkbox" value="${safe}" ${checked}><span class="msel-opt-label" title="${label}">${label}</span></label>`;
-        })
-        .join("");
-}
+                const selected = new Set(mselState[field]);
+                optsWrap.innerHTML = visible
+                    .map((o) => {
+                        const label =
+                            field === "f_priceband"
+                                ? mselOptionLabels[o] || o + "%"
+                                : o;
+                        const checked = selected.has(o) ? "checked" : "";
+                        const safe = o.replace(/"/g, "&quot;");
+                        return `<label class="msel-opt"><input type="checkbox" value="${safe}" ${checked}><span class="msel-opt-label" title="${label}">${label}</span></label>`;
+                    })
+                    .join("");
+            }
 
-function mselUpdateTrigger(field) {
-    const widget = document.getElementById("msel_" + field);
-    if (!widget) return;
-    const labelEl = widget.querySelector(".msel-trigger-label");
-    const sel = mselState[field];
-    if (!sel.length) {
-        labelEl.textContent = "All";
-        labelEl.classList.add("placeholder");
-        labelEl.classList.remove("has-value");
-    } else if (sel.length === 1) {
-        const label = field === "f_priceband" ? (mselOptionLabels[sel[0]] || sel[0] + "%") : sel[0];
-        labelEl.textContent = label;
-        labelEl.classList.remove("placeholder");
-        labelEl.classList.add("has-value");
-    } else {
-        labelEl.textContent = `${sel.length} selected`;
-        labelEl.classList.remove("placeholder");
-        labelEl.classList.add("has-value");
-    }
-}
+            function mselUpdateTrigger(field) {
+                const widget = document.getElementById("msel_" + field);
+                if (!widget) return;
+                const labelEl = widget.querySelector(".msel-trigger-label");
+                const sel = mselState[field];
+                if (!sel.length) {
+                    labelEl.textContent = "All";
+                    labelEl.classList.add("placeholder");
+                    labelEl.classList.remove("has-value");
+                } else if (sel.length === 1) {
+                    const label =
+                        field === "f_priceband"
+                            ? mselOptionLabels[sel[0]] || sel[0] + "%"
+                            : sel[0];
+                    labelEl.textContent = label;
+                    labelEl.classList.remove("placeholder");
+                    labelEl.classList.add("has-value");
+                } else {
+                    labelEl.textContent = `${sel.length} selected`;
+                    labelEl.classList.remove("placeholder");
+                    labelEl.classList.add("has-value");
+                }
+            }
 
-function mselGetSelected(field) {
-    return mselState[field] || [];
-}
+            function mselGetSelected(field) {
+                return mselState[field] || [];
+            }
 
-function mselSetSelected(field, values) {
-    const valid = (mselOptions[field] || []);
-    mselState[field] = (values || []).filter((v) => valid.includes(v));
-    mselRenderOptions(field);
-    mselUpdateTrigger(field);
-}
+            function mselSetSelected(field, values) {
+                const valid = mselOptions[field] || [];
+                mselState[field] = (values || []).filter((v) =>
+                    valid.includes(v),
+                );
+                mselRenderOptions(field);
+                mselUpdateTrigger(field);
+            }
 
-function mselClear(field) {
-    mselState[field] = [];
-    mselRenderOptions(field);
-    mselUpdateTrigger(field);
-}
+            function mselClear(field) {
+                mselState[field] = [];
+                mselRenderOptions(field);
+                mselUpdateTrigger(field);
+            }
 
-function mselCloseAll(exceptField) {
-    document.querySelectorAll(".msel.open").forEach((w) => {
-        if (!exceptField || w.id !== "msel_" + exceptField) {
-            w.classList.remove("open");
-        }
-    });
-}
+            function mselCloseAll(exceptField) {
+                document.querySelectorAll(".msel.open").forEach((w) => {
+                    if (!exceptField || w.id !== "msel_" + exceptField) {
+                        w.classList.remove("open");
+                    }
+                });
+            }
 
-// Event delegation — one set of listeners handles all 5 widgets
-document.addEventListener("click", (e) => {
-    const widget = e.target.closest(".msel");
+            // Event delegation — one set of listeners handles all 5 widgets
+            document.addEventListener("click", (e) => {
+                const widget = e.target.closest(".msel");
 
-    // Click on trigger → toggle open/close
-    const trigger = e.target.closest(".msel-trigger");
-    if (trigger && widget) {
-        const isOpen = widget.classList.contains("open");
-        mselCloseAll();
-        if (!isOpen) {
-            widget.classList.add("open");
-            const search = widget.querySelector(".msel-search");
-            if (search) setTimeout(() => search.focus(), 30);
-        }
-        return;
-    }
+                // Click on trigger → toggle open/close
+                const trigger = e.target.closest(".msel-trigger");
+                if (trigger && widget) {
+                    const isOpen = widget.classList.contains("open");
+                    mselCloseAll();
+                    if (!isOpen) {
+                        widget.classList.add("open");
+                        const search = widget.querySelector(".msel-search");
+                        if (search) setTimeout(() => search.focus(), 30);
+                    }
+                    return;
+                }
 
-    // Click on action buttons (Select All / Clear)
-    const actBtn = e.target.closest(".msel-action-btn");
-    if (actBtn && widget) {
-        const field = widget.dataset.field;
-        if (actBtn.dataset.act === "all") {
-            mselSetSelected(field, [...mselOptions[field]]);
-        } else {
-            mselClear(field);
-        }
-        mselOnChange(field);
-        return;
-    }
+                // Click on action buttons (Select All / Clear)
+                const actBtn = e.target.closest(".msel-action-btn");
+                if (actBtn && widget) {
+                    const field = widget.dataset.field;
+                    if (actBtn.dataset.act === "all") {
+                        mselSetSelected(field, [...mselOptions[field]]);
+                    } else {
+                        mselClear(field);
+                    }
+                    mselOnChange(field);
+                    return;
+                }
 
-    // Click on a checkbox option
-    const optLabel = e.target.closest(".msel-opt");
-    if (optLabel && widget) {
-        // allow native checkbox toggle to happen, then sync state on next tick
-        const field = widget.dataset.field;
-        setTimeout(() => {
-            const checked = [
-                ...widget.querySelectorAll(".msel-options input[type=checkbox]:checked"),
-            ].map((cb) => cb.value);
-            mselState[field] = checked;
-            mselUpdateTrigger(field);
-            mselOnChange(field);
-        }, 0);
-        return;
-    }
+                // Click on a checkbox option
+                const optLabel = e.target.closest(".msel-opt");
+                if (optLabel && widget) {
+                    // allow native checkbox toggle to happen, then sync state on next tick
+                    const field = widget.dataset.field;
+                    setTimeout(() => {
+                        const checked = [
+                            ...widget.querySelectorAll(
+                                ".msel-options input[type=checkbox]:checked",
+                            ),
+                        ].map((cb) => cb.value);
+                        mselState[field] = checked;
+                        mselUpdateTrigger(field);
+                        mselOnChange(field);
+                    }, 0);
+                    return;
+                }
 
-    // Click outside any widget → close all
-    if (!widget) mselCloseAll();
-});
+                // Click outside any widget → close all
+                if (!widget) mselCloseAll();
+            });
 
-// Live filter search inside dropdown panel
-document.addEventListener("input", (e) => {
-    if (e.target.classList.contains("msel-search")) {
-        const widget = e.target.closest(".msel");
-        if (widget) mselRenderOptions(widget.dataset.field);
-    }
-});
+            // Live filter search inside dropdown panel
+            document.addEventListener("input", (e) => {
+                if (e.target.classList.contains("msel-search")) {
+                    const widget = e.target.closest(".msel");
+                    if (widget) mselRenderOptions(widget.dataset.field);
+                }
+            });
 
-// Wire up cascade + filter triggers per field
-function mselOnChange(field) {
-    if (field === "f_macro") {
-        onMacroChange();
-    } else if (field === "f_sector") {
-        onSectorChange();
-    } else if (field === "f_industry") {
-        onIndustryChange();
-    } else {
-        applyFilters();
-    }
-}
+            // Wire up cascade + filter triggers per field
+            function mselOnChange(field) {
+                if (field === "f_macro") {
+                    onMacroChange();
+                } else if (field === "f_sector") {
+                    onSectorChange();
+                } else if (field === "f_industry") {
+                    onIndustryChange();
+                } else {
+                    applyFilters();
+                }
+            }
 
-// ============ LOAD ============
+            // ============ LOAD ============
             // Hierarchy lookup maps built once at load
             let macroToSectors = {}; // macro → Set of sectors
             let sectorToIndustries = {}; // sector → Set of industries
@@ -3791,9 +3237,7 @@ function mselOnChange(field) {
                     const dates = rows.map((r) => r.Date).filter(Boolean);
                     if (dates.length) {
                         document.getElementById("data-date").textContent =
-                            "📅 " +
-                            dates[0] +
-                            (fromCache ? " (cached)" : "");
+                            "📅 " + dates[0] + (fromCache ? " (cached)" : "");
                     }
 
                     document.getElementById("loading").style.display = "none";
@@ -4027,10 +3471,7 @@ function mselOnChange(field) {
                         !industries.includes(r["Industry"])
                     )
                         return false;
-                    if (
-                        basics.length &&
-                        !basics.includes(r["Basic Industry"])
-                    )
+                    if (basics.length && !basics.includes(r["Basic Industry"]))
                         return false;
                     if (
                         bands.length &&
@@ -4692,7 +4133,6 @@ function mselOnChange(field) {
                     closeTvModal();
                     closeIndModal();
                     closeBasicIndModal();
-                    closeHelpModal();
                 }
             });
 
@@ -4928,10 +4368,7 @@ function mselOnChange(field) {
                         !industries.includes(r["Industry"])
                     )
                         return false;
-                    if (
-                        basics.length &&
-                        !basics.includes(r["Basic Industry"])
-                    )
+                    if (basics.length && !basics.includes(r["Basic Industry"]))
                         return false;
                     if (
                         bands.length &&
@@ -5466,46 +4903,6 @@ function mselOnChange(field) {
                     );
                 document.getElementById("indModal").classList.add("open");
             }
-            // ============ HELP / GUIDE MODAL ============
-            function openHelpModal() {
-                document.getElementById("helpModal").classList.add("open");
-            }
-
-            function closeHelpModal() {
-                document.getElementById("helpModal").classList.remove("open");
-            }
-
-            function closeHelpModalOnOverlay(e) {
-                if (e.target === document.getElementById("helpModal"))
-                    closeHelpModal();
-            }
-
-            function switchHelpTab(tabName) {
-                document.querySelectorAll(".help-tab").forEach((t) => {
-                    t.classList.toggle(
-                        "active",
-                        t.dataset.helpTab === tabName,
-                    );
-                });
-                document.querySelectorAll(".help-section").forEach((s) => {
-                    s.classList.toggle(
-                        "active",
-                        s.dataset.helpSection === tabName,
-                    );
-                });
-                // Scroll content panel back to top on every tab switch
-                const content = document.getElementById("helpContent");
-                if (content) content.scrollTop = 0;
-            }
-
-            // Delegated click handler — one listener covers all tabs, present or future
-            document
-                .getElementById("helpTabs")
-                .addEventListener("click", (e) => {
-                    const tab = e.target.closest(".help-tab");
-                    if (tab) switchHelpTab(tab.dataset.helpTab);
-                });
-
             function closeIndModal() {
                 document.getElementById("indModal").classList.remove("open");
             }
@@ -5724,8 +5121,8 @@ function mselOnChange(field) {
                     // update replacing an already-active controller — not the
                     // very first install (which would cause an unwanted
                     // reload/flicker on every first-time visit).
-                    const hadControllerBefore = !!navigator.serviceWorker
-                        .controller;
+                    const hadControllerBefore =
+                        !!navigator.serviceWorker.controller;
                     let refreshing = false;
                     navigator.serviceWorker.addEventListener(
                         "controllerchange",
