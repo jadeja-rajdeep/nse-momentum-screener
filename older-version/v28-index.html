@@ -901,7 +901,7 @@
             .wl-star {
                 display: inline-block;
                 margin-left: 5px;
-                font-size: 16px;
+                font-size: 11px;
                 line-height: 1;
                 cursor: pointer;
                 color: var(--muted);
@@ -3411,7 +3411,6 @@
                         <th onclick="sortBy('1 Month Linearity >= 0.5')">
                             Lin 1M
                         </th>
-                        <th onclick="sortBy('5 Days Chng%')">5D Chg%</th>
                         <th onclick="sortBy('1 Month Chng%')">1M Chg%</th>
                         <th onclick="sortBy('2 Months Chng%')">2M Chg%</th>
                         <th onclick="sortBy('4 Months Chng%')">4M Chg%</th>
@@ -5684,7 +5683,6 @@
                     "6 Months RS",
                     "3 Month Linearity >= 0.5",
                     "1 Month Linearity >= 0.5",
-                    "5 Days Chng%",
                     "1 Month Chng%",
                     "2 Months Chng%",
                     "4 Months Chng%",
@@ -5841,7 +5839,6 @@
       <td>${rsBadge(r["6 Months RS"])}</td>
       <td class="num">${fNum(r["3 Month Linearity >= 0.5"], 3)}</td>
       <td class="num">${fNum(r["1 Month Linearity >= 0.5"], 3)}</td>
-      <td class="${chngClass(r["5 Days Chng%"])} num">${chngStr(r["5 Days Chng%"])}</td>
       <td class="${chngClass(r["1 Month Chng%"])} num">${chngStr(r["1 Month Chng%"])}</td>
       <td class="${chngClass(r["2 Months Chng%"])} num">${chngStr(r["2 Months Chng%"])}</td>
       <td class="${chngClass(r["4 Months Chng%"])} num">${chngStr(r["4 Months Chng%"])}</td>
@@ -7092,7 +7089,6 @@
             // ============ INDUSTRY PERFORMANCE ============
             const IND_CHNG_FIELDS = [
                 { key: "1 Day Chng%", label: "1D %" },
-                { key: "5 Days Chng%", label: "5D %" },
                 { key: "1 Month Chng%", label: "1M %" },
                 { key: "2 Months Chng%", label: "2M %" },
                 { key: "4 Months Chng%", label: "4M %" },
