@@ -897,167 +897,6 @@
                 background: rgba(59, 130, 246, 0.15);
             }
 
-            /* ---- WATCHLIST STAR (inline in Code cell, no layout shift) ---- */
-            .wl-star {
-                display: inline-block;
-                margin-left: 5px;
-                font-size: 11px;
-                line-height: 1;
-                cursor: pointer;
-                color: var(--muted);
-                transition: all 0.15s;
-                vertical-align: middle;
-            }
-            .wl-star:hover {
-                color: #fbbf24;
-                transform: scale(1.15);
-            }
-            .wl-star.in-watchlist {
-                color: #fbbf24;
-            }
-
-            /* ---- WATCHLIST ADD POPOVER ---- */
-            .wl-popover {
-                position: fixed;
-                z-index: 10500;
-                background: var(--surface2);
-                border: 1px solid #fbbf24;
-                border-radius: 8px;
-                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-                min-width: 200px;
-                max-width: 260px;
-                overflow: hidden;
-                display: none;
-            }
-            .wl-popover.open {
-                display: block;
-            }
-            .wl-popover-header {
-                background: var(--surface);
-                padding: 7px 10px;
-                font-size: 10px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-                color: #fbbf24;
-                border-bottom: 1px solid var(--border);
-            }
-            .wl-popover-list {
-                max-height: 200px;
-                overflow-y: auto;
-                padding: 4px 0;
-            }
-            .wl-popover-item {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 6px 10px;
-                font-size: 12px;
-                color: var(--text);
-                cursor: pointer;
-                transition: background 0.1s;
-            }
-            .wl-popover-item:hover {
-                background: rgba(251, 191, 36, 0.08);
-            }
-            .wl-popover-item input[type="checkbox"] {
-                accent-color: #fbbf24;
-                width: 13px;
-                height: 13px;
-                cursor: pointer;
-                flex-shrink: 0;
-            }
-            .wl-popover-item-name {
-                flex: 1;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-            .wl-popover-new {
-                display: flex;
-                gap: 6px;
-                padding: 8px;
-                border-top: 1px solid var(--border);
-            }
-            .wl-popover-new input {
-                flex: 1;
-                background: var(--surface);
-                border: 1px solid var(--border);
-                color: var(--text);
-                font-size: 11px;
-                padding: 4px 8px;
-                border-radius: 5px;
-                outline: none;
-            }
-            .wl-popover-new input:focus {
-                border-color: #fbbf24;
-            }
-            .wl-popover-new button {
-                background: rgba(251, 191, 36, 0.12);
-                border: 1px solid rgba(251, 191, 36, 0.4);
-                color: #fbbf24;
-                font-size: 11px;
-                font-weight: 600;
-                padding: 4px 10px;
-                border-radius: 5px;
-                cursor: pointer;
-                white-space: nowrap;
-                transition: all 0.15s;
-            }
-            .wl-popover-new button:hover {
-                background: rgba(251, 191, 36, 0.22);
-            }
-            .wl-popover-empty {
-                padding: 12px 10px;
-                font-size: 11px;
-                color: var(--muted);
-                text-align: center;
-                font-style: italic;
-            }
-
-            /* ---- WATCHLIST PANEL (reuses .saved-panel / .ss-card styles) ---- */
-            .wl-card-name {
-                cursor: text;
-            }
-            .wl-rename-input {
-                background: var(--surface);
-                border: 1px solid #fbbf24;
-                color: var(--text);
-                font-size: 12px;
-                font-weight: 600;
-                padding: 1px 5px;
-                border-radius: 4px;
-                width: 100%;
-                outline: none;
-            }
-            .wl-run-one:hover {
-                background: rgba(251, 191, 36, 0.15) !important;
-                border-color: rgba(251, 191, 36, 0.3) !important;
-                color: #fbbf24 !important;
-            }
-
-            /* ---- BULK ADD-TO-WATCHLIST BUTTON (stats bar) ---- */
-            .btn-add-watchlist {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                background: rgba(251, 191, 36, 0.1);
-                border: 1px solid rgba(251, 191, 36, 0.35);
-                color: #fbbf24;
-                font-size: 11px;
-                font-weight: 600;
-                font-family: var(--sans);
-                padding: 4px 12px;
-                border-radius: 6px;
-                cursor: pointer;
-                transition: all 0.2s;
-                white-space: nowrap;
-            }
-            .btn-add-watchlist:hover {
-                background: rgba(251, 191, 36, 0.2);
-                border-color: #fbbf24;
-            }
-
             /* ---- SAVE MODAL ---- */
             .ss-modal-overlay {
                 display: none;
@@ -1477,6 +1316,7 @@
                     background: var(--surface);
                     min-width: 30px;
                 }
+                .ind-table th:nth-child(2),
                 .ind-table td:nth-child(2) {
                     position: static !important;
                     left: auto !important;
@@ -1832,15 +1672,7 @@
                 /* Only Code (col 1) stays frozen on mobile — Name (col 2)
                    scrolls away with the rest of the table so users see more
                    data columns without two fixed columns eating the screen. */
-                #mainTable th:nth-child(2) {
-                    z-index: 10 !important;
-                    left: auto !important;
-                    left: auto !important;
-                    width: auto !important;
-                    min-width: 90px !important;
-                    max-width: 200px !important;
-                    border-right: none !important;
-                }
+                #mainTable thead th:nth-child(2),
                 #mainTable #tableBody td:nth-child(2),
                 .name-cell {
                     position: static !important;
@@ -2182,6 +2014,7 @@
                     background: var(--surface);
                     min-width: 90px;
                 }
+                .peer-table th:nth-child(2),
                 .peer-table td:nth-child(2) {
                     position: static !important;
                     left: auto !important;
@@ -2385,17 +2218,6 @@
                     onclick="toggleFilters()"
                 >
                     <span>⚙</span> Filters
-                </button>
-                <button
-                    class="btn-toggle-filters"
-                    id="toggleWatchlistBtn"
-                    onclick="toggleWatchlistPanel()"
-                    style="
-                        border-color: rgba(251, 191, 36, 0.4);
-                        color: #fbbf24;
-                    "
-                >
-                    <span>⭐</span> <span id="watchlistBtnLabel">Watchlists</span>
                 </button>
                 <button
                     class="btn-toggle-filters"
@@ -2649,42 +2471,6 @@
                                     ></label
                                 >
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Watchlist -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">⭐ Watchlist</div>
-                    <div
-                        class="msel"
-                        id="msel_f_watchlist"
-                        data-field="f_watchlist"
-                    >
-                        <div class="msel-trigger">
-                            <span class="msel-trigger-label placeholder"
-                                >All</span
-                            >
-                            <span class="msel-caret">▼</span>
-                        </div>
-                        <div class="msel-panel">
-                            <div class="msel-actions">
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="all"
-                                >
-                                    Select All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="none"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                            <div class="msel-options"></div>
                         </div>
                     </div>
                 </div>
@@ -3142,18 +2928,6 @@
                         <span class="tradable-check-label">⚡ Is Tradable</span>
                     </label>
                 </div>
-
-                <!-- F&O -->
-                <div class="col-12 col-md-auto d-flex align-items-end">
-                    <label class="tradable-check-item">
-                        <input
-                            type="checkbox"
-                            id="f_fno"
-                            onchange="applyFilters()"
-                        />
-                        <span class="tradable-check-label">📑 F&amp;O</span>
-                    </label>
-                </div>
             </div>
         </div>
 
@@ -3187,51 +2961,6 @@
                 </div>
             </div>
             <div class="saved-list" id="savedList"></div>
-        </div>
-
-        <!-- WATCHLIST MANAGEMENT PANEL -->
-        <div class="saved-panel" id="watchlistPanel" style="display: none">
-            <div class="saved-panel-header">
-                <span class="saved-panel-title">⭐ My Watchlists</span>
-                <div class="d-flex gap-2 align-items-center">
-                    <button
-                        class="ss-action-btn ss-run-btn wl-run-one"
-                        onclick="createWatchlistPrompt()"
-                    >
-                        ➕ New Watchlist
-                    </button>
-                    <button
-                        class="ss-action-btn ss-del-btn"
-                        id="wlDelBtn"
-                        onclick="deleteSelectedWatchlists()"
-                        disabled
-                    >
-                        🗑 Delete
-                    </button>
-                    <button
-                        class="ss-action-btn ss-selall-btn"
-                        onclick="toggleSelectAllWatchlists()"
-                    >
-                        ☐ All
-                    </button>
-                </div>
-            </div>
-            <div class="saved-list" id="watchlistList"></div>
-        </div>
-
-        <!-- WATCHLIST ADD-TO POPOVER (floating, positioned via JS) -->
-        <div class="wl-popover" id="wlPopover">
-            <div class="wl-popover-header">Add to Watchlist</div>
-            <div class="wl-popover-list" id="wlPopoverList"></div>
-            <div class="wl-popover-new">
-                <input
-                    type="text"
-                    id="wlPopoverNewName"
-                    placeholder="New watchlist name…"
-                    onkeydown="if(event.key==='Enter') wlPopoverCreateAndAdd()"
-                />
-                <button onclick="wlPopoverCreateAndAdd()">Add</button>
-            </div>
         </div>
 
         <!-- MULTI-SEARCH ACTIVE BANNER -->
@@ -3323,16 +3052,6 @@
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                 </svg>
                 TV Watchlist
-            </button>
-            <!-- Add Filtered to Watchlist — only visible when a filter is active -->
-            <button
-                class="btn-add-watchlist"
-                id="btnAddFilteredWatchlist"
-                onclick="openBulkAddToWatchlist()"
-                style="display: none"
-                title="Add all filtered stocks to a watchlist"
-            >
-                ⭐ Add Filtered (<span id="addFilteredCount">0</span>)
             </button>
             <div
                 class="ms-auto d-flex align-items-center gap-6"
@@ -3432,7 +3151,6 @@
                         <th onclick="sortBy('Delivery %')">Del%</th>
                         <th onclick="sortBy('Volume Above Avg')">Vol↑</th>
                         <th onclick="sortBy('Delivery Above Avg')">Del↑</th>
-                        <th onclick="sortBy('F&O')">F&amp;O</th>
                         <th onclick="sortBy('Price Band %')">Band%</th>
                         <th onclick="sortBy('Prom Hold %')">Holdings %</th>
                         <th onclick="sortBy('EPS Latest Qtr %')">EPS Q1%</th>
@@ -4734,7 +4452,6 @@
                 f_industry: [],
                 f_basic: [],
                 f_priceband: [],
-                f_watchlist: [],
             };
 
             // Cascade-aware option lists per field (set externally when rebuilding cascade)
@@ -4744,7 +4461,6 @@
                 f_industry: [],
                 f_basic: [],
                 f_priceband: ["0", "2", "5", "10", "20"],
-                f_watchlist: [],
             };
             const mselOptionLabels = {
                 0: "0% (No Limit)",
@@ -5379,14 +5095,6 @@
                 const industries = mselGetSelected("f_industry");
                 const basics = mselGetSelected("f_basic");
                 const bands = mselGetSelected("f_priceband");
-                const wlNames = mselGetSelected("f_watchlist");
-                const wlCodesUnion = wlNames.length
-                    ? new Set(
-                          loadWatchlists()
-                              .filter((wl) => wlNames.includes(wl.name))
-                              .flatMap((wl) => wl.codes),
-                      )
-                    : null;
 
                 const rsMin = gn("f_rs_min");
                 const rsMax = gn("f_rs_max");
@@ -5426,7 +5134,6 @@
                 const toAbv = gc("f_to_abv");
                 const delAbv = gc("f_del_abv");
                 const tradableOnly = gc("f_tradable");
-                const fnoOnly = gc("f_fno");
 
                 filteredData = allData.filter((r) => {
                     if (search) {
@@ -5453,8 +5160,6 @@
                         bands.length &&
                         !bands.includes(String(r["Price Band %"]))
                     )
-                        return false;
-                    if (wlCodesUnion && !wlCodesUnion.has(r.Code))
                         return false;
 
                     const rs = parseFloat(r["RS TOTAL"]);
@@ -5565,7 +5270,6 @@
                     if (delAbv && r["Delivery Above Avg"] !== "Yes")
                         return false;
                     if (tradableOnly && r["Is Tradable"] != 1) return false;
-                    if (fnoOnly && r["F&O"] != 1) return false;
 
                     return true;
                 });
@@ -5617,7 +5321,7 @@
                     const el = document.getElementById(id);
                     if (el) el.value = "";
                 });
-                ["f_priceband", "f_watchlist"].forEach((id) => {
+                ["f_priceband"].forEach((id) => {
                     mselClear(id);
                 });
                 // Reset cascading dropdowns + clear all selections
@@ -5628,16 +5332,12 @@
                 rebuildSectorDropdown([]);
                 rebuildIndustryDropdown([], []);
                 rebuildBasicDropdown([], [], []);
-                [
-                    "f_vol_abv",
-                    "f_to_abv",
-                    "f_del_abv",
-                    "f_tradable",
-                    "f_fno",
-                ].forEach((id) => {
-                    const el = document.getElementById(id);
-                    if (el) el.checked = false;
-                });
+                ["f_vol_abv", "f_to_abv", "f_del_abv", "f_tradable"].forEach(
+                    (id) => {
+                        const el = document.getElementById(id);
+                        if (el) el.checked = false;
+                    },
+                );
                 applyFilters();
             }
 
@@ -5700,7 +5400,6 @@
                     "Delivery %",
                     "Volume Above Avg",
                     "Delivery Above Avg",
-                    "F&O",
                     "Price Band %",
                     "Prom Hold %",
                     "EPS Latest Qtr %",
@@ -5799,12 +5498,6 @@
                     : '<span class="abv-no">·</span>';
             }
 
-            function fnoIcon(v) {
-                return v == 1
-                    ? '<span class="abv-yes">✓</span>'
-                    : '<span class="abv-no">·</span>';
-            }
-
             function formatAllIndex(v) {
                 if (!v) return '<span style="color:var(--muted)">—</span>';
                 const tags = v
@@ -5826,7 +5519,7 @@
                     .map(
                         (r) => `
     <tr${r["Is Tradable"] == 1 ? ' class="tradable-row"' : ""}>
-      <td class="code-cell peer-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Click for peer comparison" style="cursor:pointer">${r.Code || "—"}<span class="wl-star${isInAnyWatchlist(r.Code) ? " in-watchlist" : ""}" data-wl-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Add to watchlist">${isInAnyWatchlist(r.Code) ? "★" : "☆"}</span></td>
+      <td class="code-cell peer-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Click for peer comparison" style="cursor:pointer">${r.Code || "—"}</td>
       <td class="name-cell tv-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Open on TradingView" style="cursor:pointer">${r.Name || "—"}</td>
       <td class="num">${fNum(r.Close, 2)}</td>
       <td class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
@@ -5856,7 +5549,6 @@
       <td class="num">${fNum(r["Delivery %"], 1)}</td>
       <td>${abvIcon(r["Volume Above Avg"])}</td>
       <td>${abvIcon(r["Delivery Above Avg"])}</td>
-      <td>${fnoIcon(r["F&O"])}</td>
       <td class="num">${r["Price Band %"] || "—"}</td>
       <td class="holdings-cell">
         <span class="hold-prom">P:${fNum(r["Prom Hold %"], 1)}%</span><br>
@@ -6136,318 +5828,6 @@
                     .classList.toggle("col-allindex-visible", show);
             }
 
-            // ============ WATCHLISTS ============
-            const WL_KEY = "nse_screener_watchlists";
-            // Shape: [{ id: <timestamp>, name: "...", codes: ["RELIANCE", ...] }, ...]
-
-            function loadWatchlists() {
-                try {
-                    return JSON.parse(localStorage.getItem(WL_KEY) || "[]");
-                } catch {
-                    return [];
-                }
-            }
-
-            function saveWatchlists(list) {
-                localStorage.setItem(WL_KEY, JSON.stringify(list));
-            }
-
-            function isInAnyWatchlist(code) {
-                if (!code) return false;
-                const lists = loadWatchlists();
-                return lists.some((wl) => wl.codes.includes(code));
-            }
-
-            function getWatchlistsContaining(code) {
-                const lists = loadWatchlists();
-                return lists.filter((wl) => wl.codes.includes(code));
-            }
-
-            // Refresh: option labels for the filter dropdown, star states in the
-            // currently-rendered table page, and the watchlist management panel.
-            function refreshWatchlistUI() {
-                const lists = loadWatchlists();
-                const names = lists.map((wl) => wl.name);
-                mselSetOptions("f_watchlist", names);
-                renderWatchlistPanel();
-                renderPage(); // re-render current page so star icons reflect latest state
-            }
-
-            // ---- Star click → popover ----
-            let wlPopoverActiveCode = null;
-
-            function openWatchlistStarPopover(starEl) {
-                const code = starEl.dataset.wlCode;
-                wlPopoverActiveCode = code;
-                const lists = loadWatchlists();
-                const memberOf = new Set(
-                    getWatchlistsContaining(code).map((wl) => wl.id),
-                );
-
-                const listEl = document.getElementById("wlPopoverList");
-                if (!lists.length) {
-                    listEl.innerHTML = `<div class="wl-popover-empty">No watchlists yet.<br>Create one below.</div>`;
-                } else {
-                    listEl.innerHTML = lists
-                        .map(
-                            (wl) => `
-            <label class="wl-popover-item">
-              <input type="checkbox" data-wl-id="${wl.id}" ${memberOf.has(wl.id) ? "checked" : ""}>
-              <span class="wl-popover-item-name">${wl.name}</span>
-              <span style="font-size:9px;color:var(--muted)">${wl.codes.length}</span>
-            </label>`,
-                        )
-                        .join("");
-                }
-
-                // Position the popover near the clicked star, clamped to viewport
-                const popover = document.getElementById("wlPopover");
-                const rect = starEl.getBoundingClientRect();
-                popover.classList.add("open");
-                const popW = popover.offsetWidth || 220;
-                let left = rect.left;
-                if (left + popW > window.innerWidth - 12)
-                    left = window.innerWidth - popW - 12;
-                let top = rect.bottom + 6;
-                const popH = popover.offsetHeight || 160;
-                if (top + popH > window.innerHeight - 12)
-                    top = rect.top - popH - 6;
-                popover.style.left = Math.max(8, left) + "px";
-                popover.style.top = Math.max(8, top) + "px";
-
-                document.getElementById("wlPopoverNewName").value = "";
-            }
-
-            function closeWatchlistStarPopover() {
-                document.getElementById("wlPopover").classList.remove("open");
-                wlPopoverActiveCode = null;
-            }
-
-            // Toggle membership for the active star's code when a checkbox in
-            // the popover is changed.
-            document
-                .getElementById("wlPopoverList")
-                .addEventListener("change", (e) => {
-                    const cb = e.target.closest('input[type="checkbox"]');
-                    if (!cb || !wlPopoverActiveCode) return;
-                    const id = parseFloat(cb.dataset.wlId);
-                    const lists = loadWatchlists();
-                    const wl = lists.find((w) => w.id === id);
-                    if (!wl) return;
-                    if (cb.checked) {
-                        if (!wl.codes.includes(wlPopoverActiveCode))
-                            wl.codes.push(wlPopoverActiveCode);
-                    } else {
-                        wl.codes = wl.codes.filter(
-                            (c) => c !== wlPopoverActiveCode,
-                        );
-                    }
-                    saveWatchlists(lists);
-                    refreshWatchlistUI();
-                });
-
-            function wlPopoverCreateAndAdd() {
-                const nameInput = document.getElementById("wlPopoverNewName");
-                const name = nameInput.value.trim();
-                if (!name || !wlPopoverActiveCode) return;
-                const lists = loadWatchlists();
-                const wl = { id: Date.now(), name, codes: [wlPopoverActiveCode] };
-                lists.push(wl);
-                saveWatchlists(lists);
-                refreshWatchlistUI();
-                closeWatchlistStarPopover();
-            }
-
-            // Close popover on outside click / Escape (Escape handled in the
-            // global keydown listener further below)
-            document.addEventListener("click", (e) => {
-                const popover = document.getElementById("wlPopover");
-                if (
-                    popover.classList.contains("open") &&
-                    !popover.contains(e.target) &&
-                    !e.target.closest(".wl-star")
-                ) {
-                    closeWatchlistStarPopover();
-                }
-            });
-
-            // ---- Watchlist management panel (toggle, list, rename, delete) ----
-            function toggleWatchlistPanel() {
-                const panel = document.getElementById("watchlistPanel");
-                const visible = panel.style.display !== "none";
-                panel.style.display = visible ? "none" : "";
-                if (!visible) renderWatchlistPanel();
-            }
-
-            function renderWatchlistPanel() {
-                const lists = loadWatchlists();
-                document.getElementById("watchlistBtnLabel").textContent =
-                    lists.length ? `Watchlists (${lists.length})` : "Watchlists";
-
-                const listEl = document.getElementById("watchlistList");
-                if (!lists.length) {
-                    listEl.innerHTML =
-                        '<span class="saved-empty">No watchlists yet. Click the ☆ next to any stock code, or use ➕ New Watchlist.</span>';
-                    updateWatchlistActions();
-                    return;
-                }
-                listEl.innerHTML = lists
-                    .map(
-                        (wl) => `
-    <div class="ss-card" id="wlcard-${wl.id}">
-      <input type="checkbox" class="wl-card-check" data-id="${wl.id}"
-        onchange="onWlCardCheck(this)">
-      <span class="ss-card-name wl-card-name" title="Click to rename" data-id="${wl.id}" ondblclick="startRenameWatchlist(${wl.id})">${wl.name}</span>
-      <span class="ss-card-meta">${wl.codes.length} stocks</span>
-      <button class="ss-run-one wl-run-one" title="Filter table to this watchlist" onclick="runWatchlistFilter(${wl.id})">▶</button>
-    </div>`,
-                    )
-                    .join("");
-                updateWatchlistActions();
-            }
-
-            function onWlCardCheck(cb) {
-                const card = cb.closest(".ss-card");
-                card.classList.toggle("selected", cb.checked);
-                updateWatchlistActions();
-            }
-
-            function updateWatchlistActions() {
-                const checked = document.querySelectorAll(
-                    ".wl-card-check:checked",
-                );
-                document.getElementById("wlDelBtn").disabled =
-                    checked.length === 0;
-            }
-
-            function toggleSelectAllWatchlists() {
-                const cbs = document.querySelectorAll(".wl-card-check");
-                const allChecked = [...cbs].every((c) => c.checked);
-                cbs.forEach((c) => {
-                    c.checked = !allChecked;
-                    c.closest(".ss-card").classList.toggle(
-                        "selected",
-                        !allChecked,
-                    );
-                });
-                updateWatchlistActions();
-            }
-
-            function deleteSelectedWatchlists() {
-                const checked = [
-                    ...document.querySelectorAll(".wl-card-check:checked"),
-                ];
-                const ids = new Set(
-                    checked.map((c) => parseFloat(c.dataset.id)),
-                );
-                if (!ids.size) return;
-                if (
-                    !confirm(
-                        `Delete ${ids.size} watchlist${ids.size > 1 ? "s" : ""}? This cannot be undone.`,
-                    )
-                )
-                    return;
-                const lists = loadWatchlists().filter((wl) => !ids.has(wl.id));
-                saveWatchlists(lists);
-                refreshWatchlistUI();
-            }
-
-            function createWatchlistPrompt() {
-                const name = prompt("Name for the new watchlist:");
-                if (!name || !name.trim()) return;
-                const lists = loadWatchlists();
-                lists.push({ id: Date.now(), name: name.trim(), codes: [] });
-                saveWatchlists(lists);
-                refreshWatchlistUI();
-            }
-
-            function startRenameWatchlist(id) {
-                const nameEl = document.querySelector(
-                    `.wl-card-name[data-id="${id}"]`,
-                );
-                if (!nameEl) return;
-                const lists = loadWatchlists();
-                const wl = lists.find((w) => w.id === id);
-                if (!wl) return;
-                const input = document.createElement("input");
-                input.type = "text";
-                input.className = "wl-rename-input";
-                input.value = wl.name;
-                nameEl.replaceWith(input);
-                input.focus();
-                input.select();
-
-                const commit = () => {
-                    const newName = input.value.trim() || wl.name;
-                    wl.name = newName;
-                    saveWatchlists(lists);
-                    refreshWatchlistUI();
-                };
-                input.addEventListener("keydown", (e) => {
-                    if (e.key === "Enter") commit();
-                    if (e.key === "Escape") refreshWatchlistUI();
-                });
-                input.addEventListener("blur", commit);
-            }
-
-            // Run this single watchlist as the active table filter (sets the
-            // f_watchlist multi-select to just this one list and applies it).
-            function runWatchlistFilter(id) {
-                const lists = loadWatchlists();
-                const wl = lists.find((w) => w.id === id);
-                if (!wl) return;
-                document.getElementById("filterPanel").style.display = "";
-                filtersVisible = true;
-                mselSetSelected("f_watchlist", [wl.name]);
-                applyFilters();
-            }
-
-            // ---- Bulk add: add every currently-filtered stock to a watchlist ----
-            function openBulkAddToWatchlist() {
-                const lists = loadWatchlists();
-                const codes = filteredData.map((r) => r.Code).filter(Boolean);
-                if (!codes.length) return;
-
-                let target;
-                if (!lists.length) {
-                    const name = prompt(
-                        `Create a watchlist for these ${codes.length} stocks. Name:`,
-                    );
-                    if (!name || !name.trim()) return;
-                    target = { id: Date.now(), name: name.trim(), codes: [] };
-                    lists.push(target);
-                } else if (lists.length === 1) {
-                    target = lists[0];
-                } else {
-                    const names = lists.map((wl, i) => `${i + 1}. ${wl.name}`).join("\n");
-                    const choice = prompt(
-                        `Add ${codes.length} stocks to which watchlist?\n\n${names}\n\nEnter a number, or type a new name to create one:`,
-                    );
-                    if (!choice || !choice.trim()) return;
-                    const trimmed = choice.trim();
-                    const num = parseInt(trimmed, 10);
-                    if (!isNaN(num) && lists[num - 1]) {
-                        target = lists[num - 1];
-                    } else {
-                        target = { id: Date.now(), name: trimmed, codes: [] };
-                        lists.push(target);
-                    }
-                }
-
-                let added = 0;
-                codes.forEach((code) => {
-                    if (!target.codes.includes(code)) {
-                        target.codes.push(code);
-                        added++;
-                    }
-                });
-                saveWatchlists(lists);
-                refreshWatchlistUI();
-                alert(
-                    `Added ${added} new stock${added !== 1 ? "s" : ""} to "${target.name}" (${target.codes.length} total).`,
-                );
-            }
-
             // ============ SAVED SEARCHES ============
             const SS_KEY = "nse_screener_saved_searches";
 
@@ -6459,7 +5839,6 @@
                 { id: "f_industry", type: "mselect" },
                 { id: "f_basic", type: "mselect" },
                 { id: "f_priceband", type: "mselect" },
-                { id: "f_watchlist", type: "mselect" },
                 { id: "f_rs_min", type: "num" },
                 { id: "f_rs_max", type: "num" },
                 { id: "f_rs1m_min", type: "num" },
@@ -6497,7 +5876,6 @@
                 { id: "f_to_abv", type: "check" },
                 { id: "f_del_abv", type: "check" },
                 { id: "f_tradable", type: "check" },
-                { id: "f_fno", type: "check" },
             ];
 
             // Human-readable labels for preview
@@ -6508,7 +5886,6 @@
                 f_industry: "Industry",
                 f_basic: "Basic Industry",
                 f_priceband: "Price Band",
-                f_watchlist: "Watchlist",
                 f_rs_min: "RS Total Min",
                 f_rs_max: "RS Total Max",
                 f_rs1m_min: "RS 1M Min",
@@ -6546,7 +5923,6 @@
                 f_to_abv: "Turnover Above Avg",
                 f_del_abv: "Delivery Above Avg",
                 f_tradable: "Is Tradable",
-                f_fno: "F&O",
             };
 
             function loadSavedSearches() {
@@ -6603,7 +5979,6 @@
                 const industries = state.f_industry || [];
                 const basics = state.f_basic || [];
                 const bands = state.f_priceband || [];
-                const watchlists = state.f_watchlist || [];
 
                 if (macros.length) {
                     mselSetOptions(
@@ -6628,16 +6003,6 @@
                 }
                 if (bands.length) {
                     mselSetSelected("f_priceband", bands);
-                }
-                if (watchlists.length) {
-                    // Watchlist names aren't part of the data cascade — make
-                    // sure the option list reflects whatever watchlists
-                    // currently exist in localStorage before selecting.
-                    mselSetOptions(
-                        "f_watchlist",
-                        loadWatchlists().map((wl) => wl.name),
-                    );
-                    mselSetSelected("f_watchlist", watchlists);
                 }
 
                 // Restore remaining text/number/checkbox fields
@@ -6667,14 +6032,6 @@
                 const industries = getArr("f_industry");
                 const basics = getArr("f_basic");
                 const bands = getArr("f_priceband");
-                const wlNames = getArr("f_watchlist");
-                const wlCodesUnion = wlNames.length
-                    ? new Set(
-                          loadWatchlists()
-                              .filter((wl) => wlNames.includes(wl.name))
-                              .flatMap((wl) => wl.codes),
-                      )
-                    : null;
 
                 return allData.filter((r) => {
                     const search = get("f_search").toLowerCase();
@@ -6702,8 +6059,6 @@
                         bands.length &&
                         !bands.includes(String(r["Price Band %"]))
                     )
-                        return false;
-                    if (wlCodesUnion && !wlCodesUnion.has(r.Code))
                         return false;
 
                     const chk = (field, rKey, scale = 1) => {
@@ -6751,7 +6106,6 @@
                         return false;
                     if (gbool("f_tradable") && r["Is Tradable"] != 1)
                         return false;
-                    if (gbool("f_fno") && r["F&O"] != 1) return false;
                     return true;
                 });
             }
@@ -7430,13 +6784,6 @@
             document
                 .getElementById("tableBody")
                 .addEventListener("click", (e) => {
-                    const star = e.target.closest(".wl-star");
-                    if (star) {
-                        e.stopPropagation();
-                        openWatchlistStarPopover(star);
-                        return;
-                    }
-
                     const peerCell = e.target.closest(".peer-link");
                     if (peerCell) {
                         openPeerModal(peerCell.dataset.code);
@@ -7452,7 +6799,6 @@
             loadData();
             renderSavedList();
             mselUpdateTrigger("f_priceband"); // sync trigger label for the static HTML checkboxes
-            refreshWatchlistUI(); // populate watchlist filter options + panel from localStorage on load
         </script>
         <!-- PWA: Install prompt toast -->
         <div class="pwa-toast" id="pwaInstallToast">
