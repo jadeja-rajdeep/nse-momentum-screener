@@ -1860,109 +1860,6 @@
                 }
             }
 
-            /* ---- SETTINGS / TOOLS MODAL ---- */
-            .settings-modal-overlay {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.7);
-                z-index: 10000;
-                align-items: flex-start;
-                justify-content: center;
-                backdrop-filter: blur(3px);
-                padding: 16px;
-                overflow-y: auto;
-            }
-            .settings-modal-overlay.open { display: flex; }
-            .settings-modal {
-                background: var(--surface);
-                border: 1px solid rgba(148, 163, 184, 0.25);
-                border-radius: 12px;
-                width: 100%;
-                max-width: 520px;
-                margin: auto;
-                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
-            }
-            .settings-modal-header {
-                background: linear-gradient(135deg, #0d1421, #111827);
-                border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-                padding: 16px 20px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                border-radius: 12px 12px 0 0;
-            }
-            .settings-modal-title {
-                font-family: var(--mono);
-                font-size: 13px;
-                font-weight: 700;
-                color: #94a3b8;
-            }
-            .settings-modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-
-            /* Setting section block */
-            .settings-section {
-                background: var(--surface2);
-                border: 1px solid var(--border);
-                border-radius: 10px;
-                padding: 16px;
-            }
-            .settings-section-title {
-                font-family: var(--mono);
-                font-size: 10px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.1em;
-                color: var(--muted);
-                margin-bottom: 12px;
-                padding-bottom: 8px;
-                border-bottom: 1px solid var(--border);
-            }
-
-            /* Export / Import buttons */
-            .settings-action-btn {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                width: 100%;
-                background: var(--surface);
-                border: 1px solid var(--border);
-                border-radius: 8px;
-                padding: 11px 14px;
-                cursor: pointer;
-                font-family: var(--sans);
-                transition: all 0.15s;
-                text-align: left;
-                margin-bottom: 8px;
-            }
-            .settings-action-btn:last-child { margin-bottom: 0; }
-            .settings-action-btn:hover {
-                border-color: var(--accent2);
-                background: rgba(59, 130, 246, 0.06);
-            }
-            .settings-action-icon { font-size: 18px; flex-shrink: 0; }
-            .settings-action-text { flex: 1; }
-            .settings-action-text strong {
-                display: block;
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--text);
-                margin-bottom: 2px;
-            }
-            .settings-action-text span { font-size: 11px; color: var(--muted); }
-            .settings-import-input { display: none; }
-            .settings-status {
-                font-size: 11px;
-                font-family: var(--mono);
-                padding: 6px 10px;
-                border-radius: 6px;
-                margin-top: 6px;
-                display: none;
-            }
-            .settings-status.ok  { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
-            .settings-status.err { background: rgba(244,63,94,0.12); color: #f43f5e; border: 1px solid rgba(244,63,94,0.25); }
-
             /* ---- AUTHOR / ABOUT MODAL ---- */
             .author-modal-overlay {
                 display: none;
@@ -2510,14 +2407,6 @@
                     title="How to use this screener"
                 >
                     <span>❓</span> Help
-                </button>
-                <button
-                    class="btn-icon-only"
-                    onclick="openSettingsModal()"
-                    title="Settings & Tools"
-                    style="border-color: rgba(148, 163, 184, 0.35); color: #94a3b8;"
-                >
-                    <span>⚙</span>
                 </button>
                 <button
                     class="btn-icon-only"
@@ -4595,51 +4484,6 @@
             </div>
         </div>
 
-        <!-- SETTINGS / TOOLS MODAL -->
-        <div
-            class="settings-modal-overlay"
-            id="settingsModal"
-            onclick="closeSettingsModalOnOverlay(event)"
-        >
-            <div class="settings-modal" onclick="event.stopPropagation()">
-                <div class="settings-modal-header">
-                    <div class="settings-modal-title">⚙ Settings &amp; Tools</div>
-                    <button class="peer-modal-close" onclick="closeSettingsModal()">✕</button>
-                </div>
-                <div class="settings-modal-body">
-
-                    <!-- Export / Import -->
-                    <div class="settings-section">
-                        <div class="settings-section-title">💾 Backup &amp; Restore</div>
-                        <button class="settings-action-btn" onclick="exportSettings()">
-                            <span class="settings-action-icon">📤</span>
-                            <div class="settings-action-text">
-                                <strong>Export Settings</strong>
-                                <span>Download saved searches, watchlists, and preferences as a JSON backup file</span>
-                            </div>
-                        </button>
-                        <!-- 3. Import -->
-                        <label class="settings-action-btn" style="cursor:pointer">
-                            <span class="settings-action-icon">📥</span>
-                            <div class="settings-action-text">
-                                <strong>Import Settings</strong>
-                                <span>Restore saved searches, watchlists, and preferences from a previously exported file</span>
-                            </div>
-                            <input
-                                type="file"
-                                class="settings-import-input"
-                                id="settingsImportInput"
-                                accept=".json"
-                                onchange="importSettings(event)"
-                            >
-                        </label>
-                        <div class="settings-status" id="settingsStatus"></div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
         <!-- AUTHOR / ABOUT MODAL -->
         <div
             class="author-modal-overlay"
@@ -6285,7 +6129,6 @@
                     closeBasicIndModal();
                     closeHelpModal();
                     closeAuthorModal();
-                    closeSettingsModal();
                 }
             });
 
@@ -7410,79 +7253,6 @@
             // ============ HELP / GUIDE MODAL ============
             function openHelpModal() {
                 document.getElementById("helpModal").classList.add("open");
-            }
-
-            // ============ SETTINGS / TOOLS MODAL ============
-            function openSettingsModal() {
-                hideSettingsStatus();
-                document.getElementById("settingsModal").classList.add("open");
-            }
-            function closeSettingsModal() {
-                document.getElementById("settingsModal").classList.remove("open");
-            }
-            function closeSettingsModalOnOverlay(e) {
-                if (e.target === document.getElementById("settingsModal"))
-                    closeSettingsModal();
-            }
-
-            // Export: gather all relevant localStorage keys → JSON download
-            function exportSettings() {
-                const payload = {
-                    exported_at: new Date().toISOString(),
-                    version: 1,
-                    saved_searches: JSON.parse(localStorage.getItem(SS_KEY) || "[]"),
-                    watchlists: JSON.parse(localStorage.getItem(WL_KEY) || "[]"),
-                };
-                const json = JSON.stringify(payload, null, 2);
-                const blob = new Blob([json], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                // Filename: nse-screener-backup-YYYY-MM-DD-HHmm.json
-                const now = new Date();
-                const pad = (n) => String(n).padStart(2, "0");
-                const stamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
-                a.href = url;
-                a.download = `nse-screener-backup-${stamp}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-                showSettingsStatus("✓ Backup downloaded successfully", "ok");
-            }
-
-            // Import: read JSON file → restore to localStorage → reload
-            function importSettings(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const payload = JSON.parse(e.target.result);
-                        // Validate basic structure
-                        if (payload.version !== 1 || !Array.isArray(payload.saved_searches) || !Array.isArray(payload.watchlists)) {
-                            throw new Error("Invalid backup file format");
-                        }
-                        // Restore each key
-                        localStorage.setItem(SS_KEY, JSON.stringify(payload.saved_searches));
-                        localStorage.setItem(WL_KEY, JSON.stringify(payload.watchlists));
-                        showSettingsStatus(`✓ Import successful — reloading in 2s…`, "ok");
-                        setTimeout(() => window.location.reload(), 2000);
-                    } catch (err) {
-                        showSettingsStatus(`⚠ Import failed: ${err.message}`, "err");
-                    }
-                };
-                reader.readAsText(file);
-                // Reset file input so the same file can be re-selected if needed
-                event.target.value = "";
-            }
-
-            function showSettingsStatus(msg, type) {
-                const el = document.getElementById("settingsStatus");
-                el.textContent = msg;
-                el.className = `settings-status ${type}`;
-                el.style.display = "block";
-            }
-            function hideSettingsStatus() {
-                const el = document.getElementById("settingsStatus");
-                if (el) el.style.display = "none";
             }
 
             function closeHelpModal() {
