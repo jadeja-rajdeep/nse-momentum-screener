@@ -1,6 +1,11 @@
 <!doctype html>
 <html lang="en">
     <head>
+        <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4115783605630078"
+            crossorigin="anonymous"
+        ></script>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>NSE Momentum Screener</title>
@@ -1873,7 +1878,9 @@
                 padding: 16px;
                 overflow-y: auto;
             }
-            .settings-modal-overlay.open { display: flex; }
+            .settings-modal-overlay.open {
+                display: flex;
+            }
             .settings-modal {
                 background: var(--surface);
                 border: 1px solid rgba(148, 163, 184, 0.25);
@@ -1899,7 +1906,12 @@
                 font-weight: 700;
                 color: #94a3b8;
             }
-            .settings-modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+            .settings-modal-body {
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
 
             /* Setting section block */
             .settings-section {
@@ -1936,13 +1948,20 @@
                 text-align: left;
                 margin-bottom: 8px;
             }
-            .settings-action-btn:last-child { margin-bottom: 0; }
+            .settings-action-btn:last-child {
+                margin-bottom: 0;
+            }
             .settings-action-btn:hover {
                 border-color: var(--accent2);
                 background: rgba(59, 130, 246, 0.06);
             }
-            .settings-action-icon { font-size: 18px; flex-shrink: 0; }
-            .settings-action-text { flex: 1; }
+            .settings-action-icon {
+                font-size: 18px;
+                flex-shrink: 0;
+            }
+            .settings-action-text {
+                flex: 1;
+            }
             .settings-action-text strong {
                 display: block;
                 font-size: 12px;
@@ -1950,8 +1969,13 @@
                 color: var(--text);
                 margin-bottom: 2px;
             }
-            .settings-action-text span { font-size: 11px; color: var(--muted); }
-            .settings-import-input { display: none; }
+            .settings-action-text span {
+                font-size: 11px;
+                color: var(--muted);
+            }
+            .settings-import-input {
+                display: none;
+            }
             .settings-status {
                 font-size: 11px;
                 font-family: var(--mono);
@@ -1960,8 +1984,16 @@
                 margin-top: 6px;
                 display: none;
             }
-            .settings-status.ok  { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
-            .settings-status.err { background: rgba(244,63,94,0.12); color: #f43f5e; border: 1px solid rgba(244,63,94,0.25); }
+            .settings-status.ok {
+                background: rgba(16, 185, 129, 0.12);
+                color: #10b981;
+                border: 1px solid rgba(16, 185, 129, 0.25);
+            }
+            .settings-status.err {
+                background: rgba(244, 63, 94, 0.12);
+                color: #f43f5e;
+                border: 1px solid rgba(244, 63, 94, 0.25);
+            }
 
             /* ---- AUTHOR / ABOUT MODAL ---- */
             .author-modal-overlay {
@@ -2498,7 +2530,8 @@
                         color: #fbbf24;
                     "
                 >
-                    <span>⭐</span> <span id="watchlistBtnLabel">Watchlists</span>
+                    <span>⭐</span>
+                    <span id="watchlistBtnLabel">Watchlists</span>
                 </button>
                 <button
                     class="btn-toggle-filters"
@@ -2515,7 +2548,10 @@
                     class="btn-icon-only"
                     onclick="openSettingsModal()"
                     title="Settings & Tools"
-                    style="border-color: rgba(148, 163, 184, 0.35); color: #94a3b8;"
+                    style="
+                        border-color: rgba(148, 163, 184, 0.35);
+                        color: #94a3b8;
+                    "
                 >
                     <span>⚙</span>
                 </button>
@@ -3339,7 +3375,9 @@
                     type="text"
                     id="wlPopoverNewName"
                     placeholder="New watchlist name…"
-                    onkeydown="if(event.key==='Enter') wlPopoverCreateAndAdd()"
+                    onkeydown="
+                        if (event.key === 'Enter') wlPopoverCreateAndAdd();
+                    "
                 />
                 <button onclick="wlPopoverCreateAndAdd()">Add</button>
             </div>
@@ -3780,11 +3818,10 @@
                 <div class="help-modal-header">
                     <div>
                         <div class="help-modal-title">
-                            ❓ NSE Momentum Screener — Guide
+                            📖 NSE Momentum Screener — User Guide
                         </div>
                         <div class="help-modal-meta">
-                            Everything this tool does, and how to get the most
-                            out of it
+                            Complete reference for every feature
                         </div>
                     </div>
                     <button class="peer-modal-close" onclick="closeHelpModal()">
@@ -3823,14 +3860,21 @@
                         <div class="help-tab" data-help-tab="saved">
                             <span class="help-tab-icon">📌</span> Saved Searches
                         </div>
-                        <div class="help-tab" data-help-tab="watchlist">
+                        <div class="help-tab" data-help-tab="mywatchlist">
+                            <span class="help-tab-icon">⭐</span> Watchlists
+                        </div>
+                        <div class="help-tab" data-help-tab="tvwatchlist">
                             <span class="help-tab-icon">⚡</span> TV Watchlist
+                        </div>
+                        <div class="help-tab" data-help-tab="settings">
+                            <span class="help-tab-icon">⚙</span> Settings &amp;
+                            Tools
                         </div>
                         <div class="help-tab" data-help-tab="pwa">
                             <span class="help-tab-icon">📲</span> Install App
                         </div>
                         <div class="help-tab" data-help-tab="tips">
-                            <span class="help-tab-icon">💡</span> Pro Tips
+                            <span class="help-tab-icon">💡</span> Use Cases
                         </div>
                     </div>
 
@@ -3840,70 +3884,148 @@
                             class="help-section active"
                             data-help-section="overview"
                         >
-                            <h3>🏠 What This Screener Does</h3>
+                            <h3>🏠 What Is This Screener?</h3>
                             <div class="help-tagline">
-                                A single-file, no-login NSE stock screener built
-                                for momentum and relative-strength based
-                                research.
+                                A free, no-login, single-file NSE stock screener
+                                built for momentum-based research — runs
+                                entirely in your browser.
                             </div>
                             <div class="help-block">
                                 <p>
-                                    This tool loads a daily snapshot of
-                                    NSE-listed stocks (<span class="help-kbd"
-                                        >m.json</span
-                                    >) and gives you fast, flexible ways to
-                                    filter, rank, and compare them — entirely in
-                                    your browser, with no server or account
-                                    needed.
+                                    This tool loads a daily snapshot of all
+                                    NSE-listed stocks from a file called
+                                    <span class="help-kbd">m.json</span> and
+                                    gives you a fast, flexible workspace to
+                                    filter, rank, compare, and track them. There
+                                    is no server, no account, no subscription.
+                                    Everything runs locally in your browser.
+                                </p>
+                                <p style="margin-top: 10px">
+                                    The data refreshes once per day after market
+                                    close (typically around 5 PM IST). The
+                                    screener automatically serves cached data
+                                    before 5 PM and fetches fresh data after 5
+                                    PM — so you never need to manually reload.
                                 </p>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
-                                    🧭 Core building blocks
+                                    🧭 What you can do here
                                 </div>
                                 <ul>
                                     <li>
-                                        <strong>Filters</strong> — narrow
-                                        thousands of stocks down to a focused
-                                        list using sector, RS, market cap,
-                                        fundamentals, and more.
+                                        <strong>Screen stocks</strong> by RS
+                                        Rating, sector, market cap,
+                                        fundamentals, price band, F&amp;O
+                                        eligibility, narrow range days,
+                                        volume/delivery activity, and more —
+                                        using a powerful multi-select filter
+                                        panel.
                                     </li>
                                     <li>
-                                        <strong>RS Rating</strong> — a composite
-                                        Relative Strength score (0–400) ranking
-                                        each stock's price momentum against the
-                                        rest of the market.
+                                        <strong>Rank by momentum</strong> using
+                                        the composite RS Total score (0–400),
+                                        which blends 1/2/4/6-month relative
+                                        strength into a single sortable number.
                                     </li>
                                     <li>
-                                        <strong>Peer Comparison</strong> — click
-                                        any stock's code to instantly see how it
-                                        stacks up against others in the same
-                                        industry/basic industry.
+                                        <strong>Compare peers</strong> — click
+                                        any stock code to instantly see its
+                                        Basic Industry and Industry peers,
+                                        ranked by RS, so you can tell if a stock
+                                        is a leader or a laggard within its own
+                                        group.
                                     </li>
                                     <li>
-                                        <strong>Industry Performance</strong> —
-                                        a market-wide heatmap of average returns
-                                        by sector/industry, drillable down to
-                                        basic industry.
+                                        <strong>Read the sector map</strong> —
+                                        the Industry Performance heatmap shows
+                                        which industries are leading or lagging,
+                                        drillable all the way to Basic Industry
+                                        level, with checkboxes to apply any
+                                        group directly to your filters.
                                     </li>
                                     <li>
-                                        <strong>Saved Searches</strong> — name
-                                        and store filter combinations locally,
-                                        re-run one or combine several at once.
+                                        <strong
+                                            >Save and combine filters</strong
+                                        >
+                                        — named Saved Searches let you build a
+                                        library of screening criteria and run
+                                        them individually or merge multiple
+                                        searches into a single de-duplicated
+                                        result.
                                     </li>
                                     <li>
-                                        <strong>TradingView Export</strong> —
+                                        <strong
+                                            >Manage personal watchlists</strong
+                                        >
+                                        — star any stock to add it to a named
+                                        watchlist, build multiple lists, and
+                                        filter the main table to show only your
+                                        watchlist stocks.
+                                    </li>
+                                    <li>
+                                        <strong>Export to TradingView</strong> —
                                         turn any filtered result into a
-                                        ready-to-import TradingView watchlist.
+                                        ready-to-import TradingView watchlist,
+                                        auto-split by your plan's limit.
+                                    </li>
+                                    <li>
+                                        <strong>Jump to charts</strong> — click
+                                        any stock name to open its live chart on
+                                        TradingView instantly.
                                     </li>
                                 </ul>
                             </div>
+                            <div
+                                class="help-block"
+                                style="
+                                    background: rgba(244, 63, 94, 0.06);
+                                    border: 1px solid rgba(244, 63, 94, 0.25);
+                                    border-radius: 8px;
+                                    padding: 12px 14px;
+                                "
+                            >
+                                <div
+                                    class="help-block-title"
+                                    style="color: #f43f5e"
+                                >
+                                    ⚠ Important — Your Data Lives in This
+                                    Browser
+                                </div>
+                                <p>
+                                    All personal data —
+                                    <strong>Saved Searches, Watchlists</strong>
+                                    — is stored in your browser's
+                                    <strong>localStorage</strong>. This data is
+                                    local to this device and this browser only.
+                                    It is <strong>not</strong> backed up
+                                    anywhere automatically.
+                                </p>
+                                <p style="margin-top: 8px">
+                                    <strong
+                                        >Before clearing your browser history,
+                                        cache, or site data — export a backup
+                                        first.</strong
+                                    >
+                                    Use
+                                    <span class="help-kbd"
+                                        >⚙ Settings → Export Settings</span
+                                    >
+                                    to download a JSON backup file. You can
+                                    import it back at any time to restore
+                                    everything. See the Settings &amp; Tools tab
+                                    for details.
+                                </p>
+                            </div>
                             <div class="help-tip">
-                                <strong>New here?</strong> Start with the
-                                <strong>Filters</strong> tab to learn the
-                                basics, then check <strong>RS Rating</strong> to
-                                understand the most important column in the
-                                table.
+                                <strong>New here?</strong> Open the
+                                <span class="help-kbd">⚙ Filters</span> panel,
+                                set an RS Total Min of 300, tick ⚡ Is Tradable,
+                                and sort by RS Total descending. You now have a
+                                filtered list of momentum leaders you can
+                                currently act on. Then click any Code to see
+                                Peer Comparison and confirm it is leading within
+                                its group.
                             </div>
                         </div>
 
@@ -3911,83 +4033,198 @@
                         <div class="help-section" data-help-section="filters">
                             <h3>⚙ Filters Panel</h3>
                             <div class="help-tagline">
-                                Click the
-                                <span class="help-kbd">⚙ Filters</span> button
-                                in the header to show or hide this panel.
+                                Click <span class="help-kbd">⚙ Filters</span> in
+                                the header to show or hide. Every filter is
+                                applied instantly — no submit button needed.
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
-                                    🔎 Text & dropdown filters
+                                    🔎 Text Search
                                 </div>
+                                <p>
+                                    The <strong>Search Code / Name</strong> box
+                                    matches against both the stock ticker and
+                                    the full company name. Partial matches work
+                                    — typing
+                                    <span class="help-kbd">tata</span> shows all
+                                    TATA group companies. Case-insensitive and
+                                    instant.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🗂 Multi-Select Classification Dropdowns
+                                </div>
+                                <p>
+                                    Macro Economic Sector, Sector, Industry,
+                                    Basic Industry, and Price Band all support
+                                    <strong>multiple selections</strong>. Click
+                                    the dropdown, tick as many values as you
+                                    want, and use the search box inside each to
+                                    find options quickly.
+                                </p>
                                 <ul>
                                     <li>
-                                        <strong>Search Code/Name</strong> —
-                                        instant text match on stock ticker or
-                                        company name.
+                                        <strong>Within one dropdown</strong>: OR
+                                        logic. Sector = Auto + IT shows stocks
+                                        from either.
                                     </li>
                                     <li>
-                                        <strong
-                                            >Macro Sector / Sector / Industry /
-                                            Basic Industry</strong
-                                        >
-                                        — multi-select dropdowns; tick multiple
-                                        values in one dropdown for an OR match
-                                        (e.g. Auto + IT), while different
-                                        dropdowns combine with AND logic.
+                                        <strong>Across dropdowns</strong>: AND
+                                        logic. Sector = Auto AND RS Min = 300
+                                        shows only Auto stocks with RS ≥ 300.
                                     </li>
                                     <li>
-                                        <strong>Price Band %</strong> — NSE's
-                                        circuit filter band (0/2/5/10/20%), also
-                                        multi-select.
+                                        Use <strong>Select All</strong> /
+                                        <strong>Clear</strong> buttons inside
+                                        each dropdown for quick bulk actions.
+                                    </li>
+                                    <li>
+                                        These dropdowns are
+                                        <strong>cascade-linked</strong> — see
+                                        the Sector Cascade tab.
                                     </li>
                                 </ul>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
-                                    📏 Range filters
-                                </div>
-                                <p>
-                                    Most numeric fields (RS Total, RS
-                                    1M/2M/4M/6M, Market Cap, PE, Close Price,
-                                    ROE, Turnover, Promoter Holding, EPS/Sales
-                                    growth) accept a Min and/or Max — leave
-                                    either blank for an open-ended range.
-                                </p>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">
-                                    ✅ Checkbox filters
+                                    📏 Range Filters — complete list
                                 </div>
                                 <ul>
                                     <li>
-                                        <strong
-                                            >Volume / Turnover / Delivery Above
-                                            Avg</strong
-                                        >
-                                        — flags stocks trading with unusually
-                                        high activity.
+                                        <strong>RS Total (0–400)</strong> —
+                                        composite momentum score. Min = 300 for
+                                        strong RS, Min = 370 for top-tier
+                                        leaders.
                                     </li>
                                     <li>
-                                        <strong>Is Tradable ⚡</strong> — the
-                                        most important quick-filter; highlights
-                                        stocks flagged as currently tradable,
-                                        with a glowing row highlight in the
-                                        table.
+                                        <strong>RS 1M / 2M / 4M / 6M</strong> —
+                                        individual timeframe RS, each 0–100.
+                                        Consistent high scores across all four =
+                                        sustained momentum, not just a recent
+                                        spike.
+                                    </li>
+                                    <li>
+                                        <strong>Market Cap (₹ Cr)</strong> —
+                                        enter in Crores (500 = ₹500 Cr). Use to
+                                        separate large/mid/smallcap research.
+                                    </li>
+                                    <li>
+                                        <strong>Close Price (₹)</strong> —
+                                        filter by absolute price level.
+                                    </li>
+                                    <li>
+                                        <strong>PE / ROE</strong> — standard
+                                        valuation and quality ratios.
+                                    </li>
+                                    <li>
+                                        <strong>Net Turnover (₹ Cr)</strong> —
+                                        daily traded rupee value. Ensures
+                                        minimum liquidity.
+                                    </li>
+                                    <li>
+                                        <strong>Promoter Hold %</strong> —
+                                        min/max promoter shareholding. High
+                                        holding often signals confidence.
+                                    </li>
+                                    <li>
+                                        <strong>Narrow Range (≥ days)</strong> —
+                                        stocks in tight consolidation for N+
+                                        consecutive days. NR ≥ 4 often precedes
+                                        a breakout.
+                                    </li>
+                                    <li>
+                                        <strong>1M / 3M Linearity (≥)</strong> —
+                                        0 to 1. Values above 0.65–0.7 mean the
+                                        stock has been rising in a smooth, clean
+                                        trend — not a jagged spike.
+                                    </li>
+                                    <li>
+                                        <strong>EPS Latest / Prev Qtr %</strong>
+                                        — YoY earnings growth for the two most
+                                        recent quarters. Both positive =
+                                        sustained earnings momentum.
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >Sales Latest / Prev Qtr %</strong
+                                        >
+                                        — same for revenue. Strong sales +
+                                        strong EPS = highest-quality
+                                        combination.
                                     </li>
                                 </ul>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
-                                    🧹 Clearing & saving
+                                    ✅ Checkbox Filters
+                                </div>
+                                <ul>
+                                    <li>
+                                        <strong>Vol ↑</strong> — today's volume
+                                        is above historical average. Unusual
+                                        activity signal.
+                                    </li>
+                                    <li>
+                                        <strong>Turnover ↑</strong> — same for
+                                        rupee value traded.
+                                    </li>
+                                    <li>
+                                        <strong>Delivery ↑</strong> — delivery
+                                        volume above average. Spikes in delivery
+                                        indicate genuine accumulation, not
+                                        intraday noise.
+                                    </li>
+                                    <li>
+                                        <strong>⚡ Is Tradable</strong> — the
+                                        most important quick-filter. Tradable
+                                        stocks get a glowing teal row highlight.
+                                        Use this as your first filter on most
+                                        days.
+                                    </li>
+                                    <li>
+                                        <strong>📑 F&amp;O</strong> — restricts
+                                        to stocks in the Futures &amp; Options
+                                        segment. Useful for traders needing
+                                        hedging capability or F&amp;O-grade
+                                        liquidity.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    ⭐ Watchlist Filter (Multi-Select Dropdown)
                                 </div>
                                 <p>
-                                    Use <span class="help-kbd">✕ Clear</span> to
-                                    reset every filter at once. Use
-                                    <span class="help-kbd">💾</span> next to it
-                                    to save your current combination as a named
-                                    search for later (see the Saved Searches
-                                    tab).
+                                    Once you have personal watchlists created
+                                    (see Watchlists tab), a
+                                    <strong>Watchlist</strong> dropdown appears
+                                    in the filter panel. Select one or more
+                                    watchlists to show only those stocks.
+                                    Multiple selections use OR logic — a stock
+                                    in any selected list is shown.
                                 </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🧹 Clearing &amp; Saving
+                                </div>
+                                <ul>
+                                    <li>
+                                        Click
+                                        <span class="help-kbd">✕ Clear</span> to
+                                        reset every filter at once — dropdowns,
+                                        checkboxes, and all range inputs.
+                                    </li>
+                                    <li>
+                                        Click
+                                        <span class="help-kbd">💾</span> (next
+                                        to Clear) to save all current active
+                                        filters as a named Saved Search. A
+                                        preview of all active filters is shown
+                                        before you confirm the name.
+                                    </li>
+                                </ul>
                             </div>
                         </div>
 
@@ -3997,7 +4234,8 @@
                             <div class="help-tagline">
                                 The four classification dropdowns are linked —
                                 selecting a parent narrows the children
-                                automatically.
+                                automatically, so you never get an impossible
+                                combination.
                             </div>
                             <div class="help-block">
                                 <p>
@@ -4009,10 +4247,30 @@
                                         color: var(--accent);
                                         font-family: var(--mono);
                                         font-size: 11px;
+                                        margin: 8px 0;
+                                        padding: 8px 12px;
+                                        background: rgba(0, 212, 170, 0.06);
+                                        border-radius: 6px;
+                                        border-left: 3px solid var(--accent);
                                     "
                                 >
                                     Macro Economic Sector → Sector → Industry →
                                     Basic Industry
+                                </p>
+                                <p>
+                                    Example:
+                                    <span class="help-kbd"
+                                        >Consumer Discretionary</span
+                                    >
+                                    →
+                                    <span class="help-kbd"
+                                        >Consumer Services</span
+                                    >
+                                    →
+                                    <span class="help-kbd"
+                                        >Leisure Services</span
+                                    >
+                                    → <span class="help-kbd">Restaurants</span>
                                 </p>
                             </div>
                             <div class="help-block">
@@ -4021,38 +4279,70 @@
                                 </div>
                                 <ul>
                                     <li>
-                                        Picking one or more
+                                        Selecting one or more
                                         <strong>Macro Sectors</strong> instantly
-                                        limits the Sector dropdown to only the
-                                        sectors that exist under those macro
-                                        sectors — and does the same further down
-                                        to Industry and Basic Industry.
+                                        limits Sector to only what exists under
+                                        those macro sectors — and cascades the
+                                        same constraint to Industry and Basic
+                                        Industry.
                                     </li>
                                     <li>
-                                        Picking <strong>Sectors</strong> narrows
-                                        Industry and Basic Industry the same
-                                        way, regardless of what Macro Sector is
-                                        selected.
+                                        Selecting
+                                        <strong>Sectors</strong> narrows
+                                        Industry and Basic Industry to what
+                                        belongs under those sectors.
                                     </li>
                                     <li>
-                                        Picking
+                                        Selecting
                                         <strong>Industries</strong> narrows
                                         Basic Industry to just that industry's
                                         sub-categories.
                                     </li>
                                     <li>
-                                        Clearing a parent selection
-                                        automatically widens its children back
-                                        out.
+                                        Selecting
+                                        <strong
+                                            >multiple values at any
+                                            level</strong
+                                        >
+                                        shows the union — two Sectors selected
+                                        means all Industries under either sector
+                                        are shown.
+                                    </li>
+                                    <li>
+                                        Clearing a parent automatically widens
+                                        its children back to the full available
+                                        list.
+                                    </li>
+                                    <li>
+                                        If a previously-selected Basic Industry
+                                        becomes invalid after changing its
+                                        parent Sector, it is automatically
+                                        dropped — no impossible combinations.
                                     </li>
                                 </ul>
                             </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Shortcut via Industry Performance popup
+                                </div>
+                                <p>
+                                    In the
+                                    <span class="help-kbd">📊 Industry</span>
+                                    popup, each row has a checkbox. Checking it
+                                    automatically fills the full chain (Macro →
+                                    Sector → Industry, or additionally Basic
+                                    Industry in the drill-down) into the filter
+                                    dropdowns and re-applies the filter — no
+                                    manual cascade navigation needed.
+                                </p>
+                            </div>
                             <div class="help-tip">
-                                <strong>Why this matters:</strong> you'll never
-                                accidentally pick a combination that returns
-                                zero stocks — every dropdown only ever shows
-                                options that actually exist given what's already
-                                selected above it.
+                                <strong>Why this matters:</strong> you will
+                                never accidentally create a filter that returns
+                                zero results because you picked a Basic Industry
+                                that doesn't exist under your selected Sector.
+                                Every dropdown only shows options that actually
+                                have stocks given the current parent selection.
                             </div>
                         </div>
 
@@ -4061,111 +4351,185 @@
                             <h3>📋 Reading the Table</h3>
                             <div class="help-tagline">
                                 Every column header is clickable to sort — click
-                                again to reverse direction.
+                                once for descending (highest first), click again
+                                to reverse. Two columns are frozen while
+                                scrolling: Code and Name on desktop; Code only
+                                on mobile.
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
-                                    Price & momentum
+                                    🔑 Interactive columns
                                 </div>
                                 <ul>
                                     <li>
-                                        <strong>Close</strong> — latest closing
-                                        price.
+                                        <strong>Code</strong> — click to open
+                                        the Peer Comparison popup. A ☆ star icon
+                                        appears next to the code; click it to
+                                        add/remove the stock from a personal
+                                        watchlist.
+                                    </li>
+                                    <li>
+                                        <strong>Name</strong> — click to open
+                                        that stock's live chart on TradingView
+                                        in a new tab.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📉 Price &amp; Change columns
+                                </div>
+                                <ul>
+                                    <li>
+                                        <strong>Close ₹</strong> — latest NSE
+                                        end-of-day closing price.
                                     </li>
                                     <li>
                                         <strong>NR</strong> — Narrow Range day
-                                        count; amber number shown only when ≥1,
-                                        meaning the stock has been consolidating
-                                        in a tight range for that many days
-                                        (often a pre-breakout signal).
-                                    </li>
-                                    <li>
-                                        <strong>1D/1M/2M/4M/6M Chg%</strong> —
-                                        price change over each timeframe, green
-                                        for gains, red for losses.
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">
-                                    RS & Linearity
-                                </div>
-                                <ul>
-                                    <li>
-                                        <strong
-                                            >RS Total / RS 1M/2M/4M/6M</strong
-                                        >
-                                        — Relative Strength scores; see the
-                                        dedicated RS Rating tab for how to read
-                                        these.
-                                    </li>
-                                    <li>
-                                        <strong>Lin 1M / Lin 3M</strong> —
-                                        "linearity" of the price trend (0–1);
-                                        higher means a smoother, steadier climb
-                                        rather than a choppy one.
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">Fundamentals</div>
-                                <ul>
-                                    <li>
-                                        <strong
-                                            >MCap Cr / PE / ROE / Debt</strong
-                                        >
-                                        — standard fundamental metrics, market
-                                        cap shown in Crores.
-                                    </li>
-                                    <li>
-                                        <strong
-                                            >EPS Q1%/Q2% and Sales
-                                            Q1%/Q2%</strong
-                                        >
-                                        — latest and previous quarter YoY
-                                        growth.
-                                    </li>
-                                    <li>
-                                        <strong>Holdings %</strong> — combined
-                                        Promoter (P), Employee Trust (E), and
-                                        Public (D) shareholding in one compact
-                                        cell.
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">
-                                    Activity & classification
-                                </div>
-                                <ul>
-                                    <li>
-                                        <strong>Volume / Turnover</strong> —
-                                        shown compactly (K/M/Cr) rather than raw
-                                        numbers.
-                                    </li>
-                                    <li>
-                                        <strong>Vol↑ / Del↑</strong> —
-                                        checkmarks for above-average
-                                        volume/delivery.
+                                        count. Shown in amber when ≥ 1 (4 means
+                                        the stock has been in a tight range for
+                                        4 days — a common pre-breakout coiling
+                                        setup). Displays — when 0.
                                     </li>
                                     <li>
                                         <strong>Tradable</strong> — ⚡ YES pill
                                         for stocks flagged as currently
-                                        tradable; row also gets a subtle teal
-                                        highlight.
+                                        tradable. Rows also get a subtle teal
+                                        left-border highlight so they stand out
+                                        while scrolling.
                                     </li>
+                                    <li>
+                                        <strong>F&amp;O</strong> — ✓ checkmark
+                                        for stocks in the Futures &amp; Options
+                                        segment.
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >1D / 5D / 1M / 2M / 4M / 6M
+                                            Chg%</strong
+                                        >
+                                        — price changes over each timeframe.
+                                        Green = positive, red = negative.
+                                        Consistent multi-timeframe gains =
+                                        genuine trend, not a single-day spike.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    💪 RS &amp; Linearity columns
+                                </div>
+                                <ul>
+                                    <li>
+                                        <strong>RS Total</strong> — composite
+                                        Relative Strength score, 0–400. Green
+                                        badge ≥ 370 = top-tier; amber 300–369 =
+                                        solid; red &lt; 300 = lagging. See the
+                                        RS Rating tab for full explanation.
+                                    </li>
+                                    <li>
+                                        <strong>RS 1M / 2M / 4M / 6M</strong> —
+                                        individual timeframe RS scores, each
+                                        ranked 0–100 across all NSE stocks.
+                                        Green ≥ 95 = top 5%; amber ≥ 80 = above
+                                        average.
+                                    </li>
+                                    <li>
+                                        <strong>Lin 1M / Lin 3M</strong> — trend
+                                        linearity, 0 to 1. Near 1.0 = smooth,
+                                        straight uptrend; near 0 =
+                                        choppy/random. Values above 0.7 indicate
+                                        clean trending moves — better setups
+                                        than high RS with erratic price action.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📊 Fundamental columns
+                                </div>
+                                <ul>
+                                    <li>
+                                        <strong>MCap Cr</strong> — market
+                                        capitalisation in Crores (K Cr =
+                                        thousands of Crores).
+                                    </li>
+                                    <li>
+                                        <strong>PE / ROE % / Debt</strong> —
+                                        standard fundamental metrics.
+                                    </li>
+                                    <li>
+                                        <strong>EPS Q1% / Q2%</strong> — YoY EPS
+                                        growth for the latest and previous
+                                        reported quarters. Both positive =
+                                        sustained earnings growth.
+                                    </li>
+                                    <li>
+                                        <strong>Sales Q1% / Q2%</strong> — same
+                                        for revenue. Strong sales + strong EPS =
+                                        highest-quality fundamental combination.
+                                    </li>
+                                    <li>
+                                        <strong>Holdings %</strong> — three
+                                        values in one cell: P = Promoter %, E =
+                                        Employee Trust %, D = Public (Diffuse)
+                                        %.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📦 Volume &amp; Activity columns
+                                </div>
+                                <ul>
+                                    <li>
+                                        <strong>Volume</strong> — traded shares
+                                        shown compactly (K = thousands, M =
+                                        millions).
+                                    </li>
+                                    <li>
+                                        <strong>Turnover</strong> — traded rupee
+                                        value in ₹ Cr.
+                                    </li>
+                                    <li>
+                                        <strong>Del%</strong> — delivery
+                                        percentage. High delivery % on a big
+                                        volume day = genuine accumulation, not
+                                        intraday activity.
+                                    </li>
+                                    <li>
+                                        <strong>Vol↑ / Del↑</strong> — ✓ when
+                                        volume or delivery is above the stock's
+                                        historical average.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🏷 Classification &amp; Index columns
+                                </div>
+                                <ul>
                                     <li>
                                         <strong
                                             >Macro Sector / Sector / Industry /
                                             Basic Industry</strong
                                         >
-                                        — full classification path.
+                                        — full 4-level NSE classification path.
+                                    </li>
+                                    <li>
+                                        <strong>Band%</strong> — NSE price
+                                        circuit limit (0 = no limit,
+                                        2/5/10/20%).
                                     </li>
                                     <li>
                                         <strong>All Index</strong> — hidden by
-                                        default (tick "Show All Index" near the
-                                        row-count selector to reveal); shows
-                                        which NSE indices include the stock.
+                                        default. Tick
+                                        <span class="help-kbd"
+                                            >Show All Index</span
+                                        >
+                                        in the stats bar to reveal which NSE
+                                        indices (NIFTY 50, NIFTY 500, etc.) the
+                                        stock belongs to.
                                     </li>
                                 </ul>
                             </div>
@@ -4176,25 +4540,54 @@
                             <h3>💪 Understanding RS Rating</h3>
                             <div class="help-tagline">
                                 Relative Strength measures how a stock's price
-                                performance compares to the rest of the market —
-                                the single most important column here.
+                                performance compares to every other NSE stock —
+                                the single most important ranking in this
+                                screener.
                             </div>
                             <div class="help-block">
                                 <p>
                                     <strong>RS Total</strong> (0–400) is a
-                                    composite score blending performance across
-                                    the 21/42/84/126-day (1/2/4/6-month)
-                                    windows, weighted so recent strength counts
-                                    more without ignoring longer-term trend.
-                                    <strong>RS 1M/2M/4M/6M</strong> are the
-                                    individual timeframe scores feeding into it.
+                                    composite score blending the 1-month,
+                                    2-month, 4-month, and 6-month price
+                                    performance of each stock relative to all
+                                    other stocks, weighted so that recent
+                                    momentum counts more than older performance.
+                                    It is not absolute return — it is a
+                                    <em>relative</em> ranking. A stock can have
+                                    strong RS even in a falling market if it is
+                                    falling less than others.
                                 </p>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
-                                    Reading the color-coded badges
+                                    Individual timeframe scores (RS 1M / 2M / 4M
+                                    / 6M)
                                 </div>
-                                <div>
+                                <p>
+                                    Each timeframe score is ranked 0–100 across
+                                    the entire universe:
+                                </p>
+                                <ul>
+                                    <li>
+                                        Score of <strong>99</strong> =
+                                        outperformed 99% of all NSE stocks over
+                                        that period.
+                                    </li>
+                                    <li>
+                                        Score of <strong>50</strong> = median —
+                                        exactly average performance.
+                                    </li>
+                                    <li>
+                                        Score of <strong>10</strong> = weaker
+                                        than 90% of all stocks.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    How to read the colour-coded badges
+                                </div>
+                                <div style="margin: 8px 0">
                                     <span
                                         class="help-rs-band"
                                         style="
@@ -4208,7 +4601,9 @@
                                         "
                                         >RS Total ≥ 370</span
                                     >
-                                    top-tier momentum leader<br />
+                                    — top-tier momentum leader. The market is
+                                    consistently bidding these up across
+                                    multiple timeframes.<br />
                                     <span
                                         class="help-rs-band"
                                         style="
@@ -4222,7 +4617,8 @@
                                         "
                                         >RS Total 300–369</span
                                     >
-                                    solid relative strength<br />
+                                    — solid relative strength, above-average
+                                    performers worth investigating.<br />
                                     <span
                                         class="help-rs-band"
                                         style="
@@ -4231,16 +4627,58 @@
                                         "
                                         >RS Total &lt; 300</span
                                     >
-                                    lagging the market
+                                    — lagging the market; approach with caution
+                                    unless you have a specific thesis.
                                 </div>
                             </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    What patterns to look for
+                                </div>
+                                <ul>
+                                    <li>
+                                        <strong
+                                            >Consistent RS across all 4
+                                            timeframes</strong
+                                        >
+                                        (all ≥ 80) = genuinely sustained
+                                        momentum, not a one-month wonder.
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >Rising RS 1M with lower RS
+                                            6M</strong
+                                        >
+                                        = a stock that was weak for months but
+                                        just starting to show life — potential
+                                        early-stage breakout candidate.
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >High RS 6M but declining RS
+                                            1M</strong
+                                        >
+                                        = the big move may be over and momentum
+                                        is fading — be cautious about chasing
+                                        it.
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >High RS + high Linearity</strong
+                                        >
+                                        = stock has been climbing steadily, not
+                                        erratically — the cleanest kind of
+                                        uptrend for breakout-style trading.
+                                    </li>
+                                </ul>
+                            </div>
                             <div class="help-tip">
-                                <strong>How to use it:</strong> sort by RS Total
-                                descending to surface the market's strongest
-                                momentum names first, then layer on fundamental
-                                filters (PE, ROE, EPS growth) to narrow toward
-                                quality leaders rather than just any high-RS
-                                stock.
+                                <strong>Starting point:</strong> sort by RS
+                                Total descending, set RS Min = 300, tick Is
+                                Tradable. You now have momentum leaders you can
+                                act on. Open Peer Comparison on any interesting
+                                name to confirm it leads its own industry — not
+                                just riding a broad sector wave.
                             </div>
                         </div>
 
@@ -4249,46 +4687,80 @@
                             <h3>🔍 Peer Comparison Popup</h3>
                             <div class="help-tagline">
                                 Click any stock's
-                                <span class="help-kbd">Code</span> cell in the
-                                table to open it.
+                                <span class="help-kbd">Code</span> cell to open
+                                it. Instantly see where a stock ranks within its
+                                own industry group.
                             </div>
                             <div class="help-block">
                                 <p>
-                                    The popup shows two ranked tables, both
-                                    sorted by RS Total (highest first), with the
-                                    clicked stock highlighted in teal so you can
-                                    instantly see where it ranks:
+                                    A full-screen overlay shows two ranked
+                                    tables, both sorted by RS Total highest
+                                    first, with the clicked stock highlighted in
+                                    teal:
                                 </p>
                                 <ul>
                                     <li>
                                         <strong>Basic Industry Peers</strong> —
-                                        every stock sharing the exact same Basic
-                                        Industry classification.
+                                        every stock in the exact same Basic
+                                        Industry (the narrowest, most comparable
+                                        group).
                                     </li>
                                     <li>
                                         <strong>Industry Peers</strong> — the
-                                        broader set of stocks sharing the same
-                                        Industry (a superset of the basic
-                                        industry group).
+                                        broader Industry group (a superset of
+                                        multiple Basic Industries).
+                                    </li>
+                                </ul>
+                                <p style="margin-top: 8px">
+                                    Each row shows: Code, Name, RS Total badge,
+                                    EPS Q1%/Q2%, Sales Q1%/Q2%, Market Cap,
+                                    Price Band, and 1M/3M Linearity.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    How to use it effectively
+                                </div>
+                                <ul>
+                                    <li>
+                                        If the clicked stock
+                                        <strong
+                                            >sits near the top of the Basic
+                                            Industry table</strong
+                                        >, it is genuinely leading its peer
+                                        group — a much stronger signal than high
+                                        RS Total alone.
+                                    </li>
+                                    <li>
+                                        If it sits in the
+                                        <strong>middle or bottom</strong>, its
+                                        RS may be inflated by a sector-wide
+                                        move, and a better name may exist in the
+                                        same group.
+                                    </li>
+                                    <li>
+                                        Use it to
+                                        <strong
+                                            >find the strongest name in a hot
+                                            sector</strong
+                                        >: filter by a sector, click each top-RS
+                                        name, confirm it's #1 or #2 in its Basic
+                                        Industry before adding to your list.
+                                    </li>
+                                    <li>
+                                        Sort the peer table columns (click any
+                                        header) to re-rank by EPS growth, Sales
+                                        growth, or Linearity depending on your
+                                        strategy.
                                     </li>
                                 </ul>
                             </div>
-                            <div class="help-block">
-                                <p>
-                                    Each row shows RS Total, EPS Q1%/Q2%, Sales
-                                    Q1%/Q2%, Market Cap, Price Band, and 1M/3M
-                                    Linearity — enough to judge whether a stock
-                                    is a leader or laggard within its own peer
-                                    group, not just the broader market.
-                                </p>
-                            </div>
                             <div class="help-tip">
-                                <strong>Why this matters:</strong> a stock with
-                                a modest RS Total can still be the strongest
-                                performer in a weak industry — and a high RS
-                                Total stock might just be riding a strong sector
-                                tailwind. Peer comparison reveals which is
-                                which.
+                                <strong>Why this matters:</strong> sector news
+                                lifts entire industries, masking which stocks
+                                are actually driving the move. Peer Comparison
+                                reveals the real leaders from the
+                                passively-lifted names.
                             </div>
                         </div>
 
@@ -4297,26 +4769,50 @@
                             <h3>📈 Instant TradingView Charts</h3>
                             <div class="help-tagline">
                                 Click any stock's
-                                <span class="help-kbd">Name</span> cell to open
-                                it.
+                                <span class="help-kbd">Name</span> cell in the
+                                main table to jump directly to its live chart on
+                                TradingView.
                             </div>
                             <div class="help-block">
                                 <p>
                                     Clicking a company name opens that stock's
-                                    live chart directly on TradingView in a new
-                                    tab — using the format
+                                    chart on TradingView in a new browser tab
+                                    using the format
                                     <span class="help-kbd">NSE:SYMBOL</span> —
-                                    so you can jump from screener to chart
-                                    analysis in one click without searching
-                                    manually.
+                                    move from screener research to chart
+                                    analysis in one click, without searching
+                                    TradingView manually.
                                 </p>
                             </div>
-                            <div class="help-tip">
-                                Symbols containing
-                                <span class="help-kbd">&amp;</span> (e.g.
-                                M&amp;M) are automatically converted to
-                                <span class="help-kbd">_</span> to match
-                                TradingView's naming convention.
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Symbol formatting
+                                </div>
+                                <p>
+                                    All codes are prefixed with
+                                    <span class="help-kbd">NSE:</span>
+                                    automatically. Any
+                                    <span class="help-kbd">&amp;</span>
+                                    characters in NSE codes (e.g. M&amp;M) are
+                                    converted to
+                                    <span class="help-kbd">_</span> to match
+                                    TradingView's naming convention. This is
+                                    handled automatically.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Bulk export to TradingView
+                                </div>
+                                <p>
+                                    For bulk export, use the
+                                    <span class="help-kbd"
+                                        >⚡ TV Watchlist</span
+                                    >
+                                    button in the stats bar (visible when a
+                                    filter is active). See the TV Watchlist tab
+                                    for full details.
+                                </p>
                             </div>
                         </div>
 
@@ -4326,42 +4822,98 @@
                             <div class="help-tagline">
                                 Click
                                 <span class="help-kbd">📊 Industry</span> in the
-                                header.
+                                header. A full market-wide view of sector health
+                                — not affected by your current filters.
                             </div>
                             <div class="help-block">
                                 <p>
-                                    This is a market-wide view (not affected by
-                                    your current filters) showing every
-                                    Industry's average 1D/1M/2M/4M/6M % change
-                                    across all its stocks, with heat-coloring —
-                                    deeper green for stronger average gains,
-                                    deeper red for steeper average declines.
+                                    Shows all 64 NSE Industries with the
+                                    <em>average</em> 1D / 5D / 1M / 2M / 4M / 6M
+                                    % change across every stock in each
+                                    industry, using heat-colouring: deeper green
+                                    = stronger average gains, deeper red =
+                                    steeper average losses.
+                                </p>
+                                <p style="margin-top: 8px">
+                                    Covers the <em>entire</em> NSE universe
+                                    regardless of your current filters — this is
+                                    intentional, giving you an objective
+                                    market-wide view.
                                 </p>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
-                                    Sorting & drilling down
+                                    Sorting &amp; Drilling Down
                                 </div>
                                 <ul>
                                     <li>
-                                        Click any column header to sort by that
-                                        timeframe.
+                                        Click any
+                                        <strong>column header</strong> to sort —
+                                        sort by 1M to see what has been trending
+                                        for a month; sort by 1D to see today's
+                                        rotation.
                                     </li>
                                     <li>
                                         Click any <strong>row</strong> to drill
                                         into that industry's Basic Industries,
-                                        with the same heatmap and sorting, plus
-                                        a breadcrumb showing the full path back
-                                        to Macro Sector.
+                                        revealing which sub-segments are driving
+                                        or dragging the industry average.
+                                    </li>
+                                    <li>
+                                        The breadcrumb at the top of the
+                                        drill-down shows the full path: Macro
+                                        Sector → Sector → Industry.
+                                    </li>
+                                    <li>
+                                        Both tables support independent sorting
+                                        by any column.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    ☑ Apply to Filters checkbox
+                                </div>
+                                <p>
+                                    Every row in both tables has a checkbox.
+                                    Checking it
+                                    <strong
+                                        >adds that row's full classification
+                                        chain</strong
+                                    >
+                                    into the main filter dropdowns and
+                                    re-applies the filter immediately — without
+                                    closing the popup.
+                                </p>
+                                <ul>
+                                    <li>
+                                        Check <strong>multiple rows</strong> to
+                                        build an OR combination across
+                                        industries (e.g. Pharmaceuticals +
+                                        Speciality Chemicals).
+                                    </li>
+                                    <li>
+                                        Unchecking a row removes only that
+                                        industry's values from the filter,
+                                        leaving others intact.
+                                    </li>
+                                    <li>
+                                        Checkboxes reflect the current filter
+                                        state — if Pharmaceuticals is already
+                                        selected in the filter, its row appears
+                                        checked when you open the popup.
                                     </li>
                                 </ul>
                             </div>
                             <div class="help-tip">
-                                <strong>Use case:</strong> spot which industries
-                                are leading or lagging the market right now,
-                                then drill in to find exactly which sub-segment
-                                is driving that move before searching for
-                                individual stocks.
+                                <strong>Workflow:</strong> open the Industry
+                                heatmap at the start of your session. Sort by 1M
+                                to find trending sectors. Drill into the top 1–2
+                                sectors to find leading Basic Industries. Check
+                                those rows to apply them to your filters. Close
+                                the popup — you now have a focused list of the
+                                right stocks to research, without typing
+                                anything into filter boxes.
                             </div>
                         </div>
 
@@ -4369,77 +4921,287 @@
                         <div class="help-section" data-help-section="saved">
                             <h3>📌 Saved Searches</h3>
                             <div class="help-tagline">
-                                Save filter combinations locally in your browser
-                                and re-run them anytime — even combine several
-                                at once.
+                                Save any filter combination under a custom name
+                                and re-run it anytime — or combine multiple
+                                saved searches into one merged result.
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
                                     Saving a search
                                 </div>
-                                <p>
-                                    Set up any combination of filters, click the
-                                    <span class="help-kbd">💾</span> button next
-                                    to Clear, give it a name, and save. It's
-                                    stored in your browser's local storage — it
-                                    stays until you delete it or clear browser
-                                    data, and is never sent anywhere.
+                                <ol>
+                                    <li>
+                                        Set up any combination of filters in the
+                                        filter panel.
+                                    </li>
+                                    <li>
+                                        Click the
+                                        <span class="help-kbd">💾</span> button
+                                        next to the Clear button.
+                                    </li>
+                                    <li>
+                                        A preview of every active filter and its
+                                        values is shown. Type a descriptive name
+                                        (e.g. "High RS F&amp;O NR Setup") and
+                                        click <strong>Save Search</strong>.
+                                    </li>
+                                    <li>
+                                        The search is stored in your browser's
+                                        localStorage immediately and appears in
+                                        the 📌 Saved panel.
+                                    </li>
+                                </ol>
+                                <p style="margin-top: 8px">
+                                    Saved searches persist until you delete them
+                                    or clear browser data. Nothing is ever sent
+                                    anywhere. Use
+                                    <span class="help-kbd"
+                                        >⚙ Settings → Export Settings</span
+                                    >
+                                    to back them up.
                                 </p>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
-                                    Running searches
+                                    Running a single saved search
                                 </div>
-                                <ul>
-                                    <li>
-                                        Click
-                                        <span class="help-kbd">📌 Saved</span>
-                                        in the header to open the panel.
-                                    </li>
-                                    <li>
-                                        Click the <strong>▶</strong> button on a
-                                        single card to load that search — all
-                                        matching filters get filled in and
-                                        applied.
-                                    </li>
-                                    <li>
-                                        Tick the checkbox on
-                                        <strong>two or more</strong> cards, then
-                                        click <strong>Run Selected</strong> —
-                                        each search runs independently, and the
-                                        results are combined into one
-                                        de-duplicated list (a stock matching
-                                        multiple searches only appears once). A
-                                        blue banner confirms which searches are
-                                        active; click ✕ on it to return to
-                                        normal filtering.
-                                    </li>
-                                </ul>
+                                <p>
+                                    Click
+                                    <span class="help-kbd">📌 Saved</span> in
+                                    the header to show the panel. Click the
+                                    <strong>▶</strong> play button on any card —
+                                    all its filter values are loaded into the
+                                    filter panel and applied immediately. The
+                                    filter panel opens so you can see and adjust
+                                    what was set.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Combining multiple saved searches
+                                </div>
+                                <p>
+                                    Tick the checkboxes on
+                                    <strong>two or more</strong> cards, then
+                                    click <strong>▶ Run Selected</strong>. Each
+                                    search runs independently, and results are
+                                    merged into one de-duplicated list (a stock
+                                    matching multiple searches appears only
+                                    once).
+                                </p>
+                                <p style="margin-top: 8px">
+                                    A
+                                    <strong>blue active banner</strong> confirms
+                                    which searches are combined and how many
+                                    unique stocks resulted. Click
+                                    <span class="help-kbd">✕ Clear</span> on the
+                                    banner to return to normal mode.
+                                </p>
+                                <p style="margin-top: 8px">
+                                    <strong>Example:</strong> "High RS IT" +
+                                    "High RS Pharma" run together gives the best
+                                    momentum names from both sectors in one list
+                                    — without manually ORing the sector filter.
+                                </p>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
                                     Managing saved searches
                                 </div>
+                                <ul>
+                                    <li>
+                                        Use <strong>☐ All</strong> to
+                                        select/deselect all cards at once.
+                                    </li>
+                                    <li>
+                                        Select cards and click
+                                        <strong>🗑 Delete</strong> to remove
+                                        them (confirmation prompt appears).
+                                    </li>
+                                    <li>
+                                        The count is shown next to the 📌 button
+                                        in the header.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div
+                                class="help-block"
+                                style="
+                                    background: rgba(244, 63, 94, 0.06);
+                                    border: 1px solid rgba(244, 63, 94, 0.25);
+                                    border-radius: 8px;
+                                    padding: 12px 14px;
+                                "
+                            >
+                                <div
+                                    class="help-block-title"
+                                    style="color: #f43f5e"
+                                >
+                                    ⚠ Backup reminder
+                                </div>
                                 <p>
-                                    Use <strong>☐ All</strong> to
-                                    select/deselect everything at once, and
-                                    <strong>🗑 Delete</strong> to remove
-                                    selected searches (with confirmation).
+                                    Saved searches are stored in
+                                    <strong>browser localStorage</strong> only.
+                                    They will be lost if you clear browser data.
+                                    Use
+                                    <span class="help-kbd"
+                                        >⚙ Settings → Export Settings</span
+                                    >
+                                    to download a backup before clearing browser
+                                    data or switching devices.
                                 </p>
                             </div>
                         </div>
 
-                        <!-- TV WATCHLIST -->
-                        <div class="help-section" data-help-section="watchlist">
+                        <!-- MY WATCHLISTS -->
+                        <div
+                            class="help-section"
+                            data-help-section="mywatchlist"
+                        >
+                            <h3>⭐ Personal Watchlists</h3>
+                            <div class="help-tagline">
+                                Star any stock to add it to a named watchlist.
+                                Create multiple lists. Filter the main table to
+                                show only your watchlist stocks.
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Adding a stock — the star icon
+                                </div>
+                                <p>
+                                    Each row in the main table shows a
+                                    <strong>star icon</strong> next to the stock
+                                    code. Dimmed outline (☆) = not in any
+                                    watchlist. Filled gold (★) = in at least one
+                                    watchlist.
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong>No watchlists yet:</strong>
+                                        clicking the star prompts you to create
+                                        your first watchlist and name it. The
+                                        stock is added immediately.
+                                    </li>
+                                    <li>
+                                        <strong>One watchlist:</strong> clicking
+                                        the star instantly toggles the stock
+                                        in/out — one click, no extra prompt.
+                                    </li>
+                                    <li>
+                                        <strong>Multiple watchlists:</strong> a
+                                        small checkbox popover lists all your
+                                        watchlists. Tick the ones you want this
+                                        stock in. A stock can belong to multiple
+                                        watchlists at the same time.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Bulk-adding filtered stocks
+                                </div>
+                                <p>
+                                    When a filter is active, a
+                                    <strong>➕ Add to Watchlist</strong> button
+                                    appears in the stats bar. Clicking it adds
+                                    every stock currently shown in filtered
+                                    results to a watchlist of your choice. If
+                                    you have 2+ watchlists, a prompt asks which
+                                    list (or lets you create a new one).
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Filtering by watchlist
+                                </div>
+                                <p>
+                                    The <strong>Watchlist</strong> multi-select
+                                    dropdown in the filter panel lists all your
+                                    watchlists. Select one or more to show only
+                                    those stocks in the main table. Combines
+                                    with all other filters using AND logic —
+                                    filter your watchlist to only show tradable
+                                    or high-RS names from it.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Managing watchlists — ⭐ Watchlists panel
+                                </div>
+                                <p>
+                                    Click
+                                    <span class="help-kbd">⭐ Watchlists</span>
+                                    in the header to open the management panel:
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong>View</strong> — click ▶ View on
+                                        any card to filter the main table to
+                                        that watchlist instantly.
+                                    </li>
+                                    <li>
+                                        <strong>Rename</strong> — double-click
+                                        the watchlist name to rename it inline.
+                                        Press Enter or click away to confirm.
+                                    </li>
+                                    <li>
+                                        <strong>Delete</strong> — select one or
+                                        more cards and click 🗑 Delete Selected
+                                        to remove them and all their stored
+                                        stocks (with confirmation).
+                                    </li>
+                                    <li>
+                                        Each card shows the watchlist name and
+                                        stock count.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div
+                                class="help-block"
+                                style="
+                                    background: rgba(244, 63, 94, 0.06);
+                                    border: 1px solid rgba(244, 63, 94, 0.25);
+                                    border-radius: 8px;
+                                    padding: 12px 14px;
+                                "
+                            >
+                                <div
+                                    class="help-block-title"
+                                    style="color: #f43f5e"
+                                >
+                                    ⚠ Backup reminder
+                                </div>
+                                <p>
+                                    Watchlist data is stored in
+                                    <strong>browser localStorage</strong> only.
+                                    It will be lost if you clear browser data or
+                                    switch to a different browser/device. Use
+                                    <span class="help-kbd"
+                                        >⚙ Settings → Export Settings</span
+                                    >
+                                    to back up all your watchlists before any
+                                    browser maintenance. You can restore them at
+                                    any time using Import Settings.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- TV WATCHLIST EXPORT -->
+                        <div
+                            class="help-section"
+                            data-help-section="tvwatchlist"
+                        >
                             <h3>⚡ TradingView Watchlist Export</h3>
                             <div class="help-tagline">
-                                Turn any filtered result into watchlists ready
-                                to import into TradingView.
+                                Turn any filtered screener result into
+                                watchlists ready to import directly into
+                                TradingView — with automatic chunk splitting for
+                                plan limits.
                             </div>
                             <div class="help-block">
                                 <p>
-                                    Once a filter is active (results are fewer
-                                    than the full stock list), an amber
+                                    When a filter is active (results fewer than
+                                    the full universe), an amber
                                     <span class="help-kbd"
                                         >⚡ TV Watchlist</span
                                     >
@@ -4452,32 +5214,161 @@
                                     Choosing chunk size
                                 </div>
                                 <p>
-                                    TradingView limits watchlist size by plan
-                                    (30 on Free, 100 on Essential, 500 on Plus,
-                                    1000 on Premium+). Pick the matching option,
-                                    or enter a custom number — your filtered
-                                    stocks are automatically split into that
-                                    many stocks per list.
+                                    TradingView limits watchlist size by plan:
+                                    30 stocks on Free, 100 on Essential, 500 on
+                                    Plus, 1000 on Premium+. Select your plan —
+                                    filtered stocks are automatically split into
+                                    chunks of that size. You can also enter a
+                                    custom number.
                                 </p>
                             </div>
                             <div class="help-block">
-                                <div class="help-block-title">Importing</div>
+                                <div class="help-block-title">
+                                    Copying and importing
+                                </div>
+                                <ol>
+                                    <li>
+                                        Each chunk shows a text block of
+                                        <span class="help-kbd"
+                                            >NSE:SYMBOL,NSE:SYMBOL,…</span
+                                        >.
+                                    </li>
+                                    <li>
+                                        Click <strong>📋 Copy</strong> on a
+                                        chunk to copy it. The button turns green
+                                        with ✓.
+                                    </li>
+                                    <li>
+                                        In TradingView, open the Watchlist panel
+                                        →
+                                        <strong>⋮ → Import Watchlist</strong> →
+                                        paste.
+                                    </li>
+                                    <li>Repeat for each additional chunk.</li>
+                                </ol>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Symbol formatting
+                                </div>
                                 <p>
-                                    Each chunk shows a ready-to-copy text block
-                                    in
-                                    <span class="help-kbd">NSE:SYMBOL</span>
-                                    format. Click <strong>📋 Copy</strong>, then
-                                    in TradingView open the Watchlist panel →
-                                    <strong>⋮ → Import Watchlist</strong> and
-                                    paste.
+                                    All symbols are prefixed with
+                                    <span class="help-kbd">NSE:</span> and any
+                                    <span class="help-kbd">&amp;</span>
+                                    characters (e.g. M&amp;M → NSE:M_M) are
+                                    converted to
+                                    <span class="help-kbd">_</span>
+                                    automatically.
                                 </p>
                             </div>
                             <div class="help-tip">
-                                Symbols with
-                                <span class="help-kbd">&amp;</span> are
-                                auto-converted to
-                                <span class="help-kbd">_</span> to match
-                                TradingView's symbol format.
+                                This export works with multi-search combined
+                                results too — run two or three Saved Searches
+                                together to get a merged unique list, then
+                                export the whole thing to TradingView in one
+                                step.
+                            </div>
+                        </div>
+
+                        <!-- SETTINGS & TOOLS -->
+                        <div class="help-section" data-help-section="settings">
+                            <h3>⚙ Settings &amp; Tools</h3>
+                            <div class="help-tagline">
+                                Click the <span class="help-kbd">⚙</span> icon
+                                button in the header (between ❓ Help and 👤
+                                Author) to open Settings.
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📤 Export Settings — Backup Your Data
+                                </div>
+                                <p>
+                                    Downloads all your personal data as a single
+                                    JSON file named
+                                    <span class="help-kbd"
+                                        >nse-screener-backup-YYYY-MM-DD-HHmm.json</span
+                                    >. The backup includes:
+                                </p>
+                                <ul>
+                                    <li>
+                                        All <strong>Saved Searches</strong> —
+                                        names and full filter state for each.
+                                    </li>
+                                    <li>
+                                        All <strong>Watchlists</strong> — list
+                                        names and the stock codes in each list.
+                                    </li>
+                                </ul>
+                                <p style="margin-top: 8px">
+                                    <strong>When to use it:</strong> before
+                                    clearing browser history or cache, before
+                                    switching to a new computer or browser, or
+                                    periodically as a routine backup. Since all
+                                    data lives only in localStorage, this is the
+                                    only way to protect it.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📥 Import Settings — Restore From Backup
+                                </div>
+                                <p>
+                                    Click the Import Settings area to open a
+                                    file picker. Select a previously exported
+                                    <span class="help-kbd">.json</span> backup
+                                    file. The screener will:
+                                </p>
+                                <ol>
+                                    <li>
+                                        Validate the file structure to confirm
+                                        it is a genuine screener backup.
+                                    </li>
+                                    <li>
+                                        Restore your Saved Searches and
+                                        Watchlists to localStorage,
+                                        <strong>replacing</strong> anything
+                                        currently stored.
+                                    </li>
+                                    <li>
+                                        Reload the page automatically after 2
+                                        seconds so all restored data initialises
+                                        correctly.
+                                    </li>
+                                </ol>
+                                <p style="margin-top: 8px">
+                                    <strong>Important:</strong> importing
+                                    overwrites existing data — it does not
+                                    merge. If you want to keep both old and new
+                                    data, export first before importing.
+                                </p>
+                            </div>
+                            <div
+                                class="help-block"
+                                style="
+                                    background: rgba(244, 63, 94, 0.06);
+                                    border: 1px solid rgba(244, 63, 94, 0.25);
+                                    border-radius: 8px;
+                                    padding: 12px 14px;
+                                "
+                            >
+                                <div
+                                    class="help-block-title"
+                                    style="color: #f43f5e"
+                                >
+                                    ⚠ Always backup before clearing browser data
+                                </div>
+                                <p>
+                                    Your Saved Searches and Watchlists are
+                                    stored <strong>exclusively</strong> in this
+                                    browser's localStorage. Clearing browser
+                                    history, cache, cookies, or site data will
+                                    permanently delete them. There is no cloud
+                                    backup, no server, no account to recover
+                                    from.
+                                    <strong
+                                        >Use Export Settings regularly.</strong
+                                    >
+                                </p>
                             </div>
                         </div>
 
@@ -4485,18 +5376,21 @@
                         <div class="help-section" data-help-section="pwa">
                             <h3>📲 Installing as an App</h3>
                             <div class="help-tagline">
-                                This screener works as a installable Progressive
-                                Web App for faster, app-like access.
+                                This screener is a Progressive Web App (PWA) —
+                                install it to your home screen or desktop for
+                                faster, app-like access.
                             </div>
                             <div class="help-block">
                                 <p>
                                     On supported browsers (Chrome, Edge, Samsung
                                     Internet on Android; Chrome/Edge on
-                                    desktop), a prompt appears a few seconds
-                                    after your first visit offering to install
-                                    the screener to your home screen or desktop.
-                                    You can dismiss it — it'll politely wait 15
-                                    days before asking again.
+                                    desktop), a
+                                    <span class="help-kbd"
+                                        >📲 Install NSE Screener</span
+                                    >
+                                    prompt appears a few seconds after your
+                                    first visit. Dismiss it and it will ask
+                                    again after 15 days.
                                 </p>
                             </div>
                             <div class="help-block">
@@ -4505,87 +5399,357 @@
                                 </div>
                                 <ul>
                                     <li>
-                                        Opens in its own window without browser
-                                        address bars/tabs.
+                                        Opens in its own standalone window — no
+                                        browser address bars, toolbars, or tabs.
                                     </li>
                                     <li>
                                         Static assets (HTML, CSS, fonts) load
-                                        instantly from local cache after the
+                                        from local cache instantly after the
                                         first visit.
                                     </li>
                                     <li>
-                                        Same-day repeat visits often skip the
-                                        data download entirely if nothing's
-                                        changed yet.
+                                        Smart caching: same-day repeat visits
+                                        skip the data download entirely before 5
+                                        PM IST on weekdays, or all day on
+                                        weekends/holidays — saving ~4 MB per
+                                        repeat visit.
+                                    </li>
+                                    <li>
+                                        Works offline for browsing previously
+                                        loaded data.
                                     </li>
                                 </ul>
                             </div>
                             <div class="help-block">
+                                <div class="help-block-title">Updates</div>
+                                <p>
+                                    When the screener is updated, a
+                                    <span class="help-kbd"
+                                        >🔄 Update Available — Reload</span
+                                    >
+                                    toast appears. Click
+                                    <strong>Reload</strong> to apply instantly.
+                                    Your data (Saved Searches, Watchlists) is
+                                    never affected by updates.
+                                </p>
+                            </div>
+                            <div class="help-block">
                                 <div class="help-block-title">
-                                    iPhone/iPad (Safari)
+                                    iPhone / iPad (Safari)
                                 </div>
                                 <p>
-                                    Safari doesn't support the install prompt
-                                    automatically — tap the
-                                    <strong>Share</strong> icon, then
-                                    <strong>Add to Home Screen</strong>
-                                    manually.
+                                    Safari on iOS does not support the automatic
+                                    install prompt. To install: tap the
+                                    <strong>Share</strong> icon (square with
+                                    arrow), scroll down and tap
+                                    <strong>Add to Home Screen</strong>, then
+                                    tap <strong>Add</strong>.
                                 </p>
                             </div>
                         </div>
 
-                        <!-- PRO TIPS -->
+                        <!-- USE CASES -->
                         <div class="help-section" data-help-section="tips">
-                            <h3>💡 Pro Tips</h3>
+                            <h3>💡 Common Use Cases</h3>
                             <div class="help-tagline">
-                                Small habits that get the most out of this
-                                screener.
+                                Real-world workflows — how to get the most out
+                                of this screener for different research goals.
                             </div>
+
                             <div class="help-block">
+                                <div class="help-block-title">
+                                    📅 Daily Morning Screening (5–10 minutes)
+                                </div>
+                                <ol>
+                                    <li>
+                                        Open the
+                                        <span class="help-kbd"
+                                            >📊 Industry</span
+                                        >
+                                        heatmap. Sort by 1D to see what moved
+                                        overnight. Check 1M to confirm which
+                                        sectors have been in trend.
+                                    </li>
+                                    <li>
+                                        Click into the 1–2 leading sectors to
+                                        drill into Basic Industries and identify
+                                        the strongest sub-segments.
+                                    </li>
+                                    <li>
+                                        Check those rows to apply them directly
+                                        to your main filters.
+                                    </li>
+                                    <li>
+                                        Tick <strong>⚡ Is Tradable</strong> and
+                                        set RS Total Min = 300. Sort by RS Total
+                                        descending.
+                                    </li>
+                                    <li>
+                                        Scan the top 10–20 names. Click each
+                                        Code to check Peer Comparison — confirm
+                                        it is leading its own group before
+                                        shortlisting it.
+                                    </li>
+                                    <li>
+                                        Star (★) your shortlist into a named
+                                        watchlist like "Today's Setups" for easy
+                                        reference through the day.
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🔍 Finding Narrow Range Breakout Setups
+                                </div>
+                                <ol>
+                                    <li>
+                                        Set <strong>Narrow Range ≥ 3</strong> or
+                                        <strong>4</strong> — stocks coiling for
+                                        multiple days.
+                                    </li>
+                                    <li>
+                                        Set
+                                        <strong>RS Total Min = 270–300</strong>
+                                        — consolidating within an existing
+                                        uptrend.
+                                    </li>
+                                    <li>
+                                        Optionally set <strong>Vol ↑</strong> —
+                                        narrow range stocks also showing volume
+                                        pickup today signal an imminent move.
+                                    </li>
+                                    <li>
+                                        Sort by Narrow Range descending to
+                                        surface the most extended coils first.
+                                    </li>
+                                    <li>
+                                        Click each stock's Name to open
+                                        TradingView and visually confirm the
+                                        base before acting.
+                                    </li>
+                                    <li>
+                                        Save this filter as a Saved Search named
+                                        "NR Breakout Setups" for daily reuse.
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📈 Building a Momentum Portfolio Watchlist
+                                </div>
+                                <ol>
+                                    <li>
+                                        Set RS Total Min = 320, RS 1M Min = 80,
+                                        RS 6M Min = 75 (sustained momentum
+                                        across timeframes).
+                                    </li>
+                                    <li>
+                                        Set Lin 3M ≥ 0.65 (smooth, linear trend
+                                        — not a spike).
+                                    </li>
+                                    <li>
+                                        Set Delivery ↑ checked (institutional
+                                        buying signal).
+                                    </li>
+                                    <li>
+                                        Optionally set ROE Min = 15 and Promoter
+                                        Hold Min = 40 for quality filtering.
+                                    </li>
+                                    <li>
+                                        Review the list. Click each Code for
+                                        Peer Comparison — confirm the stock
+                                        leads its Basic Industry. Star the best
+                                        into a watchlist named "Core Momentum".
+                                    </li>
+                                    <li>
+                                        Save the filter combination as a Saved
+                                        Search for weekly reuse as market
+                                        conditions evolve.
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    💊 Researching a Specific Sector
+                                </div>
+                                <ol>
+                                    <li>
+                                        Open the Industry dropdown. Search and
+                                        select your target (e.g. "Pharma"). The
+                                        cascade narrows Sector/Industry/Basic
+                                        Industry automatically.
+                                    </li>
+                                    <li>
+                                        Further refine to a specific Basic
+                                        Industry if needed (e.g. "Agrochemicals"
+                                        under Speciality Chemicals).
+                                    </li>
+                                    <li>
+                                        Sort by RS Total descending to rank all
+                                        stocks in that sector by momentum.
+                                    </li>
+                                    <li>
+                                        Click the top 3–5 Codes to compare peer
+                                        standing and find the true sector
+                                        leaders.
+                                    </li>
+                                    <li>
+                                        Use the
+                                        <span class="help-kbd"
+                                            >⚡ TV Watchlist</span
+                                        >
+                                        button in the stats bar to export the
+                                        whole filtered group to TradingView for
+                                        chart review.
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🔄 Multi-Strategy Daily Universe
+                                </div>
+                                <ol>
+                                    <li>
+                                        Create separate Saved Searches for each
+                                        strategy: "High RS F&amp;O Largecap",
+                                        "NR Setups Midcap", "High EPS Growth
+                                        IT".
+                                    </li>
+                                    <li>
+                                        Each morning, open
+                                        <span class="help-kbd">📌 Saved</span>,
+                                        select all your strategy searches, and
+                                        click <strong>▶ Run Selected</strong>.
+                                    </li>
+                                    <li>
+                                        The merged de-duplicated result shows
+                                        every stock qualifying for at least one
+                                        strategy — your complete daily research
+                                        universe.
+                                    </li>
+                                    <li>
+                                        Export the combined list to TradingView
+                                        as a single watchlist for chart review.
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    ⭐ Using Personal Watchlists Day-to-Day
+                                </div>
+                                <ol>
+                                    <li>
+                                        After your morning screening, star your
+                                        top candidates into a named daily list
+                                        like "Tracking June 16".
+                                    </li>
+                                    <li>
+                                        During the day, select that watchlist in
+                                        the Watchlist filter dropdown to focus
+                                        the main table on just those stocks.
+                                    </li>
+                                    <li>
+                                        Layer on additional filters (e.g. Vol ↑)
+                                        to see which of your tracked stocks are
+                                        showing activity.
+                                    </li>
+                                    <li>
+                                        At the end of the week, use
+                                        <span class="help-kbd"
+                                            >⭐ Watchlists</span
+                                        >
+                                        → rename or delete old lists as you
+                                        build new ones.
+                                    </li>
+                                    <li>
+                                        Before clearing browser data:
+                                        <span class="help-kbd"
+                                            >⚙ Settings → Export Settings</span
+                                        >
+                                        to save all watchlists to a backup file.
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📱 Getting the Most on Mobile
+                                </div>
                                 <ul>
                                     <li>
-                                        Sort by <strong>RS Total</strong> first
-                                        to find momentum leaders, then check
-                                        their
-                                        <strong>NR (Narrow Range)</strong>
-                                        column for possible breakout setups.
+                                        Install the PWA (see Install App tab)
+                                        for the cleanest mobile experience —
+                                        full screen, no browser chrome.
                                     </li>
                                     <li>
-                                        Before buying into a "strong" stock,
-                                        open its
-                                        <strong>Peer Comparison</strong> popup —
-                                        confirm it's actually a leader within
-                                        its own industry, not just riding a
-                                        sector-wide move.
+                                        On mobile, only the
+                                        <strong>Code column is frozen</strong>
+                                        while scrolling horizontally. Tap Code
+                                        for Peer Comparison; tap Name (visible
+                                        when not scrolled right) for
+                                        TradingView.
                                     </li>
                                     <li>
-                                        Use <strong>Is Tradable ⚡</strong> as a
-                                        first-pass filter if you only care about
-                                        stocks you can currently act on.
+                                        Use the
+                                        <span class="help-kbd">⚙ Filters</span>
+                                        toggle to hide the filter panel after
+                                        setting your criteria — the table gets
+                                        much more vertical space.
                                     </li>
                                     <li>
-                                        Build a few go-to
-                                        <strong>Saved Searches</strong> (e.g.
-                                        "High RS + Low PE", "Narrow Range
-                                        Setups") so daily screening takes
-                                        seconds, not minutes.
+                                        The Industry heatmap and Basic Industry
+                                        drill-down work fully on mobile with
+                                        horizontal scroll.
                                     </li>
                                     <li>
-                                        Check the
-                                        <strong>Industry Performance</strong>
-                                        heatmap before diving into individual
-                                        filters — it tells you which sectors are
-                                        worth focusing on today.
+                                        The star icon on each Code cell is 16px
+                                        — easily tappable on touch screens.
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    💾 Keeping Your Data Safe — Checklist
+                                </div>
+                                <ul>
+                                    <li>
+                                        All Saved Searches and Watchlists live
+                                        in
+                                        <strong>browser localStorage</strong> —
+                                        lost if you clear browser data.
                                     </li>
                                     <li>
-                                        Press
-                                        <span class="help-kbd">Esc</span> to
-                                        quickly close any open popup.
+                                        Use
+                                        <span class="help-kbd"
+                                            >⚙ Settings → Export Settings</span
+                                        >
+                                        to download a backup JSON file
+                                        <em>before</em> clearing cache or
+                                        switching devices.
                                     </li>
                                     <li>
-                                        Click any sortable column header twice
-                                        to flip between strongest-first and
-                                        weakest-first ordering.
+                                        When moving to a new device or browser:
+                                        export on old device, import on new one
+                                        via
+                                        <span class="help-kbd"
+                                            >⚙ Settings → Import Settings</span
+                                        >.
+                                    </li>
+                                    <li>
+                                        The backup file includes all Saved
+                                        Searches and all Watchlists in one
+                                        portable JSON file.
+                                    </li>
+                                    <li>
+                                        Import replaces existing data — export
+                                        first if you want to merge rather than
+                                        overwrite.
                                     </li>
                                 </ul>
                             </div>
@@ -4603,27 +5767,48 @@
         >
             <div class="settings-modal" onclick="event.stopPropagation()">
                 <div class="settings-modal-header">
-                    <div class="settings-modal-title">⚙ Settings &amp; Tools</div>
-                    <button class="peer-modal-close" onclick="closeSettingsModal()">✕</button>
+                    <div class="settings-modal-title">
+                        ⚙ Settings &amp; Tools
+                    </div>
+                    <button
+                        class="peer-modal-close"
+                        onclick="closeSettingsModal()"
+                    >
+                        ✕
+                    </button>
                 </div>
                 <div class="settings-modal-body">
-
                     <!-- Export / Import -->
                     <div class="settings-section">
-                        <div class="settings-section-title">💾 Backup &amp; Restore</div>
-                        <button class="settings-action-btn" onclick="exportSettings()">
+                        <div class="settings-section-title">
+                            💾 Backup &amp; Restore
+                        </div>
+                        <button
+                            class="settings-action-btn"
+                            onclick="exportSettings()"
+                        >
                             <span class="settings-action-icon">📤</span>
                             <div class="settings-action-text">
                                 <strong>Export Settings</strong>
-                                <span>Download saved searches, watchlists, and preferences as a JSON backup file</span>
+                                <span
+                                    >Download saved searches, watchlists, and
+                                    preferences as a JSON backup file</span
+                                >
                             </div>
                         </button>
                         <!-- 3. Import -->
-                        <label class="settings-action-btn" style="cursor:pointer">
+                        <label
+                            class="settings-action-btn"
+                            style="cursor: pointer"
+                        >
                             <span class="settings-action-icon">📥</span>
                             <div class="settings-action-text">
                                 <strong>Import Settings</strong>
-                                <span>Restore saved searches, watchlists, and preferences from a previously exported file</span>
+                                <span
+                                    >Restore saved searches, watchlists, and
+                                    preferences from a previously exported
+                                    file</span
+                                >
                             </div>
                             <input
                                 type="file"
@@ -4631,11 +5816,10 @@
                                 id="settingsImportInput"
                                 accept=".json"
                                 onchange="importSettings(event)"
-                            >
+                            />
                         </label>
                         <div class="settings-status" id="settingsStatus"></div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -5611,8 +6795,7 @@
                         !bands.includes(String(r["Price Band %"]))
                     )
                         return false;
-                    if (wlCodesUnion && !wlCodesUnion.has(r.Code))
-                        return false;
+                    if (wlCodesUnion && !wlCodesUnion.has(r.Code)) return false;
 
                     const rs = parseFloat(r["RS TOTAL"]);
                     if (rsMin !== null && (isNaN(rs) || rs < rsMin))
@@ -6411,7 +7594,11 @@
                 const name = nameInput.value.trim();
                 if (!name || !wlPopoverActiveCode) return;
                 const lists = loadWatchlists();
-                const wl = { id: Date.now(), name, codes: [wlPopoverActiveCode] };
+                const wl = {
+                    id: Date.now(),
+                    name,
+                    codes: [wlPopoverActiveCode],
+                };
                 lists.push(wl);
                 saveWatchlists(lists);
                 refreshWatchlistUI();
@@ -6442,7 +7629,9 @@
             function renderWatchlistPanel() {
                 const lists = loadWatchlists();
                 document.getElementById("watchlistBtnLabel").textContent =
-                    lists.length ? `Watchlists (${lists.length})` : "Watchlists";
+                    lists.length
+                        ? `Watchlists (${lists.length})`
+                        : "Watchlists";
 
                 const listEl = document.getElementById("watchlistList");
                 if (!lists.length) {
@@ -6579,7 +7768,9 @@
                 } else if (lists.length === 1) {
                     target = lists[0];
                 } else {
-                    const names = lists.map((wl, i) => `${i + 1}. ${wl.name}`).join("\n");
+                    const names = lists
+                        .map((wl, i) => `${i + 1}. ${wl.name}`)
+                        .join("\n");
                     const choice = prompt(
                         `Add ${codes.length} stocks to which watchlist?\n\n${names}\n\nEnter a number, or type a new name to create one:`,
                     );
@@ -6863,8 +8054,7 @@
                         !bands.includes(String(r["Price Band %"]))
                     )
                         return false;
-                    if (wlCodesUnion && !wlCodesUnion.has(r.Code))
-                        return false;
+                    if (wlCodesUnion && !wlCodesUnion.has(r.Code)) return false;
 
                     const chk = (field, rKey, scale = 1) => {
                         const mn = gnum(field + "_min"),
@@ -7418,7 +8608,9 @@
                 document.getElementById("settingsModal").classList.add("open");
             }
             function closeSettingsModal() {
-                document.getElementById("settingsModal").classList.remove("open");
+                document
+                    .getElementById("settingsModal")
+                    .classList.remove("open");
             }
             function closeSettingsModalOnOverlay(e) {
                 if (e.target === document.getElementById("settingsModal"))
@@ -7430,8 +8622,12 @@
                 const payload = {
                     exported_at: new Date().toISOString(),
                     version: 1,
-                    saved_searches: JSON.parse(localStorage.getItem(SS_KEY) || "[]"),
-                    watchlists: JSON.parse(localStorage.getItem(WL_KEY) || "[]"),
+                    saved_searches: JSON.parse(
+                        localStorage.getItem(SS_KEY) || "[]",
+                    ),
+                    watchlists: JSON.parse(
+                        localStorage.getItem(WL_KEY) || "[]",
+                    ),
                 };
                 const json = JSON.stringify(payload, null, 2);
                 const blob = new Blob([json], { type: "application/json" });
@@ -7440,7 +8636,7 @@
                 // Filename: nse-screener-backup-YYYY-MM-DD-HHmm.json
                 const now = new Date();
                 const pad = (n) => String(n).padStart(2, "0");
-                const stamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+                const stamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
                 a.href = url;
                 a.download = `nse-screener-backup-${stamp}.json`;
                 a.click();
@@ -7457,16 +8653,32 @@
                     try {
                         const payload = JSON.parse(e.target.result);
                         // Validate basic structure
-                        if (payload.version !== 1 || !Array.isArray(payload.saved_searches) || !Array.isArray(payload.watchlists)) {
+                        if (
+                            payload.version !== 1 ||
+                            !Array.isArray(payload.saved_searches) ||
+                            !Array.isArray(payload.watchlists)
+                        ) {
                             throw new Error("Invalid backup file format");
                         }
                         // Restore each key
-                        localStorage.setItem(SS_KEY, JSON.stringify(payload.saved_searches));
-                        localStorage.setItem(WL_KEY, JSON.stringify(payload.watchlists));
-                        showSettingsStatus(`✓ Import successful — reloading in 2s…`, "ok");
+                        localStorage.setItem(
+                            SS_KEY,
+                            JSON.stringify(payload.saved_searches),
+                        );
+                        localStorage.setItem(
+                            WL_KEY,
+                            JSON.stringify(payload.watchlists),
+                        );
+                        showSettingsStatus(
+                            `✓ Import successful — reloading in 2s…`,
+                            "ok",
+                        );
                         setTimeout(() => window.location.reload(), 2000);
                     } catch (err) {
-                        showSettingsStatus(`⚠ Import failed: ${err.message}`, "err");
+                        showSettingsStatus(
+                            `⚠ Import failed: ${err.message}`,
+                            "err",
+                        );
                     }
                 };
                 reader.readAsText(file);
