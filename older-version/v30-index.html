@@ -3148,30 +3148,6 @@
                         oninput="applyFilters()"
                     />
                 </div>
-
-                <!-- 5 Days Range% -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">5D Range% (High–Low)</div>
-                    <div class="range-group">
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_5dr_min"
-                            placeholder="Min"
-                            step="0.1"
-                            oninput="applyFilters()"
-                        />
-                        <span class="range-sep">–</span>
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_5dr_max"
-                            placeholder="Max"
-                            step="0.1"
-                            oninput="applyFilters()"
-                        />
-                    </div>
-                </div>
             </div>
 
             <!-- Row 4: EPS / Sales filters + above avg checks -->
@@ -3565,12 +3541,6 @@
                             title="Narrow Range Days"
                         >
                             NR
-                        </th>
-                        <th
-                            onclick="sortBy('5 Days Range%')"
-                            title="5-Day High-Low Range % — below 6.5% is ideal for breakout setups"
-                        >
-                            5DR%
                         </th>
                         <th onclick="sortBy('Is Tradable')">Tradable</th>
                         <th onclick="sortBy('1 Day Chng%')">1D Chg%</th>
@@ -4415,24 +4385,6 @@
                                         the stock has been in a tight range for
                                         4 days — a common pre-breakout coiling
                                         setup). Displays — when 0.
-                                    </li>
-                                    <li>
-                                        <strong>5DR%</strong> — 5-Day Range
-                                        percentage: the % spread between the
-                                        highest high and lowest low over the
-                                        last 5 trading days. Shown
-                                        colour-coded:
-                                        <span style="color:#10b981;font-weight:600">green ≤ 6.5%</span>
-                                        = ideal tight consolidation, prime
-                                        pre-breakout territory;
-                                        <span style="color:#f59e0b;font-weight:600">amber ≤ 7.5%</span>
-                                        = acceptable in rising stocks; above
-                                        7.5% shows as muted — too wide for a
-                                        clean setup. Works alongside NR: NR
-                                        counts the consecutive days, 5DR%
-                                        measures how tight the actual range is.
-                                        Use both together for the highest-quality
-                                        coiling patterns.
                                     </li>
                                     <li>
                                         <strong>Tradable</strong> — ⚡ YES pill
@@ -6797,8 +6749,6 @@
                 const promMin = gn("f_prom_min");
                 const promMax = gn("f_prom_max");
                 const nrMin = gn("f_nr_min");
-                const fiveDrMin = gn("f_5dr_min");
-                const fiveDrMax = gn("f_5dr_max");
                 const eps1Min = gn("f_eps1_min");
                 const eps1Max = gn("f_eps1_max");
                 const eps2Min = gn("f_eps2_min");
@@ -6920,12 +6870,6 @@
                     if (nrMin !== null && (isNaN(nr) || nr < nrMin))
                         return false;
 
-                    const fiveDr = parseFloat(r["5 Days Range%"]);
-                    if (fiveDrMin !== null && (isNaN(fiveDr) || fiveDr < fiveDrMin))
-                        return false;
-                    if (fiveDrMax !== null && (isNaN(fiveDr) || fiveDr > fiveDrMax))
-                        return false;
-
                     const eps1 = parseFloat(r["EPS Latest Qtr %"]);
                     if (eps1Min !== null && (isNaN(eps1) || eps1 < eps1Min))
                         return false;
@@ -6996,8 +6940,7 @@
                     "f_prom_min",
                     "f_prom_max",
                     "f_nr_min",
-                    "f_5dr_min",
-                    "f_5dr_max",
+                    "f_eps1_min",
                     "f_eps1_max",
                     "f_eps2_min",
                     "f_eps2_max",
@@ -7066,8 +7009,8 @@
                     "Name",
                     "Close",
                     "Narrow Range",
-                    "5 Days Range%",
                     "Is Tradable",
+                    "1 Day Chng%",
                     "RS TOTAL",
                     "1 Month RS",
                     "2 Months RS",
@@ -7223,7 +7166,6 @@
       <td class="name-cell tv-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Open on TradingView" style="cursor:pointer">${r.Name || "—"}</td>
       <td class="num">${fNum(r.Close, 2)}</td>
       <td class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
-      <td class="num">${(() => { const v = parseFloat(r["5 Days Range%"]); if (isNaN(v)) return '<span style="color:var(--muted)">—</span>'; const col = v <= 6.5 ? '#10b981' : v <= 7.5 ? '#f59e0b' : 'var(--muted)'; return `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${col}">${v.toFixed(2)}%</span>`; })()}</td>
       <td>${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
       <td class="${chngClass(r["1 Day Chng%"])} num">${chngStr(r["1 Day Chng%"])}</td>
       <td>${rsTotalBadge(r["RS TOTAL"])}</td>
@@ -7889,8 +7831,6 @@
                 { id: "f_prom_min", type: "num" },
                 { id: "f_prom_max", type: "num" },
                 { id: "f_nr_min", type: "num" },
-                { id: "f_5dr_min", type: "num" },
-                { id: "f_5dr_max", type: "num" },
                 { id: "f_eps1_min", type: "num" },
                 { id: "f_eps1_max", type: "num" },
                 { id: "f_eps2_min", type: "num" },
@@ -7940,8 +7880,6 @@
                 f_prom_min: "Prom Hold Min",
                 f_prom_max: "Prom Hold Max",
                 f_nr_min: "Narrow Range ≥",
-                f_5dr_min: "5D Range% Min",
-                f_5dr_max: "5D Range% Max",
                 f_eps1_min: "EPS Q1 Min",
                 f_eps1_max: "EPS Q1 Max",
                 f_eps2_min: "EPS Q2 Min",
@@ -8149,7 +8087,6 @@
                     if (!chk1("f_lin1m_min", "1 Month Linearity >= 0.5"))
                         return false;
                     if (!chk1("f_nr_min", "Narrow Range")) return false;
-                    if (!chk("f_5dr", "5 Days Range%")) return false;
 
                     if (gbool("f_vol_abv") && r["Volume Above Avg"] !== "Yes")
                         return false;
