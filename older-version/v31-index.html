@@ -3172,36 +3172,6 @@
                         />
                     </div>
                 </div>
-
-                <!-- BI Rank % filter -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">BI Rank Top % <span style="font-size:9px;color:var(--muted)">(e.g. 10 = top 10%)</span></div>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="f_bi_rank_pct"
-                        placeholder="e.g. 25"
-                        min="1"
-                        max="100"
-                        step="1"
-                        oninput="applyFilters()"
-                    />
-                </div>
-
-                <!-- Ind Rank % filter -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">Ind Rank Top % <span style="font-size:9px;color:var(--muted)">(e.g. 10 = top 10%)</span></div>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="f_ind_rank_pct"
-                        placeholder="e.g. 25"
-                        min="1"
-                        max="100"
-                        step="1"
-                        oninput="applyFilters()"
-                    />
-                </div>
             </div>
 
             <!-- Row 4: EPS / Sales filters + above avg checks -->
@@ -3603,8 +3573,6 @@
                             5DR%
                         </th>
                         <th onclick="sortBy('Is Tradable')">Tradable</th>
-                        <th onclick="sortBy('_biRank')" title="Rank within Basic Industry by RS Total (1 = top)">BI Rank</th>
-                        <th onclick="sortBy('_indRank')" title="Rank within Industry by RS Total (1 = top)">Ind Rank</th>
                         <th onclick="sortBy('1 Day Chng%')">1D Chg%</th>
                         <th onclick="sortBy('RS TOTAL')">RS Total</th>
                         <th onclick="sortBy('1 Month RS')">RS 1M</th>
@@ -6136,7 +6104,6 @@
             const JSON_URL = "m.json"; // same directory — works on GitHub Pages
             let allData = [];
             let filteredData = [];
-            let peerRankMap = new Map(); // Code → { biRank, biTotal, biPct, indRank, indTotal, indPct }
             let sortCol = "RS TOTAL";
             let sortDir = -1; // -1 = desc, 1 = asc
             let currentPage = 1;
@@ -6579,52 +6546,6 @@
 
                     allData = rows;
 
-                    // Pre-compute Basic Industry rank and Industry rank for
-                    // every stock. Rank is based on RS TOTAL (highest = rank 1).
-                    // We store: { biRank, biTotal, indRank, indTotal,
-                    //             biPct, indPct }  keyed by Code.
-                    // biPct / indPct = percentile FROM TOP (1 = top 1%).
-                    // This runs once at load (O(n log n)) so renderPage()
-                    // just does two Map lookups per row — essentially free.
-                    peerRankMap = new Map();
-                    const groupByField = (field) => {
-                        const groups = {};
-                        rows.forEach((r) => {
-                            const key = r[field] || "__none__";
-                            if (!groups[key]) groups[key] = [];
-                            groups[key].push(r);
-                        });
-                        return groups;
-                    };
-                    // Sort each group by RS TOTAL desc, assign ranks
-                    const assignRanks = (field, rankKey, totalKey, pctKey) => {
-                        const groups = groupByField(field);
-                        Object.values(groups).forEach((group) => {
-                            const sorted = [...group].sort(
-                                (a, b) =>
-                                    (parseFloat(b["RS TOTAL"]) || 0) -
-                                    (parseFloat(a["RS TOTAL"]) || 0),
-                            );
-                            sorted.forEach((r, i) => {
-                                if (!peerRankMap.has(r.Code))
-                                    peerRankMap.set(r.Code, {});
-                                const entry = peerRankMap.get(r.Code);
-                                entry[rankKey] = i + 1;
-                                entry[totalKey] = sorted.length;
-                                // top-percentile: rank 1 of 10 = top 10%
-                                entry[pctKey] =
-                                    ((i + 1) / sorted.length) * 100;
-                            });
-                        });
-                    };
-                    assignRanks(
-                        "Basic Industry",
-                        "biRank",
-                        "biTotal",
-                        "biPct",
-                    );
-                    assignRanks("Industry", "indRank", "indTotal", "indPct");
-
                     // Build hierarchy maps
                     rows.forEach((r) => {
                         const mac = r["Macro Economic Sector"] || "";
@@ -6878,8 +6799,6 @@
                 const nrMin = gn("f_nr_min");
                 const fiveDrMin = gn("f_5dr_min");
                 const fiveDrMax = gn("f_5dr_max");
-                const biRankPct = gn("f_bi_rank_pct");
-                const indRankPct = gn("f_ind_rank_pct");
                 const eps1Min = gn("f_eps1_min");
                 const eps1Max = gn("f_eps1_max");
                 const eps2Min = gn("f_eps2_min");
@@ -7007,16 +6926,6 @@
                     if (fiveDrMax !== null && (isNaN(fiveDr) || fiveDr > fiveDrMax))
                         return false;
 
-                    if (biRankPct !== null || indRankPct !== null) {
-                        const pr = peerRankMap.get(r.Code);
-                        if (biRankPct !== null) {
-                            if (!pr || pr.biPct > biRankPct) return false;
-                        }
-                        if (indRankPct !== null) {
-                            if (!pr || pr.indPct > indRankPct) return false;
-                        }
-                    }
-
                     const eps1 = parseFloat(r["EPS Latest Qtr %"]);
                     if (eps1Min !== null && (isNaN(eps1) || eps1 < eps1Min))
                         return false;
@@ -7089,8 +6998,6 @@
                     "f_nr_min",
                     "f_5dr_min",
                     "f_5dr_max",
-                    "f_bi_rank_pct",
-                    "f_ind_rank_pct",
                     "f_eps1_max",
                     "f_eps2_min",
                     "f_eps2_max",
@@ -7161,9 +7068,6 @@
                     "Narrow Range",
                     "5 Days Range%",
                     "Is Tradable",
-                    "_biRank",
-                    "_indRank",
-                    "1 Day Chng%",
                     "RS TOTAL",
                     "1 Month RS",
                     "2 Months RS",
@@ -7209,15 +7113,6 @@
 
             function sortData() {
                 filteredData.sort((a, b) => {
-                    // Synthetic keys for peer ranks (from peerRankMap)
-                    if (sortCol === "_biRank" || sortCol === "_indRank") {
-                        const key = sortCol === "_biRank" ? "biRank" : "indRank";
-                        const ap = peerRankMap.get(a.Code);
-                        const bp = peerRankMap.get(b.Code);
-                        const av = ap ? ap[key] : Infinity;
-                        const bv = bp ? bp[key] : Infinity;
-                        return (av - bv) * sortDir;
-                    }
                     let av = a[sortCol],
                         bv = b[sortCol];
                     if (av === null || av === undefined || av === "") return 1;
@@ -7330,8 +7225,6 @@
       <td class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
       <td class="num">${(() => { const v = parseFloat(r["5 Days Range%"]); if (isNaN(v)) return '<span style="color:var(--muted)">—</span>'; const col = v <= 6.5 ? '#10b981' : v <= 7.5 ? '#f59e0b' : 'var(--muted)'; return `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${col}">${v.toFixed(2)}%</span>`; })()}</td>
       <td>${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
-      <td class="num">${(() => { const p = peerRankMap.get(r.Code); if (!p) return '—'; const pct = p.biPct; const col = pct <= 10 ? 'var(--success)' : pct <= 25 ? 'var(--accent)' : pct <= 50 ? 'var(--muted)' : '#64748b'; return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.biRank}/${p.biTotal}</span>`; })()}</td>
-      <td class="num">${(() => { const p = peerRankMap.get(r.Code); if (!p) return '—'; const pct = p.indPct; const col = pct <= 10 ? 'var(--success)' : pct <= 25 ? 'var(--accent)' : pct <= 50 ? 'var(--muted)' : '#64748b'; return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.indRank}/${p.indTotal}</span>`; })()}</td>
       <td class="${chngClass(r["1 Day Chng%"])} num">${chngStr(r["1 Day Chng%"])}</td>
       <td>${rsTotalBadge(r["RS TOTAL"])}</td>
       <td>${rsBadge(r["1 Month RS"])}</td>
@@ -7998,8 +7891,6 @@
                 { id: "f_nr_min", type: "num" },
                 { id: "f_5dr_min", type: "num" },
                 { id: "f_5dr_max", type: "num" },
-                { id: "f_bi_rank_pct", type: "num" },
-                { id: "f_ind_rank_pct", type: "num" },
                 { id: "f_eps1_min", type: "num" },
                 { id: "f_eps1_max", type: "num" },
                 { id: "f_eps2_min", type: "num" },
@@ -8051,8 +7942,6 @@
                 f_nr_min: "Narrow Range ≥",
                 f_5dr_min: "5D Range% Min",
                 f_5dr_max: "5D Range% Max",
-                f_bi_rank_pct: "BI Rank Top %",
-                f_ind_rank_pct: "Ind Rank Top %",
                 f_eps1_min: "EPS Q1 Min",
                 f_eps1_max: "EPS Q1 Max",
                 f_eps2_min: "EPS Q2 Min",
@@ -8261,16 +8150,6 @@
                         return false;
                     if (!chk1("f_nr_min", "Narrow Range")) return false;
                     if (!chk("f_5dr", "5 Days Range%")) return false;
-
-                    const biRankPct = gnum("f_bi_rank_pct");
-                    const indRankPct = gnum("f_ind_rank_pct");
-                    if (biRankPct !== null || indRankPct !== null) {
-                        const pr = peerRankMap.get(r.Code);
-                        if (biRankPct !== null && (!pr || pr.biPct > biRankPct))
-                            return false;
-                        if (indRankPct !== null && (!pr || pr.indPct > indRankPct))
-                            return false;
-                    }
 
                     if (gbool("f_vol_abv") && r["Volume Above Avg"] !== "Yes")
                         return false;
