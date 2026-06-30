@@ -3202,66 +3202,6 @@
                         oninput="applyFilters()"
                     />
                 </div>
-
-                <!-- BI 5D Rank % filter -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">BI 5D Rank Top % <span style="font-size:9px;color:var(--muted)">(5-day chng)</span></div>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="f_bi5d_rank_pct"
-                        placeholder="e.g. 25"
-                        min="1"
-                        max="100"
-                        step="1"
-                        oninput="applyFilters()"
-                    />
-                </div>
-
-                <!-- Ind 5D Rank % filter -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">Ind 5D Rank Top % <span style="font-size:9px;color:var(--muted)">(5-day chng)</span></div>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="f_ind5d_rank_pct"
-                        placeholder="e.g. 25"
-                        min="1"
-                        max="100"
-                        step="1"
-                        oninput="applyFilters()"
-                    />
-                </div>
-
-                <!-- BI 1M Rank % filter -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">BI 1M Rank Top % <span style="font-size:9px;color:var(--muted)">(1-month chng)</span></div>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="f_bi1m_rank_pct"
-                        placeholder="e.g. 25"
-                        min="1"
-                        max="100"
-                        step="1"
-                        oninput="applyFilters()"
-                    />
-                </div>
-
-                <!-- Ind 1M Rank % filter -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">Ind 1M Rank Top % <span style="font-size:9px;color:var(--muted)">(1-month chng)</span></div>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="f_ind1m_rank_pct"
-                        placeholder="e.g. 25"
-                        min="1"
-                        max="100"
-                        step="1"
-                        oninput="applyFilters()"
-                    />
-                </div>
             </div>
 
             <!-- Row 4: EPS / Sales filters + above avg checks -->
@@ -3665,10 +3605,6 @@
                         <th onclick="sortBy('Is Tradable')">Tradable</th>
                         <th onclick="sortBy('_biRank')" title="Rank within Basic Industry by RS Total (1 = top)">BI Rank</th>
                         <th onclick="sortBy('_indRank')" title="Rank within Industry by RS Total (1 = top)">Ind Rank</th>
-                        <th onclick="sortBy('_bi5dRank')" title="Rank within Basic Industry by 5-Day Change% (1 = top gainer)">BI 5D</th>
-                        <th onclick="sortBy('_ind5dRank')" title="Rank within Industry by 5-Day Change% (1 = top gainer)">Ind 5D</th>
-                        <th onclick="sortBy('_bi1mRank')" title="Rank within Basic Industry by 1-Month Change% (1 = top gainer)">BI 1M</th>
-                        <th onclick="sortBy('_ind1mRank')" title="Rank within Industry by 1-Month Change% (1 = top gainer)">Ind 1M</th>
                         <th onclick="sortBy('1 Day Chng%')">1D Chg%</th>
                         <th onclick="sortBy('RS TOTAL')">RS Total</th>
                         <th onclick="sortBy('1 Month RS')">RS 1M</th>
@@ -6201,7 +6137,6 @@
             let allData = [];
             let filteredData = [];
             let peerRankMap = new Map(); // Code → { biRank, biTotal, biPct, indRank, indTotal, indPct }
-            let groupRankMap = new Map(); // groupName → { ind5dRank, ind5dTotal, ind5dPct, bi5dRank, bi5dTotal, bi5dPct, ind1mRank, ind1mTotal, ind1mPct, bi1mRank, bi1mTotal, bi1mPct }
             let sortCol = "RS TOTAL";
             let sortDir = -1; // -1 = desc, 1 = asc
             let currentPage = 1;
@@ -6690,105 +6625,6 @@
                     );
                     assignRanks("Industry", "indRank", "indTotal", "indPct");
 
-                    // Build group-level rank maps using the EXACT SAME logic
-                    // as the Industry Performance popup (buildGroupStats):
-                    //   - Industry rank: each Industry's average 5D%/1M%
-                    //     change is ranked against ALL other Industries
-                    //     (global scope — matches the 📊 Industry popup).
-                    //   - Basic Industry rank: each Basic Industry's average
-                    //     5D%/1M% change is ranked ONLY against sibling
-                    //     Basic Industries sharing the same parent Industry
-                    //     (scoped — matches the drill-down popup opened from
-                    //     clicking an Industry row, NOT a global rank).
-                    // Keyed by GROUP NAME (not stock Code) — renderPage()
-                    // looks up groupRankMap.get(r["Industry"] / r["Basic Industry"]).
-                    // Safe because every Basic Industry belongs to exactly
-                    // one parent Industry in this dataset (verified 1:1).
-                    groupRankMap = new Map();
-
-                    // Rank a set of groups (built from `rows`) by avg chngField,
-                    // write rank/total/pct into groupRankMap keyed by group name.
-                    const rankGroupsInto = (
-                        rowsSubset,
-                        groupField,
-                        chngField,
-                        rankKey,
-                        totalKey,
-                        pctKey,
-                    ) => {
-                        const sums = {},
-                            counts = {};
-                        rowsSubset.forEach((r) => {
-                            const g = r[groupField] || "—";
-                            const v = parseFloat(r[chngField]);
-                            if (!isNaN(v)) {
-                                sums[g] = (sums[g] || 0) + v;
-                                counts[g] = (counts[g] || 0) + 1;
-                            }
-                        });
-                        const groups = Object.keys(sums).map((g) => ({
-                            name: g,
-                            avg: counts[g] > 0 ? sums[g] / counts[g] : null,
-                        }));
-                        const sorted = [...groups]
-                            .filter((g) => g.avg !== null)
-                            .sort((a, b) => b.avg - a.avg);
-                        const total = sorted.length;
-                        sorted.forEach((g, i) => {
-                            const rank = i + 1;
-                            if (!groupRankMap.has(g.name))
-                                groupRankMap.set(g.name, {});
-                            const entry = groupRankMap.get(g.name);
-                            entry[rankKey] = rank;
-                            entry[totalKey] = total;
-                            entry[pctKey] = (rank / total) * 100;
-                        });
-                    };
-
-                    // Industry rank — global scope (matches 📊 Industry popup)
-                    rankGroupsInto(
-                        rows,
-                        "Industry",
-                        "5 Days Chng%",
-                        "ind5dRank",
-                        "ind5dTotal",
-                        "ind5dPct",
-                    );
-                    rankGroupsInto(
-                        rows,
-                        "Industry",
-                        "1 Month Chng%",
-                        "ind1mRank",
-                        "ind1mTotal",
-                        "ind1mPct",
-                    );
-
-                    // Basic Industry rank — scoped PER PARENT INDUSTRY
-                    // (matches the drill-down popup opened from an Industry row)
-                    const rowsByIndustry = {};
-                    rows.forEach((r) => {
-                        const ind = r["Industry"] || "—";
-                        (rowsByIndustry[ind] ||= []).push(r);
-                    });
-                    Object.values(rowsByIndustry).forEach((industryRows) => {
-                        rankGroupsInto(
-                            industryRows,
-                            "Basic Industry",
-                            "5 Days Chng%",
-                            "bi5dRank",
-                            "bi5dTotal",
-                            "bi5dPct",
-                        );
-                        rankGroupsInto(
-                            industryRows,
-                            "Basic Industry",
-                            "1 Month Chng%",
-                            "bi1mRank",
-                            "bi1mTotal",
-                            "bi1mPct",
-                        );
-                    });
-
                     // Build hierarchy maps
                     rows.forEach((r) => {
                         const mac = r["Macro Economic Sector"] || "";
@@ -7044,10 +6880,6 @@
                 const fiveDrMax = gn("f_5dr_max");
                 const biRankPct = gn("f_bi_rank_pct");
                 const indRankPct = gn("f_ind_rank_pct");
-                const bi5dRankPct = gn("f_bi5d_rank_pct");
-                const ind5dRankPct = gn("f_ind5d_rank_pct");
-                const bi1mRankPct = gn("f_bi1m_rank_pct");
-                const ind1mRankPct = gn("f_ind1m_rank_pct");
                 const eps1Min = gn("f_eps1_min");
                 const eps1Max = gn("f_eps1_max");
                 const eps2Min = gn("f_eps2_min");
@@ -7175,29 +7007,13 @@
                     if (fiveDrMax !== null && (isNaN(fiveDr) || fiveDr > fiveDrMax))
                         return false;
 
-                    if (biRankPct !== null || indRankPct !== null || bi5dRankPct !== null || ind5dRankPct !== null || bi1mRankPct !== null || ind1mRankPct !== null) {
+                    if (biRankPct !== null || indRankPct !== null) {
                         const pr = peerRankMap.get(r.Code);
                         if (biRankPct !== null) {
                             if (!pr || pr.biPct > biRankPct) return false;
                         }
                         if (indRankPct !== null) {
                             if (!pr || pr.indPct > indRankPct) return false;
-                        }
-                        if (bi5dRankPct !== null) {
-                            const g = groupRankMap.get(r["Basic Industry"]);
-                            if (!g || g.bi5dPct === undefined || g.bi5dPct > bi5dRankPct) return false;
-                        }
-                        if (ind5dRankPct !== null) {
-                            const g = groupRankMap.get(r["Industry"]);
-                            if (!g || g.ind5dPct === undefined || g.ind5dPct > ind5dRankPct) return false;
-                        }
-                        if (bi1mRankPct !== null) {
-                            const g = groupRankMap.get(r["Basic Industry"]);
-                            if (!g || g.bi1mPct === undefined || g.bi1mPct > bi1mRankPct) return false;
-                        }
-                        if (ind1mRankPct !== null) {
-                            const g = groupRankMap.get(r["Industry"]);
-                            if (!g || g.ind1mPct === undefined || g.ind1mPct > ind1mRankPct) return false;
                         }
                     }
 
@@ -7275,10 +7091,6 @@
                     "f_5dr_max",
                     "f_bi_rank_pct",
                     "f_ind_rank_pct",
-                    "f_bi5d_rank_pct",
-                    "f_ind5d_rank_pct",
-                    "f_bi1m_rank_pct",
-                    "f_ind1m_rank_pct",
                     "f_eps1_max",
                     "f_eps2_min",
                     "f_eps2_max",
@@ -7351,10 +7163,6 @@
                     "Is Tradable",
                     "_biRank",
                     "_indRank",
-                    "_bi5dRank",
-                    "_ind5dRank",
-                    "_bi1mRank",
-                    "_ind1mRank",
                     "1 Day Chng%",
                     "RS TOTAL",
                     "1 Month RS",
@@ -7401,33 +7209,13 @@
 
             function sortData() {
                 filteredData.sort((a, b) => {
-                    // Synthetic keys for stock-level peer ranks (RS-based, from peerRankMap)
-                    const peerRankKeyMap = {
-                        "_biRank": "biRank",
-                        "_indRank": "indRank",
-                    };
-                    if (peerRankKeyMap[sortCol]) {
-                        const key = peerRankKeyMap[sortCol];
+                    // Synthetic keys for peer ranks (from peerRankMap)
+                    if (sortCol === "_biRank" || sortCol === "_indRank") {
+                        const key = sortCol === "_biRank" ? "biRank" : "indRank";
                         const ap = peerRankMap.get(a.Code);
                         const bp = peerRankMap.get(b.Code);
                         const av = ap ? ap[key] : Infinity;
                         const bv = bp ? bp[key] : Infinity;
-                        return (av - bv) * sortDir;
-                    }
-                    // Synthetic keys for group-level ranks (Industry Performance
-                    // popup logic, from groupRankMap keyed by group name)
-                    const groupRankConfig = {
-                        "_bi5dRank": { key: "bi5dRank", field: "Basic Industry" },
-                        "_ind5dRank": { key: "ind5dRank", field: "Industry" },
-                        "_bi1mRank": { key: "bi1mRank", field: "Basic Industry" },
-                        "_ind1mRank": { key: "ind1mRank", field: "Industry" },
-                    };
-                    if (groupRankConfig[sortCol]) {
-                        const { key, field } = groupRankConfig[sortCol];
-                        const ag = groupRankMap.get(a[field]);
-                        const bg = groupRankMap.get(b[field]);
-                        const av = ag ? ag[key] : Infinity;
-                        const bv = bg ? bg[key] : Infinity;
                         return (av - bv) * sortDir;
                     }
                     let av = a[sortCol],
@@ -7544,10 +7332,6 @@
       <td>${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
       <td class="num">${(() => { const p = peerRankMap.get(r.Code); if (!p) return '—'; const pct = p.biPct; const col = pct <= 10 ? 'var(--success)' : pct <= 25 ? 'var(--accent)' : pct <= 50 ? 'var(--muted)' : '#64748b'; return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.biRank}/${p.biTotal}</span>`; })()}</td>
       <td class="num">${(() => { const p = peerRankMap.get(r.Code); if (!p) return '—'; const pct = p.indPct; const col = pct <= 10 ? 'var(--success)' : pct <= 25 ? 'var(--accent)' : pct <= 50 ? 'var(--muted)' : '#64748b'; return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.indRank}/${p.indTotal}</span>`; })()}</td>
-      <td class="num">${(() => { const g = groupRankMap.get(r["Basic Industry"]); if (!g || !g.bi5dRank) return '—'; const pct = g.bi5dPct; const col = pct <= 10 ? 'var(--success)' : pct <= 25 ? 'var(--accent)' : pct <= 50 ? 'var(--muted)' : '#64748b'; return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi5dRank}/${g.bi5dTotal}</span>`; })()}</td>
-      <td class="num">${(() => { const g = groupRankMap.get(r["Industry"]); if (!g || !g.ind5dRank) return '—'; const pct = g.ind5dPct; const col = pct <= 10 ? 'var(--success)' : pct <= 25 ? 'var(--accent)' : pct <= 50 ? 'var(--muted)' : '#64748b'; return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind5dRank}/${g.ind5dTotal}</span>`; })()}</td>
-      <td class="num">${(() => { const g = groupRankMap.get(r["Basic Industry"]); if (!g || !g.bi1mRank) return '—'; const pct = g.bi1mPct; const col = pct <= 10 ? 'var(--success)' : pct <= 25 ? 'var(--accent)' : pct <= 50 ? 'var(--muted)' : '#64748b'; return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi1mRank}/${g.bi1mTotal}</span>`; })()}</td>
-      <td class="num">${(() => { const g = groupRankMap.get(r["Industry"]); if (!g || !g.ind1mRank) return '—'; const pct = g.ind1mPct; const col = pct <= 10 ? 'var(--success)' : pct <= 25 ? 'var(--accent)' : pct <= 50 ? 'var(--muted)' : '#64748b'; return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind1mRank}/${g.ind1mTotal}</span>`; })()}</td>
       <td class="${chngClass(r["1 Day Chng%"])} num">${chngStr(r["1 Day Chng%"])}</td>
       <td>${rsTotalBadge(r["RS TOTAL"])}</td>
       <td>${rsBadge(r["1 Month RS"])}</td>
@@ -8216,10 +8000,6 @@
                 { id: "f_5dr_max", type: "num" },
                 { id: "f_bi_rank_pct", type: "num" },
                 { id: "f_ind_rank_pct", type: "num" },
-                { id: "f_bi5d_rank_pct", type: "num" },
-                { id: "f_ind5d_rank_pct", type: "num" },
-                { id: "f_bi1m_rank_pct", type: "num" },
-                { id: "f_ind1m_rank_pct", type: "num" },
                 { id: "f_eps1_min", type: "num" },
                 { id: "f_eps1_max", type: "num" },
                 { id: "f_eps2_min", type: "num" },
@@ -8273,10 +8053,6 @@
                 f_5dr_max: "5D Range% Max",
                 f_bi_rank_pct: "BI Rank Top %",
                 f_ind_rank_pct: "Ind Rank Top %",
-                f_bi5d_rank_pct: "BI 5D Rank Top %",
-                f_ind5d_rank_pct: "Ind 5D Rank Top %",
-                f_bi1m_rank_pct: "BI 1M Rank Top %",
-                f_ind1m_rank_pct: "Ind 1M Rank Top %",
                 f_eps1_min: "EPS Q1 Min",
                 f_eps1_max: "EPS Q1 Max",
                 f_eps2_min: "EPS Q2 Min",
@@ -8488,32 +8264,12 @@
 
                     const biRankPct = gnum("f_bi_rank_pct");
                     const indRankPct = gnum("f_ind_rank_pct");
-                    const bi5dRankPct = gnum("f_bi5d_rank_pct");
-                    const ind5dRankPct = gnum("f_ind5d_rank_pct");
-                    const bi1mRankPct = gnum("f_bi1m_rank_pct");
-                    const ind1mRankPct = gnum("f_ind1m_rank_pct");
-                    if (biRankPct !== null || indRankPct !== null || bi5dRankPct !== null || ind5dRankPct !== null || bi1mRankPct !== null || ind1mRankPct !== null) {
+                    if (biRankPct !== null || indRankPct !== null) {
                         const pr = peerRankMap.get(r.Code);
                         if (biRankPct !== null && (!pr || pr.biPct > biRankPct))
                             return false;
                         if (indRankPct !== null && (!pr || pr.indPct > indRankPct))
                             return false;
-                        if (bi5dRankPct !== null) {
-                            const g = groupRankMap.get(r["Basic Industry"]);
-                            if (!g || g.bi5dPct === undefined || g.bi5dPct > bi5dRankPct) return false;
-                        }
-                        if (ind5dRankPct !== null) {
-                            const g = groupRankMap.get(r["Industry"]);
-                            if (!g || g.ind5dPct === undefined || g.ind5dPct > ind5dRankPct) return false;
-                        }
-                        if (bi1mRankPct !== null) {
-                            const g = groupRankMap.get(r["Basic Industry"]);
-                            if (!g || g.bi1mPct === undefined || g.bi1mPct > bi1mRankPct) return false;
-                        }
-                        if (ind1mRankPct !== null) {
-                            const g = groupRankMap.get(r["Industry"]);
-                            if (!g || g.ind1mPct === undefined || g.ind1mPct > ind1mRankPct) return false;
-                        }
                     }
 
                     if (gbool("f_vol_abv") && r["Volume Above Avg"] !== "Yes")
