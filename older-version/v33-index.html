@@ -4314,37 +4314,6 @@
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
-                                    🏆 Peer &amp; Industry Rank Filters
-                                </div>
-                                <p style="margin-bottom:10px">
-                                    Six percentile-based filters let you narrow by where a stock's peer group or industry ranks. Enter a number 1–100; enter <span class="help-kbd">10</span> to keep only the top 10%, <span class="help-kbd">25</span> for the top quarter, etc. All six can be combined with each other and with any other filter.
-                                </p>
-                                <ul>
-                                    <li>
-                                        <strong>BI Rank Top %</strong> — keep only stocks whose Basic Industry peer rank (by RS Total) places them in the top N% of their Basic Industry group. E.g. <span class="help-kbd">20</span> keeps only stocks ranked in the top 20% of peers by RS momentum. Mirrors the ranking in the Peer Comparison popup (Basic Industry table).
-                                    </li>
-                                    <li>
-                                        <strong>Ind Rank Top %</strong> — same but for the broader Industry peer group. E.g. <span class="help-kbd">10</span> keeps only the top 10% RS performers within their Industry. Mirrors the Peer Comparison popup (Industry table).
-                                    </li>
-                                    <li>
-                                        <strong>BI 5D Rank Top %</strong> — keep only stocks whose Basic Industry group ranks in the top N% of sibling Basic Industries (under the same parent Industry) by <strong>average 5-day change%</strong>. Same ranking as the drill-down popup in <span class="help-kbd">📊 Industry</span> sorted by 5D%. E.g. <span class="help-kbd">25</span> keeps stocks in Basic Industries that are top-quartile performers this week within their parent Industry.
-                                    </li>
-                                    <li>
-                                        <strong>Ind 5D Rank Top %</strong> — keep only stocks whose Industry ranks in the top N% of all 64 NSE Industries by average 5-day change%. Same ranking as the <span class="help-kbd">📊 Industry</span> popup sorted by 5D%. E.g. <span class="help-kbd">10</span> keeps stocks in the top 6–7 best-performing industries of the past week.
-                                    </li>
-                                    <li>
-                                        <strong>BI 1M Rank Top %</strong> — same as BI 5D Rank but using <strong>average 1-month change%</strong>. Identifies stocks in Basic Industry sub-groups that have been leading over a longer window, not just this week.
-                                    </li>
-                                    <li>
-                                        <strong>Ind 1M Rank Top %</strong> — same as Ind 5D Rank but using average 1-month change%. Keeps stocks in industries that have been trending for a full month, same as the <span class="help-kbd">📊 Industry</span> popup sorted by 1M%.
-                                    </li>
-                                </ul>
-                                <div class="help-tip" style="margin-top:10px">
-                                    <strong>Combining rank filters:</strong> set Ind 5D Rank ≤ 20% + Ind 1M Rank ≤ 25% + Is Tradable to find tradable stocks in industries that are both short-term and medium-term leaders. Add BI 5D Rank ≤ 33% to ensure their specific sub-group is also performing well within that industry.
-                                </div>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">
                                     ⭐ Watchlist Filter (Multi-Select Dropdown)
                                 </div>
                                 <p>
@@ -4673,98 +4642,6 @@
                                         historical average.
                                     </li>
                                 </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">
-                                    🏆 Peer &amp; Industry Ranking columns
-                                </div>
-                                <p style="margin-bottom:10px">
-                                    Six ranking columns give you two different
-                                    lenses on where a stock stands relative to
-                                    its peers. All are colour-coded:
-                                    <span style="color:var(--success);font-weight:600">green</span>
-                                    = top 10%,
-                                    <span style="color:var(--accent);font-weight:600">teal</span>
-                                    = top 25%,
-                                    <span style="color:var(--muted);font-weight:600">grey</span>
-                                    = top 50%, dark = below 50%. Displayed as
-                                    <span class="help-kbd">rank/total</span>
-                                    (e.g. <span class="help-kbd">3/28</span> =
-                                    ranked 3rd out of 28).
-                                </p>
-                                <ul>
-                                    <li>
-                                        <strong>BI Rank</strong> — the stock's
-                                        position within its Basic Industry group,
-                                        ranked by <strong>RS Total</strong>
-                                        (highest RS = rank 1). Tells you if this
-                                        stock is the momentum leader within its
-                                        most specific peer group. Same data as
-                                        the Basic Industry table in the Peer
-                                        Comparison popup.
-                                    </li>
-                                    <li>
-                                        <strong>Ind Rank</strong> — the stock's
-                                        position within its broader Industry
-                                        group, ranked by <strong>RS Total</strong>.
-                                        Same data as the Industry table in the
-                                        Peer Comparison popup.
-                                    </li>
-                                    <li>
-                                        <strong>BI 5D</strong> — where this
-                                        stock's Basic Industry ranks among all
-                                        sibling Basic Industries under the same
-                                        parent Industry, ranked by the
-                                        <strong>average 5-day change%</strong>
-                                        of all stocks in each Basic Industry
-                                        group. Exactly matches the drill-down
-                                        popup you get by clicking an Industry row
-                                        in <span class="help-kbd">📊 Industry</span>
-                                        and sorting by 5D%. Rank 1 = the
-                                        best-performing Basic Industry sub-group
-                                        for the week.
-                                    </li>
-                                    <li>
-                                        <strong>Ind 5D</strong> — where this
-                                        stock's Industry ranks among all 64 NSE
-                                        Industries by average 5-day change%.
-                                        Exactly matches what you see when you
-                                        sort the
-                                        <span class="help-kbd">📊 Industry</span>
-                                        popup by 5D% — rank 1 = the
-                                        best-performing industry of the week
-                                        across the whole market.
-                                    </li>
-                                    <li>
-                                        <strong>BI 1M</strong> — same as BI 5D
-                                        but ranked by average
-                                        <strong>1-month change%</strong> within
-                                        the sibling Basic Industry group.
-                                        Identifies which sub-segment has been
-                                        sustaining momentum over a longer window.
-                                    </li>
-                                    <li>
-                                        <strong>Ind 1M</strong> — where this
-                                        stock's Industry ranks among all 64
-                                        Industries by average 1-month change%.
-                                        Matches the
-                                        <span class="help-kbd">📊 Industry</span>
-                                        popup sorted by 1M%.
-                                    </li>
-                                </ul>
-                                <div
-                                    class="help-tip"
-                                    style="margin-top: 10px"
-                                >
-                                    <strong>How to use them together:</strong>
-                                    BI Rank/Ind Rank tell you if a stock leads
-                                    its peers on RS momentum. BI 5D/Ind 5D and
-                                    BI 1M/Ind 1M tell you if its entire group is
-                                    in a leading industry right now. A stock with
-                                    BI Rank = 1/20 AND Ind 1M = 2/64 is the
-                                    strongest stock in the strongest industry —
-                                    the ideal combination for momentum trading.
-                                </div>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
