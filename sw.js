@@ -10,7 +10,7 @@
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
 const CACHE_VERSION = "nse-screener-v18";
-const DATA_CACHE = "nse-screener-data-v1";
+const DATA_CACHE = "nse-screener-data-v2";
 
 const STATIC_ASSETS = [
     "./",
