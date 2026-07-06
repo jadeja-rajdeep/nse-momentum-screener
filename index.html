@@ -7046,6 +7046,27 @@
                     <div class="indicator-grid">
                         <a
                             class="indicator-card"
+                            href="https://www.tradingview.com/script/Ou2usN73-Trend-Following-Breakout/"
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            <span class="indicator-icon">📈</span>
+                            <div class="indicator-info">
+                                <div class="indicator-name">
+                                    Trend Following Breakout
+                                </div>
+                                <div class="indicator-desc">
+                                    Find high-quality breakout and pullback
+                                    opportunities using trend, momentum,
+                                    consolidation, relative strength, and
+                                    built-in risk management filters.
+                                </div>
+                            </div>
+                            <span class="indicator-open">↗</span>
+                        </a>
+
+                        <a
+                            class="indicator-card"
                             href="https://www.tradingview.com/script/NIuGTgAO-Pivot-Point-Trend-Line/"
                             target="_blank"
                             rel="noopener"
@@ -8761,143 +8782,148 @@
                 tbody.innerHTML = page
                     .map(
                         (r) => `
-    <tr${r["Is Tradable"] == 1 ? ' class="tradable-row"' : ""}>
-      <td class="code-cell peer-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Click for peer comparison" style="cursor:pointer">${r.Code || "—"}<span class="wl-star${isInAnyWatchlist(r.Code) ? " in-watchlist" : ""}" data-wl-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Add to watchlist">${isInAnyWatchlist(r.Code) ? "★" : "☆"}</span></td>
-      <td class="name-cell tv-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Open on TradingView" style="cursor:pointer">${r.Name || "—"}</td>
-      <td data-col="close" class="num">${fNum(r.Close, 2)}</td>
-      <td data-col="nr" class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
-      <td data-col="5dr" class="num">${(() => {
-          const v = parseFloat(r["5 Days Range%"]);
-          if (isNaN(v)) return '<span style="color:var(--muted)">—</span>';
-          const col =
-              v <= 6.5 ? "#10b981" : v <= 7.5 ? "#f59e0b" : "var(--muted)";
-          return `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${col}">${v.toFixed(2)}%</span>`;
-      })()}</td>
-      <td data-col="tradable">${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
-      <td data-col="bi-rank" class="num">${(() => {
-          const p = peerRankMap.get(r.Code);
-          if (!p) return "—";
-          const pct = p.biPct;
-          const col =
-              pct <= 10
-                  ? "var(--success)"
-                  : pct <= 25
-                    ? "var(--accent)"
-                    : pct <= 50
-                      ? "var(--muted)"
-                      : "#64748b";
-          return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.biRank}/${p.biTotal}</span>`;
-      })()}</td>
-      <td data-col="ind-rank" class="num">${(() => {
-          const p = peerRankMap.get(r.Code);
-          if (!p) return "—";
-          const pct = p.indPct;
-          const col =
-              pct <= 10
-                  ? "var(--success)"
-                  : pct <= 25
-                    ? "var(--accent)"
-                    : pct <= 50
-                      ? "var(--muted)"
-                      : "#64748b";
-          return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.indRank}/${p.indTotal}</span>`;
-      })()}</td>
-      <td data-col="bi-5d" class="num">${(() => {
-          const g = groupRankMap.get(r["Basic Industry"]);
-          if (!g || !g.bi5dRank) return "—";
-          const pct = g.bi5dPct;
-          const col =
-              pct <= 10
-                  ? "var(--success)"
-                  : pct <= 25
-                    ? "var(--accent)"
-                    : pct <= 50
-                      ? "var(--muted)"
-                      : "#64748b";
-          return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi5dRank}/${g.bi5dTotal}</span>`;
-      })()}</td>
-      <td data-col="ind-5d" class="num">${(() => {
-          const g = groupRankMap.get(r["Industry"]);
-          if (!g || !g.ind5dRank) return "—";
-          const pct = g.ind5dPct;
-          const col =
-              pct <= 10
-                  ? "var(--success)"
-                  : pct <= 25
-                    ? "var(--accent)"
-                    : pct <= 50
-                      ? "var(--muted)"
-                      : "#64748b";
-          return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind5dRank}/${g.ind5dTotal}</span>`;
-      })()}</td>
-      <td data-col="bi-1m" class="num">${(() => {
-          const g = groupRankMap.get(r["Basic Industry"]);
-          if (!g || !g.bi1mRank) return "—";
-          const pct = g.bi1mPct;
-          const col =
-              pct <= 10
-                  ? "var(--success)"
-                  : pct <= 25
-                    ? "var(--accent)"
-                    : pct <= 50
-                      ? "var(--muted)"
-                      : "#64748b";
-          return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi1mRank}/${g.bi1mTotal}</span>`;
-      })()}</td>
-      <td data-col="ind-1m" class="num">${(() => {
-          const g = groupRankMap.get(r["Industry"]);
-          if (!g || !g.ind1mRank) return "—";
-          const pct = g.ind1mPct;
-          const col =
-              pct <= 10
-                  ? "var(--success)"
-                  : pct <= 25
-                    ? "var(--accent)"
-                    : pct <= 50
-                      ? "var(--muted)"
-                      : "#64748b";
-          return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind1mRank}/${g.ind1mTotal}</span>`;
-      })()}</td>
-      <td data-col="chg1d" class="${chngClass(r["1 Day Chng%"])} num">${chngStr(r["1 Day Chng%"])}</td>
-      <td data-col="rs-total">${rsTotalBadge(r["RS TOTAL"])}</td>
-      <td data-col="rs-1m">${rsBadge(r["1 Month RS"])}</td>
-      <td data-col="rs-2m">${rsBadge(r["2 Months RS"])}</td>
-      <td data-col="rs-4m">${rsBadge(r["4 Months RS"])}</td>
-      <td data-col="rs-6m">${rsBadge(r["6 Months RS"])}</td>
-      <td data-col="lin-3m" class="num">${fNum(r["3 Month Linearity >= 0.5"], 3)}</td>
-      <td data-col="lin-1m" class="num">${fNum(r["1 Month Linearity >= 0.5"], 3)}</td>
-      <td data-col="chg5d" class="${chngClass(r["5 Days Chng%"])} num">${chngStr(r["5 Days Chng%"])}</td>
-      <td data-col="chg1m" class="${chngClass(r["1 Month Chng%"])} num">${chngStr(r["1 Month Chng%"])}</td>
-      <td data-col="chg2m" class="${chngClass(r["2 Months Chng%"])} num">${chngStr(r["2 Months Chng%"])}</td>
-      <td data-col="chg4m" class="${chngClass(r["4 Months Chng%"])} num">${chngStr(r["4 Months Chng%"])}</td>
-      <td data-col="chg6m" class="${chngClass(r["6 Months Chng%"])} num">${chngStr(r["6 Months Chng%"])}</td>
-      <td data-col="mcap" class="num">${fCr(r["Market Cap"])}</td>
-      <td data-col="pe" class="num">${fNum(r.PE, 1)}</td>
-      <td data-col="roe" class="num">${fNum(r.ROE, 1)}</td>
-      <td data-col="debt" class="num">${fNum(r.Debt, 0)}</td>
-      <td data-col="macro"><span class="sector-pill">${r["Macro Economic Sector"] || "—"}</span></td>
-      <td data-col="sector" style="color:var(--muted);font-size:11px">${r["Sector"] || "—"}</td>
-      <td data-col="industry" style="color:var(--muted);font-size:11px">${r["Industry"] || "—"}</td>
-      <td data-col="basic-ind" style="color:var(--muted);font-size:11px">${r["Basic Industry"] || "—"}</td>
-      <td data-col="volume" class="num">${fVol(r.Volume)}</td>
-      <td data-col="turnover" class="num">${fTurnover(r["Net Turnover"])}</td>
-      <td data-col="delivery" class="num">${fNum(r["Delivery %"], 1)}</td>
-      <td data-col="vol-up">${abvIcon(r["Volume Above Avg"])}</td>
-      <td data-col="del-up">${abvIcon(r["Delivery Above Avg"])}</td>
-      <td data-col="fno">${fnoIcon(r["F&O"])}</td>
-      <td data-col="band" class="num">${r["Price Band %"] || "—"}</td>
-      <td data-col="holdings" class="holdings-cell">
-        <span class="hold-prom">P:${fNum(r["Prom Hold %"], 1)}%</span><br>
-        <span class="hold-emp">E:${fNum(r["Emp Trust %"], 1)}%</span><br>
-        <span class="hold-pub">D:${fNum(r["Public Hold %"], 1)}%</span>
-      </td>
-      <td data-col="eps1" class="${chngClass(r["EPS Latest Qtr %"])} num">${chngStr(r["EPS Latest Qtr %"], 0)}</td>
-      <td data-col="eps2" class="${chngClass(r["EPS Prev Qtr %"])} num">${chngStr(r["EPS Prev Qtr %"], 0)}</td>
-      <td data-col="sales1" class="${chngClass(r["Sales Latest Qtr %"])} num">${chngStr(r["Sales Latest Qtr %"], 0)}</td>
-      <td data-col="sales2" class="${chngClass(r["Sales Prev Qtr %"])} num">${chngStr(r["Sales Prev Qtr %"], 0)}</td>
-      <td data-col="allindex" class="all-index-cell col-allindex">${formatAllIndex(r["All Index"])}</td>
-    </tr>
-  `,
+              <tr${r["Is Tradable"] == 1 ? ' class="tradable-row"' : ""}>
+                <td class="code-cell peer-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Click for peer comparison" style="cursor:pointer">${r.Code || "—"}<span class="wl-star${isInAnyWatchlist(r.Code) ? " in-watchlist" : ""}" data-wl-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Add to watchlist">${isInAnyWatchlist(r.Code) ? "★" : "☆"}</span></td>
+                <td class="name-cell tv-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Open on TradingView" style="cursor:pointer">${r.Name || "—"}</td>
+                <td data-col="close" class="num">${fNum(r.Close, 2)}</td>
+                <td data-col="nr" class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+                <td data-col="5dr" class="num">${(() => {
+                    const v = parseFloat(r["5 Days Range%"]);
+                    if (isNaN(v))
+                        return '<span style="color:var(--muted)">—</span>';
+                    const col =
+                        v <= 6.5
+                            ? "#10b981"
+                            : v <= 7.5
+                              ? "#f59e0b"
+                              : "var(--muted)";
+                    return `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${col}">${v.toFixed(2)}%</span>`;
+                })()}</td>
+                <td data-col="tradable">${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
+                <td data-col="bi-rank" class="num">${(() => {
+                    const p = peerRankMap.get(r.Code);
+                    if (!p) return "—";
+                    const pct = p.biPct;
+                    const col =
+                        pct <= 10
+                            ? "var(--success)"
+                            : pct <= 25
+                              ? "var(--accent)"
+                              : pct <= 50
+                                ? "var(--muted)"
+                                : "#64748b";
+                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.biRank}/${p.biTotal}</span>`;
+                })()}</td>
+                <td data-col="ind-rank" class="num">${(() => {
+                    const p = peerRankMap.get(r.Code);
+                    if (!p) return "—";
+                    const pct = p.indPct;
+                    const col =
+                        pct <= 10
+                            ? "var(--success)"
+                            : pct <= 25
+                              ? "var(--accent)"
+                              : pct <= 50
+                                ? "var(--muted)"
+                                : "#64748b";
+                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.indRank}/${p.indTotal}</span>`;
+                })()}</td>
+                <td data-col="bi-5d" class="num">${(() => {
+                    const g = groupRankMap.get(r["Basic Industry"]);
+                    if (!g || !g.bi5dRank) return "—";
+                    const pct = g.bi5dPct;
+                    const col =
+                        pct <= 10
+                            ? "var(--success)"
+                            : pct <= 25
+                              ? "var(--accent)"
+                              : pct <= 50
+                                ? "var(--muted)"
+                                : "#64748b";
+                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi5dRank}/${g.bi5dTotal}</span>`;
+                })()}</td>
+                <td data-col="ind-5d" class="num">${(() => {
+                    const g = groupRankMap.get(r["Industry"]);
+                    if (!g || !g.ind5dRank) return "—";
+                    const pct = g.ind5dPct;
+                    const col =
+                        pct <= 10
+                            ? "var(--success)"
+                            : pct <= 25
+                              ? "var(--accent)"
+                              : pct <= 50
+                                ? "var(--muted)"
+                                : "#64748b";
+                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind5dRank}/${g.ind5dTotal}</span>`;
+                })()}</td>
+                <td data-col="bi-1m" class="num">${(() => {
+                    const g = groupRankMap.get(r["Basic Industry"]);
+                    if (!g || !g.bi1mRank) return "—";
+                    const pct = g.bi1mPct;
+                    const col =
+                        pct <= 10
+                            ? "var(--success)"
+                            : pct <= 25
+                              ? "var(--accent)"
+                              : pct <= 50
+                                ? "var(--muted)"
+                                : "#64748b";
+                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi1mRank}/${g.bi1mTotal}</span>`;
+                })()}</td>
+                <td data-col="ind-1m" class="num">${(() => {
+                    const g = groupRankMap.get(r["Industry"]);
+                    if (!g || !g.ind1mRank) return "—";
+                    const pct = g.ind1mPct;
+                    const col =
+                        pct <= 10
+                            ? "var(--success)"
+                            : pct <= 25
+                              ? "var(--accent)"
+                              : pct <= 50
+                                ? "var(--muted)"
+                                : "#64748b";
+                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind1mRank}/${g.ind1mTotal}</span>`;
+                })()}</td>
+                <td data-col="chg1d" class="${chngClass(r["1 Day Chng%"])} num">${chngStr(r["1 Day Chng%"])}</td>
+                <td data-col="rs-total">${rsTotalBadge(r["RS TOTAL"])}</td>
+                <td data-col="rs-1m">${rsBadge(r["1 Month RS"])}</td>
+                <td data-col="rs-2m">${rsBadge(r["2 Months RS"])}</td>
+                <td data-col="rs-4m">${rsBadge(r["4 Months RS"])}</td>
+                <td data-col="rs-6m">${rsBadge(r["6 Months RS"])}</td>
+                <td data-col="lin-3m" class="num">${fNum(r["3 Month Linearity >= 0.5"], 3)}</td>
+                <td data-col="lin-1m" class="num">${fNum(r["1 Month Linearity >= 0.5"], 3)}</td>
+                <td data-col="chg5d" class="${chngClass(r["5 Days Chng%"])} num">${chngStr(r["5 Days Chng%"])}</td>
+                <td data-col="chg1m" class="${chngClass(r["1 Month Chng%"])} num">${chngStr(r["1 Month Chng%"])}</td>
+                <td data-col="chg2m" class="${chngClass(r["2 Months Chng%"])} num">${chngStr(r["2 Months Chng%"])}</td>
+                <td data-col="chg4m" class="${chngClass(r["4 Months Chng%"])} num">${chngStr(r["4 Months Chng%"])}</td>
+                <td data-col="chg6m" class="${chngClass(r["6 Months Chng%"])} num">${chngStr(r["6 Months Chng%"])}</td>
+                <td data-col="mcap" class="num">${fCr(r["Market Cap"])}</td>
+                <td data-col="pe" class="num">${fNum(r.PE, 1)}</td>
+                <td data-col="roe" class="num">${fNum(r.ROE, 1)}</td>
+                <td data-col="debt" class="num">${fNum(r.Debt, 0)}</td>
+                <td data-col="macro"><span class="sector-pill">${r["Macro Economic Sector"] || "—"}</span></td>
+                <td data-col="sector" style="color:var(--muted);font-size:11px">${r["Sector"] || "—"}</td>
+                <td data-col="industry" style="color:var(--muted);font-size:11px">${r["Industry"] || "—"}</td>
+                <td data-col="basic-ind" style="color:var(--muted);font-size:11px">${r["Basic Industry"] || "—"}</td>
+                <td data-col="volume" class="num">${fVol(r.Volume)}</td>
+                <td data-col="turnover" class="num">${fTurnover(r["Net Turnover"])}</td>
+                <td data-col="delivery" class="num">${fNum(r["Delivery %"], 1)}</td>
+                <td data-col="vol-up">${abvIcon(r["Volume Above Avg"])}</td>
+                <td data-col="del-up">${abvIcon(r["Delivery Above Avg"])}</td>
+                <td data-col="fno">${fnoIcon(r["F&O"])}</td>
+                <td data-col="band" class="num">${r["Price Band %"] || "—"}</td>
+                <td data-col="holdings" class="holdings-cell">
+                  <span class="hold-prom">P:${fNum(r["Prom Hold %"], 1)}%</span><br>
+                  <span class="hold-emp">E:${fNum(r["Emp Trust %"], 1)}%</span><br>
+                  <span class="hold-pub">D:${fNum(r["Public Hold %"], 1)}%</span>
+                </td>
+                <td data-col="eps1" class="${chngClass(r["EPS Latest Qtr %"])} num">${chngStr(r["EPS Latest Qtr %"], 0)}</td>
+                <td data-col="eps2" class="${chngClass(r["EPS Prev Qtr %"])} num">${chngStr(r["EPS Prev Qtr %"], 0)}</td>
+                <td data-col="sales1" class="${chngClass(r["Sales Latest Qtr %"])} num">${chngStr(r["Sales Latest Qtr %"], 0)}</td>
+                <td data-col="sales2" class="${chngClass(r["Sales Prev Qtr %"])} num">${chngStr(r["Sales Prev Qtr %"], 0)}</td>
+                <td data-col="allindex" class="all-index-cell col-allindex">${formatAllIndex(r["All Index"])}</td>
+              </tr>
+            `,
                     )
                     .join("");
             }
@@ -9124,16 +9150,16 @@
                     .join("");
 
                 return `
-    <div class="peer-section-title">
-      ${sectionLabel}: <em style="color:var(--text);font-style:normal">${groupName}</em>
-      <span class="peer-count">${rows.length} stocks</span>
-    </div>
-    <div class="peer-table-wrap">
-      <table class="peer-table">
-        <thead><tr>${ths}</tr></thead>
-        <tbody>${trs}</tbody>
-      </table>
-    </div>`;
+              <div class="peer-section-title">
+                ${sectionLabel}: <em style="color:var(--text);font-style:normal">${groupName}</em>
+                <span class="peer-count">${rows.length} stocks</span>
+              </div>
+              <div class="peer-table-wrap">
+                <table class="peer-table">
+                  <thead><tr>${ths}</tr></thead>
+                  <tbody>${trs}</tbody>
+                </table>
+              </div>`;
             }
 
             function closePeerModal() {
@@ -9222,11 +9248,11 @@
                     listEl.innerHTML = lists
                         .map(
                             (wl) => `
-            <label class="wl-popover-item">
-              <input type="checkbox" data-wl-id="${wl.id}" ${memberOf.has(wl.id) ? "checked" : ""}>
-              <span class="wl-popover-item-name">${wl.name}</span>
-              <span style="font-size:9px;color:var(--muted)">${wl.codes.length}</span>
-            </label>`,
+                      <label class="wl-popover-item">
+                        <input type="checkbox" data-wl-id="${wl.id}" ${memberOf.has(wl.id) ? "checked" : ""}>
+                        <span class="wl-popover-item-name">${wl.name}</span>
+                        <span style="font-size:9px;color:var(--muted)">${wl.codes.length}</span>
+                      </label>`,
                         )
                         .join("");
                 }
@@ -9331,13 +9357,13 @@
                 listEl.innerHTML = lists
                     .map(
                         (wl) => `
-    <div class="ss-card" id="wlcard-${wl.id}">
-      <input type="checkbox" class="wl-card-check" data-id="${wl.id}"
-        onchange="onWlCardCheck(this)">
-      <span class="ss-card-name wl-card-name" title="Click to rename" data-id="${wl.id}" ondblclick="startRenameWatchlist(${wl.id})">${wl.name}</span>
-      <span class="ss-card-meta">${wl.codes.length} stocks</span>
-      <button class="ss-run-one wl-run-one" title="Filter table to this watchlist" onclick="runWatchlistFilter(${wl.id})">▶</button>
-    </div>`,
+              <div class="ss-card" id="wlcard-${wl.id}">
+                <input type="checkbox" class="wl-card-check" data-id="${wl.id}"
+                  onchange="onWlCardCheck(this)">
+                <span class="ss-card-name wl-card-name" title="Click to rename" data-id="${wl.id}" ondblclick="startRenameWatchlist(${wl.id})">${wl.name}</span>
+                <span class="ss-card-meta">${wl.codes.length} stocks</span>
+                <button class="ss-run-one wl-run-one" title="Filter table to this watchlist" onclick="runWatchlistFilter(${wl.id})">▶</button>
+              </div>`,
                     )
                     .join("");
                 updateWatchlistActions();
@@ -9971,14 +9997,14 @@
                 listEl.innerHTML = list
                     .map(
                         (s) => `
-    <div class="ss-card" id="sscard-${s.id}">
-      <input type="checkbox" class="ss-card-check" data-id="${s.id}"
-        onchange="onSsCardCheck(this)">
-      <span class="ss-card-name" title="${s.name}">${s.name}</span>
-      <span class="ss-card-meta">${s.saved}</span>
-      <button class="ss-run-one" title="Run this search" onclick="runSingle(${s.id})">▶</button>
-    </div>
-  `,
+              <div class="ss-card" id="sscard-${s.id}">
+                <input type="checkbox" class="ss-card-check" data-id="${s.id}"
+                  onchange="onSsCardCheck(this)">
+                <span class="ss-card-name" title="${s.name}">${s.name}</span>
+                <span class="ss-card-meta">${s.saved}</span>
+                <button class="ss-run-one" title="Run this search" onclick="runSingle(${s.id})">▶</button>
+              </div>
+            `,
                     )
                     .join("");
                 updateSavedActions();
@@ -10168,33 +10194,33 @@
                         const text = chunk.join(",");
                         const cardId = `tvchunk-${idx}`;
                         return `
-      <div class="tv-chunk-card">
-        <div class="tv-chunk-card-header">
-          <span class="tv-chunk-name">📋 ${name}</span>
-          <span class="tv-chunk-count">${chunk.length} stocks</span>
-        </div>
-        <textarea class="tv-chunk-textarea" id="${cardId}" readonly>${text}</textarea>
-        <div class="tv-chunk-card-footer">
-          <button class="tv-copy-btn" onclick="copyTvChunk('${cardId}', this)">
-            📋 Copy
-          </button>
-        </div>
-      </div>`;
+                <div class="tv-chunk-card">
+                  <div class="tv-chunk-card-header">
+                    <span class="tv-chunk-name">📋 ${name}</span>
+                    <span class="tv-chunk-count">${chunk.length} stocks</span>
+                  </div>
+                  <textarea class="tv-chunk-textarea" id="${cardId}" readonly>${text}</textarea>
+                  <div class="tv-chunk-card-footer">
+                    <button class="tv-copy-btn" onclick="copyTvChunk('${cardId}', this)">
+                      📋 Copy
+                    </button>
+                  </div>
+                </div>`;
                     })
                     .join("");
 
                 wrap.innerHTML = `
-    <div style="font-size:10px;color:var(--muted);margin-bottom:10px;font-family:var(--mono)">
-      ${total} stocks → ${totalChunks} watchlist${totalChunks > 1 ? "s" : ""} of ≤${chunkSize} each
-    </div>
-    <div class="tv-chunks-grid">${chunkCards}</div>
-    <div class="tv-howto">
-      <strong>How to import into TradingView:</strong><br>
-      1. Open TradingView → Watchlist panel (right sidebar)<br>
-      2. Click <strong>⋮ → Import Watchlist</strong> (or "+ New List" then import)<br>
-      3. Paste the copied text and click <strong>Import</strong><br>
-      4. Repeat for each chunk if you have multiple watchlists
-    </div>`;
+              <div style="font-size:10px;color:var(--muted);margin-bottom:10px;font-family:var(--mono)">
+                ${total} stocks → ${totalChunks} watchlist${totalChunks > 1 ? "s" : ""} of ≤${chunkSize} each
+              </div>
+              <div class="tv-chunks-grid">${chunkCards}</div>
+              <div class="tv-howto">
+                <strong>How to import into TradingView:</strong><br>
+                1. Open TradingView → Watchlist panel (right sidebar)<br>
+                2. Click <strong>⋮ → Import Watchlist</strong> (or "+ New List" then import)<br>
+                3. Paste the copied text and click <strong>Import</strong><br>
+                4. Repeat for each chunk if you have multiple watchlists
+              </div>`;
             }
 
             function copyTvChunk(id, btn) {
@@ -10326,13 +10352,13 @@
                 const decodeCol = (col) => decodeURIComponent(col);
 
                 const ths = `
-    <th style="width:30px"></th>
-    <th class="${sortIndicator("name")}"  data-sortcol="${encodeCol("name")}"  data-prefix="${thIdPrefix}">Industry / Group</th>
-    <th class="${sortIndicator("count")}" data-sortcol="${encodeCol("count")}" data-prefix="${thIdPrefix}" style="text-align:right">Stocks</th>
-    ${IND_CHNG_FIELDS.map(
-        (f) =>
-            `<th class="${sortIndicator(f.key)}" data-sortcol="${encodeCol(f.key)}" data-prefix="${thIdPrefix}" style="text-align:right">${f.label}</th>`,
-    ).join("")}`;
+              <th style="width:30px"></th>
+              <th class="${sortIndicator("name")}"  data-sortcol="${encodeCol("name")}"  data-prefix="${thIdPrefix}">Industry / Group</th>
+              <th class="${sortIndicator("count")}" data-sortcol="${encodeCol("count")}" data-prefix="${thIdPrefix}" style="text-align:right">Stocks</th>
+              ${IND_CHNG_FIELDS.map(
+                  (f) =>
+                      `<th class="${sortIndicator(f.key)}" data-sortcol="${encodeCol(f.key)}" data-prefix="${thIdPrefix}" style="text-align:right">${f.label}</th>`,
+              ).join("")}`;
 
                 const canDrill = onClickRow !== "noop";
                 const trs = sorted
@@ -10346,22 +10372,22 @@
                         // Encode the full chain needed to apply this row's
                         // selection to the filter dropdowns.
                         const chainAttrs = `
-        data-chain-macro="${(g.macro || "").replace(/"/g, "&quot;")}"
-        data-chain-sector="${(g.sector || "").replace(/"/g, "&quot;")}"
-        data-chain-industry="${(g.industry || "").replace(/"/g, "&quot;")}"
-        data-chain-basic="${thIdPrefix === "basicInd" ? (g.basicIndustry || g.name || "").replace(/"/g, "&quot;") : ""}"`;
+                  data-chain-macro="${(g.macro || "").replace(/"/g, "&quot;")}"
+                  data-chain-sector="${(g.sector || "").replace(/"/g, "&quot;")}"
+                  data-chain-industry="${(g.industry || "").replace(/"/g, "&quot;")}"
+                  data-chain-basic="${thIdPrefix === "basicInd" ? (g.basicIndustry || g.name || "").replace(/"/g, "&quot;") : ""}"`;
                         const isApplied = isIndustryChainApplied(g, thIdPrefix);
                         return `<tr ${drillAttr} style="${canDrill ? "cursor:pointer" : ""}">
-      <td onclick="event.stopPropagation()" style="text-align:center">
-        <input type="checkbox" class="ind-apply-check" ${chainAttrs} ${isApplied ? "checked" : ""}>
-      </td>
-      <td>
-        <div class="ind-name-cell">${g.name}</div>
-        <div class="ind-breadcrumb">${breadcrumb}</div>
-      </td>
-      <td style="text-align:right"><span class="ind-count-badge">${g.stockCount}</span></td>
-      ${IND_CHNG_FIELDS.map((f) => heatCell(g.avgs[f.key])).join("")}
-    </tr>`;
+                <td onclick="event.stopPropagation()" style="text-align:center">
+                  <input type="checkbox" class="ind-apply-check" ${chainAttrs} ${isApplied ? "checked" : ""}>
+                </td>
+                <td>
+                  <div class="ind-name-cell">${g.name}</div>
+                  <div class="ind-breadcrumb">${breadcrumb}</div>
+                </td>
+                <td style="text-align:right"><span class="ind-count-badge">${g.stockCount}</span></td>
+                ${IND_CHNG_FIELDS.map((f) => heatCell(g.avgs[f.key])).join("")}
+              </tr>`;
                     })
                     .join("");
 
@@ -10721,7 +10747,21 @@
                 // Get all object keys as headers
                 //---------------------------------------
 
-                const headers = Object.keys(rows[0]);
+                const headers = [
+                    ...Object.keys(rows[0]),
+                    "BI RANK",
+                    "BI RANK%",
+                    "IND RANK",
+                    "IND RANK%",
+                    "BI 5D",
+                    "BI 5D%",
+                    "IND 5D",
+                    "IND 5D%",
+                    "BI 1M",
+                    "BI 1M%",
+                    "IND 1M",
+                    "IND 1M%",
+                ];
 
                 let csv = [];
 
@@ -10737,7 +10777,94 @@
 
                 rows.forEach((row) => {
                     csv.push(
-                        headers.map((key) => csvEscape(row[key])).join(","),
+                        headers
+                            .map((key) => {
+                                switch (key) {
+                                    case "BI RANK":
+                                        p = peerRankMap.get(row.Code);
+                                        if (!p) return "-";
+                                        return csvEscape(
+                                            `${p.biRank}/${p.biTotal}`,
+                                        );
+
+                                    case "BI RANK%":
+                                        p = peerRankMap.get(row.Code);
+                                        if (!p) return "-";
+                                        return csvEscape(p.biPct);
+
+                                    case "IND RANK":
+                                        p = peerRankMap.get(row.Code);
+                                        if (!p) return "-";
+                                        return csvEscape(
+                                            `${p.indRank}/${p.indTotal}`,
+                                        );
+
+                                    case "IND RANK%":
+                                        p = peerRankMap.get(row.Code);
+                                        if (!p) return "-";
+                                        return csvEscape(p.indPct);
+
+                                    case "BI 5D":
+                                        g = groupRankMap.get(
+                                            row["Basic Industry"],
+                                        );
+                                        if (!g || !g.bi5dRank) return "—";
+                                        return csvEscape(
+                                            `${g.bi5dRank}/${g.bi5dTotal}`,
+                                        );
+
+                                    case "BI 5D%":
+                                        g = groupRankMap.get(
+                                            row["Basic Industry"],
+                                        );
+                                        if (!g || !g.bi5dRank) return "—";
+                                        return csvEscape(g.bi5dPct);
+
+                                    case "IND 5D":
+                                        g = groupRankMap.get(row["Industry"]);
+                                        if (!g || !g.ind5dRank) return "—";
+                                        return csvEscape(
+                                            `${g.ind5dRank}/${g.ind5dTotal}`,
+                                        );
+
+                                    case "IND 5D%":
+                                        g = groupRankMap.get(row["Industry"]);
+                                        if (!g || !g.ind5dRank) return "—";
+                                        return csvEscape(g.ind5dPct);
+
+                                    case "BI 1M":
+                                        g = groupRankMap.get(
+                                            row["Basic Industry"],
+                                        );
+                                        if (!g || !g.bi1mRank) return "—";
+                                        return csvEscape(
+                                            `${g.bi1mRank}/${g.bi1mTotal}`,
+                                        );
+
+                                    case "BI 1M%":
+                                        g = groupRankMap.get(
+                                            row["Basic Industry"],
+                                        );
+                                        if (!g || !g.bi1mRank) return "—";
+                                        return csvEscape(g.bi1mPct);
+
+                                    case "IND 1M":
+                                        g = groupRankMap.get(row["Industry"]);
+                                        if (!g || !g.ind1mRank) return "—";
+                                        return csvEscape(
+                                            `${g.ind1mRank}/${g.ind1mTotal}`,
+                                        );
+
+                                    case "IND 1M%":
+                                        g = groupRankMap.get(row["Industry"]);
+                                        if (!g || !g.ind1mRank) return "—";
+                                        return csvEscape(g.ind1mPct);
+
+                                    default:
+                                        return csvEscape(row[key]);
+                                }
+                            })
+                            .join(","),
                     );
                 });
 
