@@ -3794,10 +3794,15 @@
                     <tr>
                         <th data-col="code" onclick="sortBy('Code')">Code</th>
                         <th data-col="name" onclick="sortBy('Name')">Name</th>
-                        <th data-col="close" onclick="sortBy('Close')">
+                        <th
+                            class="num"
+                            data-col="close"
+                            onclick="sortBy('Close')"
+                        >
                             Close ₹
                         </th>
                         <th
+                            class="num"
                             data-col="nr"
                             onclick="sortBy('Narrow Range')"
                             title="Narrow Range Days"
@@ -3805,6 +3810,7 @@
                             NR
                         </th>
                         <th
+                            class="num"
                             data-col="5dr"
                             onclick="sortBy('5 Days Range%')"
                             title="5-Day High-Low Range % — below 6.5% is ideal for breakout setups"
@@ -3815,6 +3821,7 @@
                             Tradable
                         </th>
                         <th
+                            class="num"
                             data-col="bi-rank"
                             onclick="sortBy('_biRank')"
                             title="Rank within Basic Industry by RS Total (1 = top)"
@@ -3822,6 +3829,7 @@
                             BI Rank
                         </th>
                         <th
+                            class="num"
                             data-col="ind-rank"
                             onclick="sortBy('_indRank')"
                             title="Rank within Industry by RS Total (1 = top)"
@@ -3829,6 +3837,7 @@
                             Ind Rank
                         </th>
                         <th
+                            class="num"
                             data-col="bi-5d"
                             onclick="sortBy('_bi5dRank')"
                             title="Rank within Basic Industry by 5-Day Change% (1 = top gainer)"
@@ -3836,6 +3845,7 @@
                             BI 5D
                         </th>
                         <th
+                            class="num"
                             data-col="ind-5d"
                             onclick="sortBy('_ind5dRank')"
                             title="Rank within Industry by 5-Day Change% (1 = top gainer)"
@@ -3843,6 +3853,7 @@
                             Ind 5D
                         </th>
                         <th
+                            class="num"
                             data-col="bi-1m"
                             onclick="sortBy('_bi1mRank')"
                             title="Rank within Basic Industry by 1-Month Change% (1 = top gainer)"
@@ -3850,13 +3861,18 @@
                             BI 1M
                         </th>
                         <th
+                            class="num"
                             data-col="ind-1m"
                             onclick="sortBy('_ind1mRank')"
                             title="Rank within Industry by 1-Month Change% (1 = top gainer)"
                         >
                             Ind 1M
                         </th>
-                        <th data-col="chg1d" onclick="sortBy('1 Day Chng%')">
+                        <th
+                            class="num"
+                            data-col="chg1d"
+                            onclick="sortBy('1 Day Chng%')"
+                        >
                             1D Chg%
                         </th>
                         <th data-col="rs-total" onclick="sortBy('RS TOTAL')">
@@ -3875,38 +3891,74 @@
                             RS 6M
                         </th>
                         <th
+                            class="num"
                             data-col="lin-3m"
                             onclick="sortBy('3 Month Linearity >= 0.5')"
                         >
                             Lin 3M
                         </th>
                         <th
+                            class="num"
                             data-col="lin-1m"
                             onclick="sortBy('1 Month Linearity >= 0.5')"
                         >
                             Lin 1M
                         </th>
-                        <th data-col="chg5d" onclick="sortBy('5 Days Chng%')">
+                        <th
+                            class="num"
+                            data-col="chg5d"
+                            onclick="sortBy('5 Days Chng%')"
+                        >
                             5D Chg%
                         </th>
-                        <th data-col="chg1m" onclick="sortBy('1 Month Chng%')">
+                        <th
+                            class="num"
+                            data-col="chg1m"
+                            onclick="sortBy('1 Month Chng%')"
+                        >
                             1M Chg%
                         </th>
-                        <th data-col="chg2m" onclick="sortBy('2 Months Chng%')">
+                        <th
+                            class="num"
+                            data-col="chg2m"
+                            onclick="sortBy('2 Months Chng%')"
+                        >
                             2M Chg%
                         </th>
-                        <th data-col="chg4m" onclick="sortBy('4 Months Chng%')">
+                        <th
+                            class="num"
+                            data-col="chg4m"
+                            onclick="sortBy('4 Months Chng%')"
+                        >
                             4M Chg%
                         </th>
-                        <th data-col="chg6m" onclick="sortBy('6 Months Chng%')">
+                        <th
+                            class="num"
+                            data-col="chg6m"
+                            onclick="sortBy('6 Months Chng%')"
+                        >
                             6M Chg%
                         </th>
-                        <th data-col="mcap" onclick="sortBy('Market Cap')">
+                        <th
+                            class="num"
+                            data-col="mcap"
+                            onclick="sortBy('Market Cap')"
+                        >
                             MCap Cr
                         </th>
-                        <th data-col="pe" onclick="sortBy('PE')">PE</th>
-                        <th data-col="roe" onclick="sortBy('ROE')">ROE%</th>
-                        <th data-col="debt" onclick="sortBy('Debt')">Debt</th>
+                        <th class="num" data-col="pe" onclick="sortBy('PE')">
+                            PE
+                        </th>
+                        <th class="num" data-col="roe" onclick="sortBy('ROE')">
+                            ROE%
+                        </th>
+                        <th
+                            class="num"
+                            data-col="debt"
+                            onclick="sortBy('Debt')"
+                        >
+                            Debt
+                        </th>
                         <th
                             data-col="macro"
                             onclick="sortBy('Macro Economic Sector')"
@@ -3925,16 +3977,25 @@
                         >
                             Basic Industry
                         </th>
-                        <th data-col="volume" onclick="sortBy('Volume')">
+                        <th
+                            class="num"
+                            data-col="volume"
+                            onclick="sortBy('Volume')"
+                        >
                             Volume
                         </th>
                         <th
+                            class="num"
                             data-col="turnover"
                             onclick="sortBy('Net Turnover')"
                         >
                             Turnover
                         </th>
-                        <th data-col="delivery" onclick="sortBy('Delivery %')">
+                        <th
+                            class="num"
+                            data-col="delivery"
+                            onclick="sortBy('Delivery %')"
+                        >
                             Del%
                         </th>
                         <th
@@ -3950,28 +4011,39 @@
                             Del↑
                         </th>
                         <th data-col="fno" onclick="sortBy('F&O')">F&amp;O</th>
-                        <th data-col="band" onclick="sortBy('Price Band %')">
+                        <th
+                            class="num"
+                            data-col="band"
+                            onclick="sortBy('Price Band %')"
+                        >
                             Band%
                         </th>
                         <th data-col="holdings" onclick="sortBy('Prom Hold %')">
                             Holdings %
                         </th>
                         <th
+                            class="num"
                             data-col="eps1"
                             onclick="sortBy('EPS Latest Qtr %')"
                         >
                             EPS Q1%
                         </th>
-                        <th data-col="eps2" onclick="sortBy('EPS Prev Qtr %')">
+                        <th
+                            class="num"
+                            data-col="eps2"
+                            onclick="sortBy('EPS Prev Qtr %')"
+                        >
                             EPS Q2%
                         </th>
                         <th
+                            class="num"
                             data-col="sales1"
                             onclick="sortBy('Sales Latest Qtr %')"
                         >
                             Sales Q1%
                         </th>
                         <th
+                            class="num"
                             data-col="sales2"
                             onclick="sortBy('Sales Prev Qtr %')"
                         >
