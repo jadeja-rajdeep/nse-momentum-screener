@@ -2354,14 +2354,6 @@
                 margin: 1px 2px 1px 0;
                 white-space: nowrap;
             }
-            /* Column visibility styles */
-            .col-hidden {
-                display: none !important;
-            }
-            th.col-hidden,
-            td.col-hidden {
-                display: none !important;
-            }
             /* All Index column hidden by default */
             .col-allindex {
                 display: none;
@@ -3716,32 +3708,6 @@
                 </svg>
                 TV Watchlist
             </button>
-
-            <!-- TV Watchlist button — only visible when a filter is active -->
-            <button
-                class="btn-tv-watchlist"
-                id="btnExportCSV"
-                onclick="exportFilteredCSV()"
-                style="display: none"
-                title="Export filtered stocks to CSV File"
-            >
-                <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <path d="M12 3v12" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <path d="M5 21h14" />
-                </svg>
-                Export CSV
-            </button>
-
             <!-- Add Filtered to Watchlist — only visible when a filter is active -->
             <button
                 class="btn-add-watchlist"
@@ -3756,13 +3722,28 @@
                 class="ms-auto d-flex align-items-center gap-6"
                 style="gap: 8px"
             >
-                <button
-                    class="btn-page"
-                    style="padding: 2px 10px; font-size: 11px"
-                    onclick="openColumnModal()"
+                <label
+                    style="
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        cursor: pointer;
+                        font-size: 11px;
+                        color: var(--muted);
+                    "
                 >
-                    ▦ Columns
-                </button>
+                    <input
+                        type="checkbox"
+                        id="toggleAllIndex"
+                        onchange="toggleAllIndexCol()"
+                        style="
+                            accent-color: var(--accent);
+                            width: 13px;
+                            height: 13px;
+                        "
+                    />
+                    Show All Index
+                </label>
                 <span style="color: var(--border)">|</span>
                 <span style="font-size: 10px; color: var(--muted)"
                     >Rows/page</span
@@ -3792,194 +3773,102 @@
             <table id="mainTable" style="display: none">
                 <thead>
                     <tr>
-                        <th data-col="code" onclick="sortBy('Code')">Code</th>
-                        <th data-col="name" onclick="sortBy('Name')">Name</th>
-                        <th data-col="close" onclick="sortBy('Close')">
-                            Close ₹
-                        </th>
+                        <th onclick="sortBy('Code')">Code</th>
+                        <th onclick="sortBy('Name')">Name</th>
+                        <th onclick="sortBy('Close')">Close ₹</th>
                         <th
-                            data-col="nr"
                             onclick="sortBy('Narrow Range')"
                             title="Narrow Range Days"
                         >
                             NR
                         </th>
                         <th
-                            data-col="5dr"
                             onclick="sortBy('5 Days Range%')"
                             title="5-Day High-Low Range % — below 6.5% is ideal for breakout setups"
                         >
                             5DR%
                         </th>
-                        <th data-col="tradable" onclick="sortBy('Is Tradable')">
-                            Tradable
-                        </th>
+                        <th onclick="sortBy('Is Tradable')">Tradable</th>
                         <th
-                            data-col="bi-rank"
                             onclick="sortBy('_biRank')"
                             title="Rank within Basic Industry by RS Total (1 = top)"
                         >
                             BI Rank
                         </th>
                         <th
-                            data-col="ind-rank"
                             onclick="sortBy('_indRank')"
                             title="Rank within Industry by RS Total (1 = top)"
                         >
                             Ind Rank
                         </th>
                         <th
-                            data-col="bi-5d"
                             onclick="sortBy('_bi5dRank')"
                             title="Rank within Basic Industry by 5-Day Change% (1 = top gainer)"
                         >
                             BI 5D
                         </th>
                         <th
-                            data-col="ind-5d"
                             onclick="sortBy('_ind5dRank')"
                             title="Rank within Industry by 5-Day Change% (1 = top gainer)"
                         >
                             Ind 5D
                         </th>
                         <th
-                            data-col="bi-1m"
                             onclick="sortBy('_bi1mRank')"
                             title="Rank within Basic Industry by 1-Month Change% (1 = top gainer)"
                         >
                             BI 1M
                         </th>
                         <th
-                            data-col="ind-1m"
                             onclick="sortBy('_ind1mRank')"
                             title="Rank within Industry by 1-Month Change% (1 = top gainer)"
                         >
                             Ind 1M
                         </th>
-                        <th data-col="chg1d" onclick="sortBy('1 Day Chng%')">
-                            1D Chg%
-                        </th>
-                        <th data-col="rs-total" onclick="sortBy('RS TOTAL')">
-                            RS Total
-                        </th>
-                        <th data-col="rs-1m" onclick="sortBy('1 Month RS')">
-                            RS 1M
-                        </th>
-                        <th data-col="rs-2m" onclick="sortBy('2 Months RS')">
-                            RS 2M
-                        </th>
-                        <th data-col="rs-4m" onclick="sortBy('4 Months RS')">
-                            RS 4M
-                        </th>
-                        <th data-col="rs-6m" onclick="sortBy('6 Months RS')">
-                            RS 6M
-                        </th>
-                        <th
-                            data-col="lin-3m"
-                            onclick="sortBy('3 Month Linearity >= 0.5')"
-                        >
+                        <th onclick="sortBy('1 Day Chng%')">1D Chg%</th>
+                        <th onclick="sortBy('RS TOTAL')">RS Total</th>
+                        <th onclick="sortBy('1 Month RS')">RS 1M</th>
+                        <th onclick="sortBy('2 Months RS')">RS 2M</th>
+                        <th onclick="sortBy('4 Months RS')">RS 4M</th>
+                        <th onclick="sortBy('6 Months RS')">RS 6M</th>
+                        <th onclick="sortBy('3 Month Linearity >= 0.5')">
                             Lin 3M
                         </th>
-                        <th
-                            data-col="lin-1m"
-                            onclick="sortBy('1 Month Linearity >= 0.5')"
-                        >
+                        <th onclick="sortBy('1 Month Linearity >= 0.5')">
                             Lin 1M
                         </th>
-                        <th data-col="chg5d" onclick="sortBy('5 Days Chng%')">
-                            5D Chg%
-                        </th>
-                        <th data-col="chg1m" onclick="sortBy('1 Month Chng%')">
-                            1M Chg%
-                        </th>
-                        <th data-col="chg2m" onclick="sortBy('2 Months Chng%')">
-                            2M Chg%
-                        </th>
-                        <th data-col="chg4m" onclick="sortBy('4 Months Chng%')">
-                            4M Chg%
-                        </th>
-                        <th data-col="chg6m" onclick="sortBy('6 Months Chng%')">
-                            6M Chg%
-                        </th>
-                        <th data-col="mcap" onclick="sortBy('Market Cap')">
-                            MCap Cr
-                        </th>
-                        <th data-col="pe" onclick="sortBy('PE')">PE</th>
-                        <th data-col="roe" onclick="sortBy('ROE')">ROE%</th>
-                        <th data-col="debt" onclick="sortBy('Debt')">Debt</th>
-                        <th
-                            data-col="macro"
-                            onclick="sortBy('Macro Economic Sector')"
-                        >
+                        <th onclick="sortBy('5 Days Chng%')">5D Chg%</th>
+                        <th onclick="sortBy('1 Month Chng%')">1M Chg%</th>
+                        <th onclick="sortBy('2 Months Chng%')">2M Chg%</th>
+                        <th onclick="sortBy('4 Months Chng%')">4M Chg%</th>
+                        <th onclick="sortBy('6 Months Chng%')">6M Chg%</th>
+                        <th onclick="sortBy('Market Cap')">MCap Cr</th>
+                        <th onclick="sortBy('PE')">PE</th>
+                        <th onclick="sortBy('ROE')">ROE%</th>
+                        <th onclick="sortBy('Debt')">Debt</th>
+                        <th onclick="sortBy('Macro Economic Sector')">
                             Macro Sector
                         </th>
-                        <th data-col="sector" onclick="sortBy('Sector')">
-                            Sector
-                        </th>
-                        <th data-col="industry" onclick="sortBy('Industry')">
-                            Industry
-                        </th>
-                        <th
-                            data-col="basic-ind"
-                            onclick="sortBy('Basic Industry')"
-                        >
+                        <th onclick="sortBy('Sector')">Sector</th>
+                        <th onclick="sortBy('Industry')">Industry</th>
+                        <th onclick="sortBy('Basic Industry')">
                             Basic Industry
                         </th>
-                        <th data-col="volume" onclick="sortBy('Volume')">
-                            Volume
-                        </th>
-                        <th
-                            data-col="turnover"
-                            onclick="sortBy('Net Turnover')"
-                        >
-                            Turnover
-                        </th>
-                        <th data-col="delivery" onclick="sortBy('Delivery %')">
-                            Del%
-                        </th>
-                        <th
-                            data-col="vol-up"
-                            onclick="sortBy('Volume Above Avg')"
-                        >
-                            Vol↑
-                        </th>
-                        <th
-                            data-col="del-up"
-                            onclick="sortBy('Delivery Above Avg')"
-                        >
-                            Del↑
-                        </th>
-                        <th data-col="fno" onclick="sortBy('F&O')">F&amp;O</th>
-                        <th data-col="band" onclick="sortBy('Price Band %')">
-                            Band%
-                        </th>
-                        <th data-col="holdings" onclick="sortBy('Prom Hold %')">
-                            Holdings %
-                        </th>
-                        <th
-                            data-col="eps1"
-                            onclick="sortBy('EPS Latest Qtr %')"
-                        >
-                            EPS Q1%
-                        </th>
-                        <th data-col="eps2" onclick="sortBy('EPS Prev Qtr %')">
-                            EPS Q2%
-                        </th>
-                        <th
-                            data-col="sales1"
-                            onclick="sortBy('Sales Latest Qtr %')"
-                        >
+                        <th onclick="sortBy('Volume')">Volume</th>
+                        <th onclick="sortBy('Net Turnover')">Turnover</th>
+                        <th onclick="sortBy('Delivery %')">Del%</th>
+                        <th onclick="sortBy('Volume Above Avg')">Vol↑</th>
+                        <th onclick="sortBy('Delivery Above Avg')">Del↑</th>
+                        <th onclick="sortBy('F&O')">F&amp;O</th>
+                        <th onclick="sortBy('Price Band %')">Band%</th>
+                        <th onclick="sortBy('Prom Hold %')">Holdings %</th>
+                        <th onclick="sortBy('EPS Latest Qtr %')">EPS Q1%</th>
+                        <th onclick="sortBy('EPS Prev Qtr %')">EPS Q2%</th>
+                        <th onclick="sortBy('Sales Latest Qtr %')">
                             Sales Q1%
                         </th>
-                        <th
-                            data-col="sales2"
-                            onclick="sortBy('Sales Prev Qtr %')"
-                        >
-                            Sales Q2%
-                        </th>
-                        <th data-col="allindex" class="col-allindex">
-                            All Index
-                        </th>
+                        <th onclick="sortBy('Sales Prev Qtr %')">Sales Q2%</th>
+                        <th class="col-allindex">All Index</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -6514,419 +6403,6 @@
             </div>
         </div>
 
-        <!-- COLUMN VISIBILITY MODAL -->
-        <div
-            class="settings-modal-overlay"
-            id="columnModal"
-            onclick="closeColumnModalOnOverlay(event)"
-        >
-            <div class="settings-modal" onclick="event.stopPropagation()">
-                <div class="settings-modal-header">
-                    <div>
-                        <div class="settings-modal-title">
-                            ▦ Column Visibility
-                        </div>
-                        <div class="tv-modal-meta">
-                            Choose which columns to display in the table
-                        </div>
-                    </div>
-                    <button
-                        class="peer-modal-close"
-                        onclick="closeColumnModal()"
-                    >
-                        ✕
-                    </button>
-                </div>
-                <div class="settings-modal-body">
-                    <div class="settings-section">
-                        <div class="settings-section-title">
-                            Core Columns (Always Visible)
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label
-                                    class="abv-check-item"
-                                    style="cursor: not-allowed; opacity: 0.6"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked
-                                        disabled
-                                        data-col="code"
-                                    />
-                                    <span>Code</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label
-                                    class="abv-check-item"
-                                    style="cursor: not-allowed; opacity: 0.6"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked
-                                        disabled
-                                        data-col="name"
-                                    />
-                                    <span>Name</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="close" />
-                                    <span>Close</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="nr" />
-                                    <span>NR</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="5dr" />
-                                    <span>5DR%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="tradable"
-                                    />
-                                    <span>Tradable</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="rs-total"
-                                    />
-                                    <span>RS Total</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="chg1d" />
-                                    <span>1D Chg%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="mcap" />
-                                    <span>MCap Cr</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-title">
-                            Relative Strength
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="rs-1m" />
-                                    <span>RS 1M</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="rs-2m" />
-                                    <span>RS 2M</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="rs-4m" />
-                                    <span>RS 4M</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="rs-6m" />
-                                    <span>RS 6M</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-title">
-                            Change & Performance
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="chg5d" />
-                                    <span>5D Chg%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="chg1m" />
-                                    <span>1M Chg%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="chg2m" />
-                                    <span>2M Chg%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="chg4m" />
-                                    <span>4M Chg%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="chg6m" />
-                                    <span>6M Chg%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="lin-3m" />
-                                    <span>Lin 3M</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="lin-1m" />
-                                    <span>Lin 1M</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-title">Fundamentals</div>
-                        <div class="row g-2">
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="pe" />
-                                    <span>PE</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="roe" />
-                                    <span>ROE%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="debt" />
-                                    <span>Debt</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-title">
-                            Sector & Industry
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="macro" />
-                                    <span>Macro Sector</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="sector" />
-                                    <span>Sector</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="industry"
-                                    />
-                                    <span>Industry</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="basic-ind"
-                                    />
-                                    <span>Basic Industry</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="bi-rank" />
-                                    <span>BI Rank</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="ind-rank"
-                                    />
-                                    <span>Ind Rank</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="bi-5d" />
-                                    <span>BI 5D</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="ind-5d" />
-                                    <span>Ind 5D</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="bi-1m" />
-                                    <span>BI 1M</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="ind-1m" />
-                                    <span>Ind 1M</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-title">Trading</div>
-                        <div class="row g-2">
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="volume" />
-                                    <span>Volume</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="turnover"
-                                    />
-                                    <span>Turnover</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="delivery"
-                                    />
-                                    <span>Del%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="vol-up" />
-                                    <span>Vol↑</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="del-up" />
-                                    <span>Del↑</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="fno" />
-                                    <span>F&O</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="band" />
-                                    <span>Band%</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <div class="settings-section-title">
-                            Holdings & Growth
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="holdings"
-                                    />
-                                    <span>Holdings %</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="eps1" />
-                                    <span>EPS Q1%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="eps2" />
-                                    <span>EPS Q2%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="sales1" />
-                                    <span>Sales Q1%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="sales2" />
-                                    <span>Sales Q2%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="allindex"
-                                    />
-                                    <span>All Index</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-flex gap-2 justify-content-end mt-3">
-                        <button
-                            class="btn-filter-clear"
-                            onclick="closeColumnModal()"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            class="btn-save-confirm"
-                            onclick="saveColumnVisibility()"
-                        >
-                            ✓ Apply
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- AUTHOR / ABOUT MODAL -->
         <div
             class="author-modal-overlay"
@@ -8264,8 +7740,6 @@
                 updateStats();
                 renderPage();
                 renderPagination();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
             }
 
             function clearFilters() {
@@ -8347,127 +7821,6 @@
                 applyFilters();
             }
 
-            // ============ COLUMN VISIBILITY ============
-            const CV_KEY = "columnVisibility";
-            const defaultColumns = {
-                code: true,
-                name: true,
-                close: true,
-                nr: true,
-                "5dr": true,
-                tradable: true,
-                "rs-total": true,
-                chg1d: true,
-                mcap: true,
-                "rs-1m": true,
-                "rs-2m": true,
-                "rs-4m": true,
-                "rs-6m": true,
-                chg5d: true,
-                chg1m: true,
-                chg2m: true,
-                chg4m: true,
-                chg6m: true,
-                "lin-3m": true,
-                "lin-1m": true,
-                pe: true,
-                roe: true,
-                debt: true,
-                macro: true,
-                sector: true,
-                industry: true,
-                "basic-ind": true,
-                "bi-rank": true,
-                "ind-rank": true,
-                "bi-5d": true,
-                "ind-5d": true,
-                "bi-1m": true,
-                "ind-1m": true,
-                volume: true,
-                turnover: true,
-                delivery: true,
-                "vol-up": true,
-                "del-up": true,
-                fno: true,
-                band: true,
-                holdings: true,
-                eps1: true,
-                eps2: true,
-                sales1: true,
-                sales2: true,
-                allindex: false,
-            };
-
-            function loadColumnVisibility() {
-                const saved = localStorage.getItem(CV_KEY);
-                return saved ? JSON.parse(saved) : { ...defaultColumns };
-            }
-
-            function saveColumnVisibility() {
-                const visibility = {
-                    code: true,
-                    name: true,
-                };
-                document
-                    .querySelectorAll("#columnModal input[data-col]")
-                    .forEach((cb) => {
-                        visibility[cb.dataset.col] = cb.checked;
-                    });
-                localStorage.setItem(CV_KEY, JSON.stringify(visibility));
-                closeColumnModal();
-                renderPage();
-                applyColumnVisibility(visibility);
-            }
-
-            function applyColumnVisibility(visibility) {
-                document
-                    .querySelectorAll("thead th[data-col]")
-                    .forEach((th) => {
-                        const col = th.dataset.col;
-                        if (!visibility[col]) {
-                            th.classList.add("col-hidden");
-                        } else {
-                            th.classList.remove("col-hidden");
-                        }
-                    });
-                document
-                    .querySelectorAll("tbody td[data-col]")
-                    .forEach((td) => {
-                        const col = td.dataset.col;
-                        if (!visibility[col]) {
-                            td.classList.add("col-hidden");
-                        } else {
-                            td.classList.remove("col-hidden");
-                        }
-                    });
-                const table = document.getElementById("mainTable");
-                if (visibility.allindex) {
-                    table.classList.add("col-allindex-visible");
-                } else {
-                    table.classList.remove("col-allindex-visible");
-                }
-            }
-
-            function openColumnModal() {
-                const visibility = loadColumnVisibility();
-                document.getElementById("columnModal").classList.add("open");
-                document
-                    .querySelectorAll("#columnModal input[data-col]")
-                    .forEach((cb) => {
-                        cb.checked = !!visibility[cb.dataset.col];
-                    });
-            }
-
-            function closeColumnModal() {
-                document.getElementById("columnModal").classList.remove("open");
-            }
-
-            function closeColumnModalOnOverlay(e) {
-                if (e.target === document.getElementById("columnModal"))
-                    closeColumnModal();
-            }
-
-            // ============ FILTERS ============
             function toggleFilters() {
                 filtersVisible = !filtersVisible;
                 document.getElementById("filterPanel").style.display =
@@ -8692,17 +8045,17 @@
     <tr${r["Is Tradable"] == 1 ? ' class="tradable-row"' : ""}>
       <td class="code-cell peer-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Click for peer comparison" style="cursor:pointer">${r.Code || "—"}<span class="wl-star${isInAnyWatchlist(r.Code) ? " in-watchlist" : ""}" data-wl-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Add to watchlist">${isInAnyWatchlist(r.Code) ? "★" : "☆"}</span></td>
       <td class="name-cell tv-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Open on TradingView" style="cursor:pointer">${r.Name || "—"}</td>
-      <td data-col="close" class="num">${fNum(r.Close, 2)}</td>
-      <td data-col="nr" class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
-      <td data-col="5dr" class="num">${(() => {
+      <td class="num">${fNum(r.Close, 2)}</td>
+      <td class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td class="num">${(() => {
           const v = parseFloat(r["5 Days Range%"]);
           if (isNaN(v)) return '<span style="color:var(--muted)">—</span>';
           const col =
               v <= 6.5 ? "#10b981" : v <= 7.5 ? "#f59e0b" : "var(--muted)";
           return `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${col}">${v.toFixed(2)}%</span>`;
       })()}</td>
-      <td data-col="tradable">${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
-      <td data-col="bi-rank" class="num">${(() => {
+      <td>${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
+      <td class="num">${(() => {
           const p = peerRankMap.get(r.Code);
           if (!p) return "—";
           const pct = p.biPct;
@@ -8716,7 +8069,7 @@
                       : "#64748b";
           return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.biRank}/${p.biTotal}</span>`;
       })()}</td>
-      <td data-col="ind-rank" class="num">${(() => {
+      <td class="num">${(() => {
           const p = peerRankMap.get(r.Code);
           if (!p) return "—";
           const pct = p.indPct;
@@ -8730,7 +8083,7 @@
                       : "#64748b";
           return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.indRank}/${p.indTotal}</span>`;
       })()}</td>
-      <td data-col="bi-5d" class="num">${(() => {
+      <td class="num">${(() => {
           const g = groupRankMap.get(r["Basic Industry"]);
           if (!g || !g.bi5dRank) return "—";
           const pct = g.bi5dPct;
@@ -8744,7 +8097,7 @@
                       : "#64748b";
           return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi5dRank}/${g.bi5dTotal}</span>`;
       })()}</td>
-      <td data-col="ind-5d" class="num">${(() => {
+      <td class="num">${(() => {
           const g = groupRankMap.get(r["Industry"]);
           if (!g || !g.ind5dRank) return "—";
           const pct = g.ind5dPct;
@@ -8758,7 +8111,7 @@
                       : "#64748b";
           return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind5dRank}/${g.ind5dTotal}</span>`;
       })()}</td>
-      <td data-col="bi-1m" class="num">${(() => {
+      <td class="num">${(() => {
           const g = groupRankMap.get(r["Basic Industry"]);
           if (!g || !g.bi1mRank) return "—";
           const pct = g.bi1mPct;
@@ -8772,7 +8125,7 @@
                       : "#64748b";
           return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi1mRank}/${g.bi1mTotal}</span>`;
       })()}</td>
-      <td data-col="ind-1m" class="num">${(() => {
+      <td class="num">${(() => {
           const g = groupRankMap.get(r["Industry"]);
           if (!g || !g.ind1mRank) return "—";
           const pct = g.ind1mPct;
@@ -8786,44 +8139,44 @@
                       : "#64748b";
           return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind1mRank}/${g.ind1mTotal}</span>`;
       })()}</td>
-      <td data-col="chg1d" class="${chngClass(r["1 Day Chng%"])} num">${chngStr(r["1 Day Chng%"])}</td>
-      <td data-col="rs-total">${rsTotalBadge(r["RS TOTAL"])}</td>
-      <td data-col="rs-1m">${rsBadge(r["1 Month RS"])}</td>
-      <td data-col="rs-2m">${rsBadge(r["2 Months RS"])}</td>
-      <td data-col="rs-4m">${rsBadge(r["4 Months RS"])}</td>
-      <td data-col="rs-6m">${rsBadge(r["6 Months RS"])}</td>
-      <td data-col="lin-3m" class="num">${fNum(r["3 Month Linearity >= 0.5"], 3)}</td>
-      <td data-col="lin-1m" class="num">${fNum(r["1 Month Linearity >= 0.5"], 3)}</td>
-      <td data-col="chg5d" class="${chngClass(r["5 Days Chng%"])} num">${chngStr(r["5 Days Chng%"])}</td>
-      <td data-col="chg1m" class="${chngClass(r["1 Month Chng%"])} num">${chngStr(r["1 Month Chng%"])}</td>
-      <td data-col="chg2m" class="${chngClass(r["2 Months Chng%"])} num">${chngStr(r["2 Months Chng%"])}</td>
-      <td data-col="chg4m" class="${chngClass(r["4 Months Chng%"])} num">${chngStr(r["4 Months Chng%"])}</td>
-      <td data-col="chg6m" class="${chngClass(r["6 Months Chng%"])} num">${chngStr(r["6 Months Chng%"])}</td>
-      <td data-col="mcap" class="num">${fCr(r["Market Cap"])}</td>
-      <td data-col="pe" class="num">${fNum(r.PE, 1)}</td>
-      <td data-col="roe" class="num">${fNum(r.ROE, 1)}</td>
-      <td data-col="debt" class="num">${fNum(r.Debt, 0)}</td>
-      <td data-col="macro"><span class="sector-pill">${r["Macro Economic Sector"] || "—"}</span></td>
-      <td data-col="sector" style="color:var(--muted);font-size:11px">${r["Sector"] || "—"}</td>
-      <td data-col="industry" style="color:var(--muted);font-size:11px">${r["Industry"] || "—"}</td>
-      <td data-col="basic-ind" style="color:var(--muted);font-size:11px">${r["Basic Industry"] || "—"}</td>
-      <td data-col="volume" class="num">${fVol(r.Volume)}</td>
-      <td data-col="turnover" class="num">${fTurnover(r["Net Turnover"])}</td>
-      <td data-col="delivery" class="num">${fNum(r["Delivery %"], 1)}</td>
-      <td data-col="vol-up">${abvIcon(r["Volume Above Avg"])}</td>
-      <td data-col="del-up">${abvIcon(r["Delivery Above Avg"])}</td>
-      <td data-col="fno">${fnoIcon(r["F&O"])}</td>
-      <td data-col="band" class="num">${r["Price Band %"] || "—"}</td>
-      <td data-col="holdings" class="holdings-cell">
+      <td class="${chngClass(r["1 Day Chng%"])} num">${chngStr(r["1 Day Chng%"])}</td>
+      <td>${rsTotalBadge(r["RS TOTAL"])}</td>
+      <td>${rsBadge(r["1 Month RS"])}</td>
+      <td>${rsBadge(r["2 Months RS"])}</td>
+      <td>${rsBadge(r["4 Months RS"])}</td>
+      <td>${rsBadge(r["6 Months RS"])}</td>
+      <td class="num">${fNum(r["3 Month Linearity >= 0.5"], 3)}</td>
+      <td class="num">${fNum(r["1 Month Linearity >= 0.5"], 3)}</td>
+      <td class="${chngClass(r["5 Days Chng%"])} num">${chngStr(r["5 Days Chng%"])}</td>
+      <td class="${chngClass(r["1 Month Chng%"])} num">${chngStr(r["1 Month Chng%"])}</td>
+      <td class="${chngClass(r["2 Months Chng%"])} num">${chngStr(r["2 Months Chng%"])}</td>
+      <td class="${chngClass(r["4 Months Chng%"])} num">${chngStr(r["4 Months Chng%"])}</td>
+      <td class="${chngClass(r["6 Months Chng%"])} num">${chngStr(r["6 Months Chng%"])}</td>
+      <td class="num">${fCr(r["Market Cap"])}</td>
+      <td class="num">${fNum(r.PE, 1)}</td>
+      <td class="num">${fNum(r.ROE, 1)}</td>
+      <td class="num">${fNum(r.Debt, 0)}</td>
+      <td><span class="sector-pill">${r["Macro Economic Sector"] || "—"}</span></td>
+      <td style="color:var(--muted);font-size:11px">${r["Sector"] || "—"}</td>
+      <td style="color:var(--muted);font-size:11px">${r["Industry"] || "—"}</td>
+      <td style="color:var(--muted);font-size:11px">${r["Basic Industry"] || "—"}</td>
+      <td class="num">${fVol(r.Volume)}</td>
+      <td class="num">${fTurnover(r["Net Turnover"])}</td>
+      <td class="num">${fNum(r["Delivery %"], 1)}</td>
+      <td>${abvIcon(r["Volume Above Avg"])}</td>
+      <td>${abvIcon(r["Delivery Above Avg"])}</td>
+      <td>${fnoIcon(r["F&O"])}</td>
+      <td class="num">${r["Price Band %"] || "—"}</td>
+      <td class="holdings-cell">
         <span class="hold-prom">P:${fNum(r["Prom Hold %"], 1)}%</span><br>
         <span class="hold-emp">E:${fNum(r["Emp Trust %"], 1)}%</span><br>
         <span class="hold-pub">D:${fNum(r["Public Hold %"], 1)}%</span>
       </td>
-      <td data-col="eps1" class="${chngClass(r["EPS Latest Qtr %"])} num">${chngStr(r["EPS Latest Qtr %"], 0)}</td>
-      <td data-col="eps2" class="${chngClass(r["EPS Prev Qtr %"])} num">${chngStr(r["EPS Prev Qtr %"], 0)}</td>
-      <td data-col="sales1" class="${chngClass(r["Sales Latest Qtr %"])} num">${chngStr(r["Sales Latest Qtr %"], 0)}</td>
-      <td data-col="sales2" class="${chngClass(r["Sales Prev Qtr %"])} num">${chngStr(r["Sales Prev Qtr %"], 0)}</td>
-      <td data-col="allindex" class="all-index-cell col-allindex">${formatAllIndex(r["All Index"])}</td>
+      <td class="${chngClass(r["EPS Latest Qtr %"])} num">${chngStr(r["EPS Latest Qtr %"], 0)}</td>
+      <td class="${chngClass(r["EPS Prev Qtr %"])} num">${chngStr(r["EPS Prev Qtr %"], 0)}</td>
+      <td class="${chngClass(r["Sales Latest Qtr %"])} num">${chngStr(r["Sales Latest Qtr %"], 0)}</td>
+      <td class="${chngClass(r["Sales Prev Qtr %"])} num">${chngStr(r["Sales Prev Qtr %"], 0)}</td>
+      <td class="all-index-cell col-allindex">${formatAllIndex(r["All Index"])}</td>
     </tr>
   `,
                     )
@@ -8867,8 +8220,6 @@
                     filteredData.length > 0 &&
                     filteredData.length < allData.length;
                 document.getElementById("btnTvWatchlist").style.display =
-                    isFiltered ? "" : "none";
-                document.getElementById("btnExportCSV").style.display =
                     isFiltered ? "" : "none";
             }
 
@@ -9992,8 +9343,6 @@
                 updateStats();
                 renderPage();
                 renderPagination();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
 
                 // Show banner
                 multiSearchActive = true;
@@ -10343,7 +9692,6 @@
                     watchlists: JSON.parse(
                         localStorage.getItem(WL_KEY) || "[]",
                     ),
-                    column_visibility: loadColumnVisibility(),
                 };
                 const json = JSON.stringify(payload, null, 2);
                 const blob = new Blob([json], { type: "application/json" });
@@ -10385,13 +9733,6 @@
                             WL_KEY,
                             JSON.stringify(payload.watchlists),
                         );
-                        // Restore column visibility if present
-                        if (payload.column_visibility) {
-                            localStorage.setItem(
-                                CV_KEY,
-                                JSON.stringify(payload.column_visibility),
-                            );
-                        }
                         showSettingsStatus(
                             `✓ Import successful — reloading in 2s…`,
                             "ok",
@@ -10594,122 +9935,6 @@
                     );
                     refreshOpenIndustryTables();
                 });
-
-            // ============ EXPORT FILTERED DATA TO CSV ============
-            function csvEscape(value) {
-                if (value === null || value === undefined) return "";
-
-                value = String(value);
-
-                value = value.replace(/"/g, '""');
-
-                return `"${value}"`;
-            }
-
-            function getVisibleColumns() {
-                const visibility = loadColumnVisibility();
-
-                const headers = [];
-
-                document
-                    .querySelectorAll("thead th[data-col]")
-                    .forEach((th) => {
-                        const col = th.dataset.col;
-
-                        if (visibility[col]) {
-                            headers.push({
-                                key: col,
-                                title: th.innerText.trim(),
-                            });
-                        }
-                    });
-
-                return headers;
-            }
-
-            function exportFilteredCSV() {
-                //---------------------------------------
-                // filtered rows
-                //---------------------------------------
-
-                let rows = [];
-
-                if (Array.isArray(filteredData)) rows = filteredData;
-                else {
-                    alert("Filtered data not found.");
-                    return;
-                }
-
-                if (rows.length === 0) {
-                    alert("No data available to export.");
-                    return;
-                }
-
-                //---------------------------------------
-                // Get all object keys as headers
-                //---------------------------------------
-
-                const headers = Object.keys(rows[0]);
-
-                let csv = [];
-
-                //---------------------------------------
-                // Header row
-                //---------------------------------------
-
-                csv.push(headers.map(csvEscape).join(","));
-
-                //---------------------------------------
-                // Data rows
-                //---------------------------------------
-
-                rows.forEach((row) => {
-                    csv.push(
-                        headers.map((key) => csvEscape(row[key])).join(","),
-                    );
-                });
-
-                //---------------------------------------
-                // Filename
-                //---------------------------------------
-
-                const d = new Date();
-
-                const filename =
-                    "MomentumScreener_" +
-                    d.getFullYear() +
-                    "-" +
-                    String(d.getMonth() + 1).padStart(2, "0") +
-                    "-" +
-                    String(d.getDate()).padStart(2, "0") +
-                    "_" +
-                    String(d.getHours()).padStart(2, "0") +
-                    "-" +
-                    String(d.getMinutes()).padStart(2, "0") +
-                    "-" +
-                    String(d.getSeconds()).padStart(2, "0") +
-                    ".csv";
-
-                //---------------------------------------
-                // Download
-                //---------------------------------------
-
-                const blob = new Blob([csv.join("\n")], {
-                    type: "text/csv;charset=utf-8;",
-                });
-
-                const url = URL.createObjectURL(blob);
-
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = filename;
-
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-
-                URL.revokeObjectURL(url);
-            }
 
             // ============ INIT ============
             document
