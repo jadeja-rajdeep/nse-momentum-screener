@@ -7575,7 +7575,7 @@
             let sectorToIndustries = {}; // sector → Set of industries
             let industryToBasics = {}; // industry → Set of basic industries
 
-            const DATA_CACHE_NAME = "nse-screener-data-v2"; // must match sw.js DATA_CACHE
+            const DATA_CACHE_NAME = "nse-screener-data-v1"; // must match sw.js DATA_CACHE
             const NSE_PUBLISH_HOUR_IST = 17; // NSE publishes updated data ~5 PM IST after market close
 
             // Get current date/time in IST (Asia/Kolkata), independent of the
@@ -7619,6 +7619,7 @@
                 const todayDow = new Date(todayIst + "T00:00:00").getDay(); // 0=Sun, 6=Sat
                 const isSaturday = todayDow === 6;
                 const isSunday = todayDow === 0;
+                const isWorkingDay = todayDow >= 1 && todayDow <= 5; // Mon to Fri
                 const beforePublish = hourIst < NSE_PUBLISH_HOUR_IST;
 
                 try {
@@ -7649,7 +7650,8 @@
                     const isToday = dayGap === 0;
 
                     // Normal weekday rule: any day old, but only before 5 PM
-                    const isOlderButPrePublish = dayGap > 0 && beforePublish;
+                    const isOlderButPrePublish =
+                        dayGap === 1 && beforePublish && isWorkingDay;
 
                     // Saturday-specific: Friday's data (gap 1) is always
                     // valid; anything older (gap >= 2) needs the time gate.
