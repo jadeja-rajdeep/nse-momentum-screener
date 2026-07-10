@@ -1,18 +1,6 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
     <head>
-        <script>
-            (function () {
-                try {
-                    const t = localStorage.getItem("nse-screener-theme");
-                    if (t)
-                        document.documentElement.setAttribute(
-                            "data-theme",
-                            t,
-                        );
-                } catch (e) {}
-            })();
-        </script>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>NSE Momentum Screener</title>
@@ -55,21 +43,6 @@
                 --sans: "Sora", sans-serif;
             }
 
-            [data-theme="light"] {
-                --bg: #f4f6fb;
-                --surface: #ffffff;
-                --surface2: #eef1f8;
-                --border: #d7dce6;
-                --accent: #0aa787;
-                --accent2: #2563eb;
-                --accent3: #d97706;
-                --text: #1a2233;
-                --muted: #64748b;
-                --danger: #e11d48;
-                --success: #0f9d6a;
-                --warn: #d97706;
-            }
-
             * {
                 box-sizing: border-box;
             }
@@ -84,29 +57,6 @@
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
-                transition: background 0.2s, color 0.2s;
-            }
-
-            /* Theme toggle button */
-            .btn-theme-toggle {
-                background: var(--surface2);
-                border: 1px solid var(--border);
-                color: var(--text);
-                font-size: 15px;
-                width: 32px;
-                height: 32px;
-                border-radius: 6px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-                transition: all 0.2s;
-            }
-            .btn-theme-toggle:hover {
-                border-color: var(--accent);
-                color: var(--accent);
-                background: rgba(0, 212, 170, 0.08);
             }
 
             /* ---- HEADER ---- */
@@ -549,7 +499,7 @@
             }
             tbody tr:hover td:nth-child(1),
             tbody tr:hover td:nth-child(2) {
-                background: var(--surface2);
+                background: #141e2e;
             }
 
             .code-cell {
@@ -795,7 +745,7 @@
 
             /* ---- SAVED SEARCHES PANEL ---- */
             .saved-panel {
-                background: var(--surface);
+                background: #0d1520;
                 border-bottom: 1px solid var(--border);
                 padding: 10px 20px;
                 flex-shrink: 0;
@@ -1322,7 +1272,7 @@
             }
             .help-tab:hover {
                 background: rgba(0, 212, 170, 0.06);
-                color: #e2e8f0;
+                color: var(--text);
             }
             .help-tab.active {
                 background: rgba(0, 212, 170, 0.12);
@@ -2614,14 +2564,6 @@
                     title="About the author & TradingView indicators"
                 >
                     <span>👤</span>
-                </button>
-                <button
-                    class="btn-theme-toggle"
-                    id="themeToggleBtn"
-                    onclick="toggleTheme()"
-                    title="Toggle light/dark theme"
-                >
-                    <span id="themeToggleIcon">☀️</span>
                 </button>
             </div>
         </div>
@@ -11719,29 +11661,6 @@
                     deferredInstallPrompt = null;
                     if (outcome === "accepted") dismissPwaToast("install");
                 });
-        </script>
-        <script>
-            (function () {
-                const THEME_KEY = "nse-screener-theme";
-                function setTheme(theme) {
-                    document.documentElement.setAttribute(
-                        "data-theme",
-                        theme,
-                    );
-                    const icon = document.getElementById("themeToggleIcon");
-                    if (icon) icon.textContent = theme === "light" ? "🌙" : "☀️";
-                    localStorage.setItem(THEME_KEY, theme);
-                }
-                window.toggleTheme = function () {
-                    const current =
-                        document.documentElement.getAttribute("data-theme") ||
-                        "dark";
-                    setTheme(current === "dark" ? "light" : "dark");
-                };
-                const saved = localStorage.getItem(THEME_KEY);
-                if (saved) setTheme(saved);
-                else setTheme("dark");
-            })();
         </script>
     </body>
 </html>
