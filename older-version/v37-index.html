@@ -9963,7 +9963,6 @@
                 <span class="ss-card-name wl-card-name" title="Click to rename" data-id="${wl.id}" ondblclick="startRenameWatchlist(${wl.id})">${wl.name}</span>
                 <span class="ss-card-meta">${wl.codes.length} stocks</span>
                 <button class="ss-run-one wl-run-one" title="Filter table to this watchlist" onclick="runWatchlistFilter(${wl.id})">▶</button>
-                <button class="ss-run-one wl-clear-one" title="Remove all stocks from this watchlist" onclick="clearWatchlistStocks(${wl.id})" ${wl.codes.length ? "" : "disabled"}>🗑</button>
               </div>`,
                     )
                     .join("");
@@ -10052,23 +10051,6 @@
                     if (e.key === "Escape") refreshWatchlistUI();
                 });
                 input.addEventListener("blur", commit);
-            }
-
-            // Remove all stocks from a watchlist while keeping the list itself.
-            function clearWatchlistStocks(id) {
-                const lists = loadWatchlists();
-                const wl = lists.find((w) => w.id === id);
-                if (!wl) return;
-                if (!wl.codes.length) return;
-                if (
-                    !confirm(
-                        `Remove all ${wl.codes.length} stock${wl.codes.length > 1 ? "s" : ""} from "${wl.name}"? The watchlist itself will be kept.`,
-                    )
-                )
-                    return;
-                wl.codes = [];
-                saveWatchlists(lists);
-                refreshWatchlistUI();
             }
 
             // Run this single watchlist as the active table filter (sets the
