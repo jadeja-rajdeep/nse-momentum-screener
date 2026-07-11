@@ -9141,6 +9141,8 @@
                     );
                 sortData();
                 renderPage();
+                const cv = loadColumnVisibility();
+                applyColumnVisibility(cv);
             }
 
             function sortData() {
@@ -9599,6 +9601,8 @@
                     currentPage--;
                     renderPage();
                     renderPagination();
+                    const cv = loadColumnVisibility();
+                    applyColumnVisibility(cv);
                     scrollTop();
                 }
             }
@@ -9608,6 +9612,8 @@
                     currentPage++;
                     renderPage();
                     renderPagination();
+                    const cv = loadColumnVisibility();
+                    applyColumnVisibility(cv);
                     scrollTop();
                 }
             }
@@ -9615,6 +9621,8 @@
                 currentPage = p;
                 renderPage();
                 renderPagination();
+                const cv = loadColumnVisibility();
+                applyColumnVisibility(cv);
                 scrollTop();
             }
             function changeRowsPerPage() {
@@ -9624,6 +9632,8 @@
                 currentPage = 1;
                 renderPage();
                 renderPagination();
+                const cv = loadColumnVisibility();
+                applyColumnVisibility(cv);
             }
             function scrollTop() {
                 document.getElementById("tableWrapper").scrollTop = 0;
@@ -9816,6 +9826,8 @@
                 mselSetOptions("f_watchlist", names);
                 renderWatchlistPanel();
                 renderPage(); // re-render current page so star icons reflect latest state
+                const cv = loadColumnVisibility();
+                applyColumnVisibility(cv);
             }
 
             // ---- Star click → popover ----
