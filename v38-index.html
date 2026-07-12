@@ -5440,75 +5440,7 @@
                                         volume or delivery is above the stock's
                                         historical average.
                                     </li>
-                                    <li>
-                                        <strong>Rvol 3M</strong> — Relative
-                                        Volume averaged over the last 3 months:
-                                        today's volume compared against the
-                                        stock's own 3-month average volume.
-                                        <span class="help-kbd">≥ 1</span> means
-                                        volume is running at or above its
-                                        3-month norm — generally a good sign;
-                                        for stocks building a longer base,
-                                        <span class="help-kbd">≥ 0.9</span> is
-                                        often acceptable too, since volume can
-                                        naturally dry up during a long
-                                        consolidation before picking back up on
-                                        the breakout.
-                                    </li>
                                 </ul>
-                            </div>
-                            <div class="help-block">
-                                <div class="help-block-title">
-                                    📏 Away From High columns
-                                </div>
-                                <p style="margin-bottom: 10px">
-                                    <strong
-                                        >Away From 0.5M% / 1M% / 2M% / 3M% /
-                                        4M% / 5M% / 6M% / 9M%</strong
-                                    >
-                                    — tells you how close today's close is to
-                                    an <em>old</em> high, not a recent one. It
-                                    deliberately skips the most recent trading
-                                    days (the "offset") and looks for the
-                                    highest high in the stretch of days
-                                    <em>before</em> that offset.
-                                </p>
-                                <p style="margin-bottom: 10px">
-                                    Each timeframe skips a different number of
-                                    recent days before it starts measuring:
-                                    <span class="help-kbd">0.5M skips 5 days</span
-                                    >, <span class="help-kbd">1M skips 7</span
-                                    >, <span class="help-kbd">2M skips 14</span
-                                    >, <span class="help-kbd">3M skips 21</span
-                                    >, <span class="help-kbd">4M skips 28</span
-                                    >, <span class="help-kbd">5M skips 35</span
-                                    >, <span class="help-kbd">6M skips 42</span
-                                    >, <span class="help-kbd">9M skips 63</span
-                                    >
-                                    trading days. From that point it then
-                                    looks back across the full timeframe (e.g.
-                                    ~126 trading days for 6M) to find the
-                                    highest high in that older window.
-                                    Example: for
-                                    <strong>Away From 6M%</strong>, the high is
-                                    found in the 126 trading days
-                                    <em>before</em> the last 42 days — so the
-                                    high itself is at least 42 days old, and
-                                    today's close is compared against it.
-                                </p>
-                                <div class="help-tip">
-                                    Use the Min/Max filters to set a
-                                    <span class="help-kbd">-5 to 5</span> range
-                                    to find stocks whose close is within 5% of
-                                    that older high (above or below it). Since
-                                    the high excludes recent days, this
-                                    surfaces stocks that are only now
-                                    approaching or reclaiming a high they made
-                                    a while ago — useful for spotting bases
-                                    that are maturing into a breakout rather
-                                    than stocks that are simply at a fresh,
-                                    recent high.
-                                </div>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
@@ -6690,55 +6622,6 @@
                                         bases that are starting to attract
                                         momentum or accumulation before a
                                         breakout.
-                                    </li>
-                                </ol>
-                            </div>
-
-                            <div class="help-block">
-                                <div class="help-block-title">
-                                    📏 Spotting Stocks Sitting Right at Their
-                                    High (Base Breakout Zone)
-                                </div>
-                                <ol>
-                                    <li>
-                                        Pick the look-back that matches the
-                                        base you're tracking — e.g. use
-                                        <strong>Away From 3M%</strong> for a
-                                        3-month base, or
-                                        <strong>Away From 6M%</strong> for a
-                                        longer one.
-                                    </li>
-                                    <li>
-                                        Set that field's
-                                        <strong>Min = -5</strong> and
-                                        <strong>Max = 5</strong> to keep only
-                                        stocks whose close is within 5% of the
-                                        high made over that window — either
-                                        just below it (still building the
-                                        right side of the base) or just above
-                                        it (breaking out).
-                                    </li>
-                                    <li>
-                                        Add <strong>Rvol 3M Min = 1</strong> to
-                                        confirm volume is at or above its
-                                        3-month norm; relax it to
-                                        <strong>0.9</strong> for stocks with a
-                                        longer, quieter base where volume
-                                        naturally contracts before expanding.
-                                    </li>
-                                    <li>
-                                        Combine with
-                                        <strong>RS Total Min</strong> and
-                                        <strong>Narrow Range ≥ 3</strong> to
-                                        prioritise names that are both leading
-                                        on relative strength and tightening
-                                        right at the edge of the base.
-                                    </li>
-                                    <li>
-                                        Sort by the chosen Away From High%
-                                        column ascending (closest to 0 first)
-                                        to see the stocks nearest their
-                                        breakout point.
                                     </li>
                                 </ol>
                             </div>
