@@ -4958,6 +4958,98 @@
                                         strong EPS = highest-quality
                                         combination.
                                     </li>
+                                    <li>
+                                        <strong
+                                            >5D Range% (High–Low)</strong
+                                        >
+                                        — the percentage spread between the
+                                        highest and lowest close over the last
+                                        5 trading days. A low Max value (a
+                                        tight range) flags stocks that are
+                                        tightening up this week — combine with
+                                        flat 6M Chng% and Narrow Range to spot
+                                        a base tightening into a potential
+                                        breakout.
+                                    </li>
+                                    <li>
+                                        <strong>RVOL AVG 3M (≥)</strong> —
+                                        Relative Volume vs. the 3-month (69
+                                        trading day) average volume,
+                                        calculated as the sum of recent volume
+                                        divided by the sum of the 3-month
+                                        volume SMA:
+                                        <span class="help-kbd"
+                                            >rvolume_sma_69 = volume_sum /
+                                            volume_sma_69_sum</span
+                                        >.
+                                        <span class="help-kbd">≥ 1</span> means
+                                        volume is running at or above its
+                                        3-month norm — generally a good sign;
+                                        for stocks building a longer base,
+                                        <span class="help-kbd">≥ 0.9</span> is
+                                        often acceptable too, since volume can
+                                        naturally dry up during a long
+                                        consolidation before picking back up on
+                                        the breakout.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📏 Away From High % Filters
+                                </div>
+                                <p style="margin-bottom: 10px">
+                                    <strong
+                                        >Away From High 0.5M% / 1M% / 2M% /
+                                        3M% / 4M% / 5M% / 6M% / 9M%</strong
+                                    >
+                                    — these eight range filters measure how
+                                    close today's close is to an
+                                    <em>old</em> high, not a recent one. Each
+                                    timeframe deliberately skips a number of
+                                    recent trading days (the "offset" — 5 days
+                                    for 0.5M, up to 63 days for 9M) and then
+                                    looks for the highest high in the stretch
+                                    of days <em>before</em> that offset. The
+                                    value can be negative (close is above that
+                                    old high) or positive (close is below it),
+                                    so 0 means the close matches that older
+                                    high exactly. See the
+                                    <span class="help-kbd">📋 Table Columns</span>
+                                    tab for the full skip/lookback breakdown of
+                                    each timeframe.
+                                </p>
+                                <ul>
+                                    <li>
+                                        Set <strong>Min = -5, Max = 5</strong>
+                                        on a given timeframe to keep only
+                                        stocks whose close is within 5% of that
+                                        older high — either just below it
+                                        (still building the right side of a
+                                        base) or just above it (breaking out).
+                                        Because the high excludes recent days,
+                                        this surfaces stocks only now
+                                        approaching or reclaiming a high made a
+                                        while ago, rather than stocks simply
+                                        sitting at a fresh, recent high.
+                                    </li>
+                                    <li>
+                                        Pick the timeframe that matches the
+                                        base you're tracking — e.g.
+                                        <strong>Away From High 3M%</strong> for
+                                        a 3-month base, or
+                                        <strong>Away From High 6M%</strong> for
+                                        a longer one.
+                                    </li>
+                                    <li>
+                                        Combine with
+                                        <strong>RVOL AVG 3M Min = 1</strong>
+                                        (or 0.9 for slower bases) and
+                                        <strong>Narrow Range ≥ 3</strong> to
+                                        prioritise names both tightening and
+                                        showing volume support right at the
+                                        edge of the base.
+                                    </li>
                                 </ul>
                             </div>
                             <div class="help-block">
@@ -5442,9 +5534,14 @@
                                     </li>
                                     <li>
                                         <strong>Rvol 3M</strong> — Relative
-                                        Volume averaged over the last 3 months:
-                                        today's volume compared against the
-                                        stock's own 3-month average volume.
+                                        Volume vs. the 3-month (69 trading day)
+                                        average volume, calculated as the sum
+                                        of recent volume divided by the sum of
+                                        the 3-month volume SMA:
+                                        <span class="help-kbd"
+                                            >rvolume_sma_69 = volume_sum /
+                                            volume_sma_69_sum</span
+                                        >.
                                         <span class="help-kbd">≥ 1</span> means
                                         volume is running at or above its
                                         3-month norm — generally a good sign;
