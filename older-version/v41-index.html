@@ -1785,162 +1785,6 @@
                 }
             }
 
-            /* ---- COMPARE WATCHLIST CHIP ---- */
-            .compare-chip {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: rgba(96, 165, 250, 0.1);
-                border: 1px solid rgba(96, 165, 250, 0.35);
-                color: #60a5fa;
-                font-size: 11px;
-                font-weight: 600;
-                font-family: var(--sans);
-                padding: 4px 10px;
-                border-radius: 6px;
-                cursor: pointer;
-                white-space: nowrap;
-            }
-            .compare-chip:hover {
-                background: rgba(96, 165, 250, 0.18);
-            }
-            .compare-chip-x {
-                opacity: 0.75;
-                font-size: 11px;
-                padding: 0 2px;
-            }
-            .compare-chip-x:hover {
-                opacity: 1;
-                color: var(--accent3);
-            }
-
-            /* ---- COMPARE HIGHLIGHT: rows added vs watchlist ---- */
-            tr.compare-added-row {
-                background: rgba(16, 185, 129, 0.09) !important;
-            }
-            tr.compare-added-row:hover {
-                background: rgba(16, 185, 129, 0.16) !important;
-            }
-            .compare-new-badge {
-                display: inline-block;
-                margin-left: 5px;
-                font-size: 8px;
-                font-weight: 800;
-                letter-spacing: 0.03em;
-                color: #10b981;
-                background: rgba(16, 185, 129, 0.15);
-                border: 1px solid rgba(16, 185, 129, 0.4);
-                border-radius: 4px;
-                padding: 1px 4px;
-                vertical-align: 2px;
-            }
-
-            /* ---- COMPARE MODAL: watchlist picker + results ---- */
-            .compare-wl-pick-item {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                padding: 8px 10px;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                margin-bottom: 6px;
-                cursor: pointer;
-                font-size: 12px;
-            }
-            .compare-wl-pick-item:hover {
-                border-color: #60a5fa;
-                background: rgba(96, 165, 250, 0.06);
-            }
-            .compare-wl-pick-item input {
-                accent-color: #60a5fa;
-            }
-            .compare-wl-pick-name {
-                flex: 1;
-                font-weight: 600;
-            }
-            .compare-wl-pick-count {
-                font-size: 10px;
-                color: var(--muted);
-            }
-            .compare-summary-row {
-                display: flex;
-                gap: 12px;
-                margin-bottom: 14px;
-            }
-            .compare-summary-box {
-                flex: 1;
-                border-radius: 8px;
-                padding: 10px 12px;
-                font-size: 11px;
-            }
-            .compare-summary-box.added {
-                background: rgba(16, 185, 129, 0.08);
-                border: 1px solid rgba(16, 185, 129, 0.3);
-                color: #10b981;
-            }
-            .compare-summary-box.removed {
-                background: rgba(239, 68, 68, 0.08);
-                border: 1px solid rgba(239, 68, 68, 0.3);
-                color: #ef4444;
-            }
-            .compare-summary-box .num {
-                font-family: var(--mono);
-                font-size: 18px;
-                font-weight: 800;
-                display: block;
-            }
-            .compare-removed-list {
-                max-height: 320px;
-                overflow-y: auto;
-                border: 1px solid var(--border);
-                border-radius: 8px;
-            }
-            .compare-removed-item {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 8px 12px;
-                border-bottom: 1px solid var(--border);
-                font-size: 12px;
-            }
-            .compare-removed-item:last-child {
-                border-bottom: none;
-            }
-            .compare-removed-code {
-                font-family: var(--mono);
-                font-weight: 700;
-                color: #ef4444;
-                min-width: 90px;
-            }
-            .compare-removed-name {
-                flex: 1;
-                color: var(--muted);
-                font-size: 11px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-            .compare-removed-empty {
-                padding: 20px;
-                text-align: center;
-                color: var(--muted);
-                font-size: 12px;
-            }
-            .btn-remove-wl {
-                background: rgba(239, 68, 68, 0.1);
-                border: 1px solid rgba(239, 68, 68, 0.35);
-                color: #ef4444;
-                font-size: 10px;
-                font-weight: 700;
-                padding: 3px 8px;
-                border-radius: 5px;
-                cursor: pointer;
-                white-space: nowrap;
-            }
-            .btn-remove-wl:hover {
-                background: rgba(239, 68, 68, 0.2);
-            }
-
             /* ---- TV MODAL ---- */
             .tv-modal-overlay {
                 display: none;
@@ -2168,6 +2012,9 @@
                 body {
                     overflow: auto !important;
                 }
+                .filter-panel {
+                    overflow: visible !important;
+                }
                 .msel-panel {
                     max-width: min(320px, calc(100vw - 32px));
                 }
@@ -2197,6 +2044,9 @@
             @media screen and (max-height: 665px) {
                 body {
                     overflow: auto !important;
+                }
+                .filter-panel {
+                    overflow: visible !important;
                 }
             }
 
@@ -4518,46 +4368,6 @@
                 Export CSV
             </button>
 
-            <!-- Compare vs Watchlist — only visible when a filter is active -->
-            <button
-                class="btn-tv-watchlist"
-                id="btnCompareWatchlist"
-                onclick="openCompareModal()"
-                style="display: none"
-                title="Compare filtered stocks against a watchlist"
-            >
-                <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <circle cx="11" cy="11" r="7" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                Compare Watchlist
-            </button>
-
-            <!-- Active-comparison chip -->
-            <div
-                id="compareChip"
-                class="compare-chip"
-                style="display: none"
-                onclick="reopenCompareModal()"
-            >
-                <span id="compareChipText"></span>
-                <span
-                    class="compare-chip-x"
-                    title="Clear comparison"
-                    onclick="event.stopPropagation(); clearCompareComparison()"
-                    >✕</span
-                >
-            </div>
-
             <div
                 class="ms-auto d-flex align-items-center gap-6"
                 style="gap: 8px"
@@ -5089,47 +4899,6 @@
 
                     <!-- Chunks output -->
                     <div id="tvChunksWrap"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- COMPARE WATCHLIST MODAL -->
-        <div
-            class="tv-modal-overlay"
-            id="compareModal"
-            onclick="closeCompareModalOnOverlay(event)"
-        >
-            <div class="tv-modal">
-                <div class="tv-modal-header">
-                    <div>
-                        <div class="tv-modal-title">
-                            <svg
-                                width="15"
-                                height="15"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2.5"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                style="vertical-align: -2px; margin-right: 6px"
-                            >
-                                <circle cx="11" cy="11" r="7" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            </svg>
-                            Compare Filtered Stocks vs Watchlist
-                        </div>
-                        <div class="tv-modal-meta" id="compareModalMeta"></div>
-                    </div>
-                    <button
-                        class="peer-modal-close"
-                        onclick="closeCompareModal()"
-                    >
-                        ✕
-                    </button>
-                </div>
-                <div class="tv-modal-body" id="compareModalBody">
-                    <!-- Step 1 (pick watchlist) or Step 2 (results) rendered here via JS -->
                 </div>
             </div>
         </div>
@@ -10179,18 +9948,10 @@
                 const page = filteredData.slice(start, end);
 
                 tbody.innerHTML = page
-                    .map((r) => {
-                        const rowClasses = [];
-                        if (r["Is Tradable"] == 1)
-                            rowClasses.push("tradable-row");
-                        const isCompareAdded =
-                            compareState.active &&
-                            compareState.addedSet.has(r.Code);
-                        if (isCompareAdded)
-                            rowClasses.push("compare-added-row");
-                        return `
-              <tr${rowClasses.length ? ` class="${rowClasses.join(" ")}"` : ""}>
-                <td class="code-cell peer-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Click for peer comparison" style="cursor:pointer">${r.Code || "—"}<span class="wl-star${isInAnyWatchlist(r.Code) ? " in-watchlist" : ""}" data-wl-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Add to watchlist">${isInAnyWatchlist(r.Code) ? "★" : "☆"}</span>${isCompareAdded ? '<span class="compare-new-badge" title="Not in compared watchlist">NEW</span>' : ""}</td>
+                    .map(
+                        (r) => `
+              <tr${r["Is Tradable"] == 1 ? ' class="tradable-row"' : ""}>
+                <td class="code-cell peer-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Click for peer comparison" style="cursor:pointer">${r.Code || "—"}<span class="wl-star${isInAnyWatchlist(r.Code) ? " in-watchlist" : ""}" data-wl-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Add to watchlist">${isInAnyWatchlist(r.Code) ? "★" : "☆"}</span></td>
                 <td class="name-cell tv-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Open on TradingView" style="cursor:pointer">${r.Name || "—"}</td>
                 <td data-col="close" class="num">${fNum(r.Close, 2)}</td>
                 <td data-col="nr" class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
@@ -10421,8 +10182,8 @@
                 <td data-col="sales2" class="${chngClass(r["Sales Prev Qtr %"])} num">${chngStr(r["Sales Prev Qtr %"], 0)}</td>
                 <td data-col="allindex" class="all-index-cell col-allindex">${formatAllIndex(r["All Index"])}</td>
               </tr>
-            `;
-                    })
+            `,
+                    )
                     .join("");
             }
 
@@ -10468,14 +10229,6 @@
                     isFiltered ? "" : "none";
                 document.getElementById("btnExportCSV").style.display =
                     isFiltered ? "" : "none";
-                document.getElementById("btnCompareWatchlist").style.display =
-                    isFiltered ? "" : "none";
-
-                // If the filter was cleared, an active comparison no longer
-                // makes sense (whole table would be "added") — clear it.
-                if (!isFiltered && compareState.active) {
-                    clearCompareComparison();
-                }
             }
 
             // ============ PAGINATION ============
@@ -11047,190 +10800,6 @@
                 alert(
                     `Added ${added} new stock${added !== 1 ? "s" : ""} to "${target.name}" (${target.codes.length} total).`,
                 );
-            }
-
-            // ============ COMPARE FILTERED RESULTS VS WATCHLIST ============
-            let compareState = {
-                active: false,
-                watchlistId: null,
-                watchlistName: "",
-                addedSet: new Set(), // codes in filteredData not in the watchlist -> highlighted green
-                removedCodes: [], // codes in the watchlist not in filteredData -> shown in red panel
-            };
-
-            function openCompareModal() {
-                const lists = loadWatchlists();
-                const body = document.getElementById("compareModalBody");
-                document.getElementById("compareModalMeta").textContent =
-                    `${filteredData.length.toLocaleString("en-IN")} stocks in current scan`;
-
-                if (!lists.length) {
-                    body.innerHTML = `<div class="compare-removed-empty">No watchlists yet.<br>Create one first (⭐ Watchlists panel), then come back to compare.</div>`;
-                } else {
-                    body.innerHTML = `
-                        <div class="tv-step-label">Select a watchlist to compare against today's filtered results</div>
-                        <div id="compareWlPickList">
-                            ${lists
-                                .map(
-                                    (wl, i) => `
-                                <label class="compare-wl-pick-item">
-                                    <input type="radio" name="compareWlPick" value="${wl.id}" ${i === 0 ? "checked" : ""}>
-                                    <span class="compare-wl-pick-name">${wl.name}</span>
-                                    <span class="compare-wl-pick-count">${wl.codes.length} stocks</span>
-                                </label>`,
-                                )
-                                .join("")}
-                        </div>
-                        <div style="margin-top:14px;text-align:right">
-                            <button class="btn-tv-watchlist" style="animation:none" onclick="runWatchlistComparison()">Compare Now</button>
-                        </div>
-                    `;
-                }
-                document.getElementById("compareModal").classList.add("open");
-            }
-
-            function closeCompareModal() {
-                document
-                    .getElementById("compareModal")
-                    .classList.remove("open");
-            }
-
-            function closeCompareModalOnOverlay(e) {
-                if (e.target.id === "compareModal") closeCompareModal();
-            }
-
-            // Clicking the chip re-opens straight to the results view if a
-            // comparison is already active, instead of the picker again.
-            function reopenCompareModal() {
-                if (compareState.active) {
-                    renderCompareResultsStep();
-                    document
-                        .getElementById("compareModal")
-                        .classList.add("open");
-                } else {
-                    openCompareModal();
-                }
-            }
-
-            function runWatchlistComparison() {
-                const picked = document.querySelector(
-                    'input[name="compareWlPick"]:checked',
-                );
-                if (!picked) return;
-                const id = parseFloat(picked.value);
-                const lists = loadWatchlists();
-                const wl = lists.find((w) => w.id === id);
-                if (!wl) return;
-
-                const wlCodes = new Set(wl.codes);
-                const filteredCodes = filteredData
-                    .map((r) => r.Code)
-                    .filter(Boolean);
-                const filteredCodesSet = new Set(filteredCodes);
-
-                const addedSet = new Set(
-                    filteredCodes.filter((c) => !wlCodes.has(c)),
-                );
-                const removedCodes = wl.codes.filter(
-                    (c) => !filteredCodesSet.has(c),
-                );
-
-                compareState = {
-                    active: true,
-                    watchlistId: wl.id,
-                    watchlistName: wl.name,
-                    addedSet,
-                    removedCodes,
-                };
-
-                renderPage(); // paint green highlight + NEW badge on the current page
-                updateCompareChip();
-                renderCompareResultsStep();
-            }
-
-            function renderCompareResultsStep() {
-                const body = document.getElementById("compareModalBody");
-                document.getElementById("compareModalMeta").textContent =
-                    `Comparing vs "${compareState.watchlistName}"`;
-
-                const addedCount = compareState.addedSet.size;
-                const removedCodes = compareState.removedCodes;
-
-                const removedHtml = removedCodes.length
-                    ? removedCodes
-                          .map((code) => {
-                              const row = allData.find(
-                                  (r) => r.Code === code,
-                              );
-                              const name = row ? row.Name : "";
-                              const safeCode = code.replace(/'/g, "\\'");
-                              return `
-                                <div class="compare-removed-item">
-                                    <span class="compare-removed-code">${code}</span>
-                                    <span class="compare-removed-name">${name || ""}</span>
-                                    <button class="btn-remove-wl" onclick="removeStockFromCompareWatchlist('${safeCode}')">Remove from list</button>
-                                </div>`;
-                          })
-                          .join("")
-                    : `<div class="compare-removed-empty">Nothing dropped out — every watchlist stock is still in today's scan. 🎉</div>`;
-
-                body.innerHTML = `
-                    <div class="compare-summary-row">
-                        <div class="compare-summary-box added">
-                            <span class="num">${addedCount}</span>
-                            New in scan, not in watchlist — highlighted green in the table
-                        </div>
-                        <div class="compare-summary-box removed">
-                            <span class="num">${removedCodes.length}</span>
-                            In watchlist, missing from today's scan
-                        </div>
-                    </div>
-                    <div class="tv-step-label">Stocks that dropped out of the scan</div>
-                    <div class="compare-removed-list">${removedHtml}</div>
-                    <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
-                        <button class="btn-page" style="padding:4px 12px;font-size:11px" onclick="openCompareModal()">← Pick a different watchlist</button>
-                        <button class="btn-remove-wl" style="background:none;border:1px solid var(--border);color:var(--muted)" onclick="clearCompareComparison()">Clear comparison</button>
-                    </div>
-                `;
-            }
-
-            function removeStockFromCompareWatchlist(code) {
-                const lists = loadWatchlists();
-                const wl = lists.find(
-                    (w) => w.id === compareState.watchlistId,
-                );
-                if (!wl) return;
-                wl.codes = wl.codes.filter((c) => c !== code);
-                saveWatchlists(lists);
-                compareState.removedCodes =
-                    compareState.removedCodes.filter((c) => c !== code);
-                refreshWatchlistUI(); // updates stars/panel and re-renders the table page
-                renderPage(); // reapply compare highlighting on top of the refresh
-                renderCompareResultsStep();
-            }
-
-            function updateCompareChip() {
-                const chip = document.getElementById("compareChip");
-                if (compareState.active) {
-                    chip.style.display = "flex";
-                    document.getElementById("compareChipText").textContent =
-                        `⚖ vs "${compareState.watchlistName}"`;
-                } else {
-                    chip.style.display = "none";
-                }
-            }
-
-            function clearCompareComparison() {
-                compareState = {
-                    active: false,
-                    watchlistId: null,
-                    watchlistName: "",
-                    addedSet: new Set(),
-                    removedCodes: [],
-                };
-                updateCompareChip();
-                renderPage();
-                closeCompareModal();
             }
 
             // ============ SAVED SEARCHES ============
