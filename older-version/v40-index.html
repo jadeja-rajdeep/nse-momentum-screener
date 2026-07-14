@@ -152,17 +152,6 @@
                 background: var(--surface);
                 border-bottom: 1px solid var(--border);
                 padding: 14px 20px;
-                max-height: calc(100vh - 160px); /* leaves room for header + toolbar; tweak the 160px to taste */
-                overflow-y: auto;
-                overflow-x: hidden;
-            }
-            /* optional: thin scrollbar so it doesn't look bulky */
-            .filter-panel::-webkit-scrollbar {
-                width: 8px;
-            }
-            .filter-panel::-webkit-scrollbar-thumb {
-                background: var(--border);
-                border-radius: 4px;
             }
             .filter-label {
                 font-size: 10px;
@@ -756,132 +745,6 @@
                 width: 15px;
                 height: 15px;
                 cursor: pointer;
-            }
-            .adv-query-box {
-                border: 1px solid rgba(0, 212, 170, 0.3);
-                background: rgba(0, 212, 170, 0.05);
-                border-radius: 10px;
-                padding: 12px 14px;
-            }
-            .adv-query-header {
-                margin-bottom: 8px;
-            }
-            .adv-query-enable {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                cursor: pointer;
-                font-size: 13px;
-                font-weight: 600;
-            }
-            .adv-query-enable input[type="checkbox"] {
-                accent-color: var(--accent);
-                width: 15px;
-                height: 15px;
-                cursor: pointer;
-            }
-            .adv-query-builder {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-                align-items: center;
-                margin-bottom: 8px;
-            }
-            .adv-select {
-                width: auto;
-                min-width: 160px;
-                font-size: 12px;
-            }
-            .adv-select-op {
-                min-width: 70px;
-            }
-            .adv-value-input {
-                width: auto;
-                min-width: 140px;
-                font-size: 12px;
-            }
-            .btn-adv-insert {
-                background: var(--accent);
-                color: #04231e;
-                border: none;
-                border-radius: 6px;
-                padding: 6px 12px;
-                font-size: 12px;
-                font-weight: 700;
-                cursor: pointer;
-                white-space: nowrap;
-            }
-            .btn-adv-insert:hover {
-                filter: brightness(1.08);
-            }
-            .adv-token-group {
-                display: flex;
-                gap: 4px;
-                flex-wrap: wrap;
-            }
-            .btn-adv-token {
-                background: rgba(255, 255, 255, 0.06);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                color: inherit;
-                border-radius: 6px;
-                padding: 5px 10px;
-                font-size: 11px;
-                font-weight: 600;
-                cursor: pointer;
-            }
-            .btn-adv-token:hover {
-                background: rgba(255, 255, 255, 0.14);
-            }
-            .btn-adv-clear {
-                border-color: rgba(255, 99, 99, 0.4);
-                color: #ff7b7b;
-            }
-            .adv-query-textarea {
-                width: 100%;
-                font-family:
-                    "SFMono-Regular", Consolas, "Liberation Mono", Menlo,
-                    monospace;
-                font-size: 12.5px;
-                resize: vertical;
-                min-height: 44px;
-            }
-            .adv-query-status {
-                font-size: 12px;
-                margin-top: 6px;
-                min-height: 16px;
-            }
-            .adv-query-status.adv-query-ok {
-                color: #00d4aa;
-            }
-            .adv-query-status.adv-query-err {
-                color: #ff7b7b;
-            }
-            .adv-compare-toggle {
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                font-size: 11px;
-                font-weight: 600;
-                cursor: pointer;
-                white-space: nowrap;
-                opacity: 0.85;
-            }
-            .adv-compare-toggle input[type="checkbox"] {
-                accent-color: var(--accent);
-                width: 14px;
-                height: 14px;
-                cursor: pointer;
-            }
-            .adv-query-hint {
-                font-size: 11px;
-                opacity: 0.65;
-                margin-top: 6px;
-                line-height: 1.5;
-            }
-            .adv-query-hint code {
-                background: rgba(255, 255, 255, 0.08);
-                padding: 1px 5px;
-                border-radius: 4px;
             }
             .tradable-check-label {
                 font-size: 12px;
@@ -4064,103 +3927,7 @@
                     </label>
                 </div>
             </div>
-
-            <!-- Row: Advanced Query Builder -->
-            <div class="row g-2 mb-2 mt-2">
-                <div class="col-12">
-                    <div class="adv-query-box">
-                        <div class="adv-query-header">
-                            <label class="adv-query-enable">
-                                <input
-                                    type="checkbox"
-                                    id="f_adv_enabled"
-                                    onchange="applyFilters()"
-                                />
-                                <span>🧮 Advanced Query (AND / OR / brackets)</span>
-                            </label>
-                        </div>
-
-                        <div class="adv-query-builder">
-                            <select
-                                id="advFieldSelect"
-                                class="form-select adv-select"
-                                onchange="advOnFieldChange()"
-                            >
-                                <option value="">Field…</option>
-                            </select>
-                            <select
-                                id="advOpSelect"
-                                class="form-select adv-select adv-select-op"
-                            >
-                                <option value=">=">&gt;=</option>
-                                <option value="<=">&lt;=</option>
-                                <option value=">">&gt;</option>
-                                <option value="<">&lt;</option>
-                                <option value="=">=</option>
-                                <option value="!=">!=</option>
-                            </select>
-                            <input
-                                type="text"
-                                id="advValueInput"
-                                class="form-control adv-value-input"
-                                list="advValueList"
-                                placeholder="value"
-                                onkeydown="if(event.key==='Enter'){event.preventDefault(); advInsertCondition();}"
-                            />
-                            <select
-                                id="advValueFieldSelect"
-                                class="form-select adv-select"
-                                style="display: none"
-                            >
-                                <option value="">Field…</option>
-                            </select>
-                            <label class="adv-compare-toggle">
-                                <input
-                                    type="checkbox"
-                                    id="advCompareFieldToggle"
-                                    onchange="advToggleCompareMode()"
-                                />
-                                <span>vs field</span>
-                            </label>
-                            <datalist id="advValueList"></datalist>
-                            <button
-                                type="button"
-                                class="btn-adv-insert"
-                                onclick="advInsertCondition()"
-                            >
-                                + Insert
-                            </button>
-                            <span class="adv-token-group">
-                                <button type="button" class="btn-adv-token" onclick="advInsertToken('AND')">AND</button>
-                                <button type="button" class="btn-adv-token" onclick="advInsertToken('OR')">OR</button>
-                                <button type="button" class="btn-adv-token" onclick="advInsertToken('NOT')">NOT</button>
-                                <button type="button" class="btn-adv-token" onclick="advInsertToken('(')">(</button>
-                                <button type="button" class="btn-adv-token" onclick="advInsertToken(')')">)</button>
-                                <button type="button" class="btn-adv-token btn-adv-clear" onclick="advClearQuery()">Clear</button>
-                            </span>
-                        </div>
-
-                        <textarea
-                            id="f_adv_query"
-                            class="form-control adv-query-textarea"
-                            rows="2"
-                            placeholder="e.g. (RS_TOTAL >= 70 AND CLOSE > 100) OR (PE < 15 AND ROE >= 20)"
-                            oninput="advOnQueryInput()"
-                        ></textarea>
-                        <div id="advQueryStatus" class="adv-query-status"></div>
-                        <div class="adv-query-hint">
-                            Build conditions with the dropdowns above to avoid typos, then combine them here with
-                            <strong>AND</strong> / <strong>OR</strong> / <strong>NOT</strong> and
-                            <strong>( )</strong> brackets. Tick <strong>"vs field"</strong> to compare two fields
-                            directly, e.g. <code>CHG_1M >= CHG_2M</code>. Text and Yes/No fields support only
-                            <code>=</code> and <code>!=</code>. This query is saved and restored with your saved
-                            searches, including "Run Selected" for multiple saved searches.
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-
 
         <!-- SAVED SEARCHES PANEL -->
         <div class="saved-panel" id="savedPanel" style="display: none">
@@ -9444,27 +9211,6 @@
                     return true;
                 });
 
-                // Advanced query builder (AND/OR/NOT + brackets), applied on
-                // top of the regular filters above when enabled.
-                const advEnabled = gc("f_adv_enabled");
-                const advText = gv("f_adv_query");
-                const advStatusEl = document.getElementById("advQueryStatus");
-                if (advEnabled && advText.trim()) {
-                    try {
-                        const advPred = advGetPredicate(advText);
-                        if (advPred) filteredData = filteredData.filter(advPred);
-                        if (advStatusEl) {
-                            advStatusEl.textContent = `✓ Valid — ${filteredData.length.toLocaleString("en-IN")} stocks match all filters`;
-                            advStatusEl.className = "adv-query-status adv-query-ok";
-                        }
-                    } catch (e) {
-                        if (advStatusEl) {
-                            advStatusEl.textContent = `⚠ ${e.message}`;
-                            advStatusEl.className = "adv-query-status adv-query-err";
-                        }
-                    }
-                }
-
                 sortData();
                 currentPage = 1;
                 updateStats();
@@ -9573,14 +9319,10 @@
                     "f_del_abv",
                     "f_tradable",
                     "f_fno",
-                    "f_adv_enabled",
                 ].forEach((id) => {
                     const el = document.getElementById(id);
                     if (el) el.checked = false;
                 });
-                const advTa = document.getElementById("f_adv_query");
-                if (advTa) advTa.value = "";
-                advValidateQuery();
                 applyFilters();
             }
 
@@ -10895,8 +10637,6 @@
                 { id: "f_del_abv", type: "check" },
                 { id: "f_tradable", type: "check" },
                 { id: "f_fno", type: "check" },
-                { id: "f_adv_enabled", type: "check" },
-                { id: "f_adv_query", type: "text" },
             ];
 
             // Human-readable labels for preview
@@ -10989,465 +10729,7 @@
                 f_del_abv: "Delivery Above Avg",
                 f_tradable: "Is Tradable",
                 f_fno: "F&O",
-                f_adv_enabled: "Advanced Query Enabled",
-                f_adv_query: "Advanced Query",
             };
-
-            // ============ ADVANCED QUERY BUILDER (AND / OR / NOT / brackets) ============
-            // Canonical field catalogue exposed to the advanced query language.
-            // Each entry maps a typo-proof field NAME (used in the query text) to
-            // a getter over a data row, mirroring the same underlying columns
-            // used by the regular min/max filters above.
-            const ADV_FIELDS = [
-                { name: "RS_TOTAL", label: "RS Total", type: "number", get: (r) => parseFloat(r["RS TOTAL"]) },
-                { name: "RS_1M", label: "RS 1 Month", type: "number", get: (r) => parseFloat(r["1 Month RS"]) },
-                { name: "RS_2M", label: "RS 2 Months", type: "number", get: (r) => parseFloat(r["2 Months RS"]) },
-                { name: "RS_4M", label: "RS 4 Months", type: "number", get: (r) => parseFloat(r["4 Months RS"]) },
-                { name: "RS_6M", label: "RS 6 Months", type: "number", get: (r) => parseFloat(r["6 Months RS"]) },
-                { name: "MCAP_CR", label: "Market Cap (Cr)", type: "number", get: (r) => parseFloat(r["Market Cap"]) / 10_000_000 },
-                { name: "LIN_3M", label: "3M Linearity", type: "number", get: (r) => parseFloat(r["3 Month Linearity >= 0.5"]) },
-                { name: "LIN_1M", label: "1M Linearity", type: "number", get: (r) => parseFloat(r["1 Month Linearity >= 0.5"]) },
-                { name: "RVOL_AVG_3M", label: "Rvol Avg 3M", type: "number", get: (r) => parseFloat(r["Rvol_Avg_3_Month"]) },
-                { name: "PE", label: "PE", type: "number", get: (r) => parseFloat(r["PE"]) },
-                { name: "CLOSE", label: "Close Price", type: "number", get: (r) => parseFloat(r["Close"]) },
-                { name: "ROE", label: "ROE", type: "number", get: (r) => parseFloat(r["ROE"]) },
-                { name: "DEBT", label: "Debt", type: "number", get: (r) => parseFloat(r["Debt"]) },
-                { name: "CASHFLOW", label: "Cash Flow", type: "number", get: (r) => parseFloat(r["Cash Flow"]) },
-                { name: "BOOKVAL", label: "Book Value", type: "number", get: (r) => parseFloat(r["Book Val"]) },
-                { name: "TURNOVER_CR", label: "Net Turnover (Cr)", type: "number", get: (r) => parseFloat(r["Net Turnover"]) / 10_000_000 },
-                { name: "PROM_HOLD", label: "Promoter Holding %", type: "number", get: (r) => parseFloat(r["Prom Hold %"]) },
-                { name: "NARROW_RANGE", label: "Narrow Range", type: "number", get: (r) => parseFloat(r["Narrow Range"]) },
-                { name: "RANGE_5D", label: "5 Day Range %", type: "number", get: (r) => parseFloat(r["5 Days Range%"]) },
-                { name: "AFH_0_5M", label: "Away From High 0.5M %", type: "number", get: (r) => parseFloat(r["Away_From_High_0_5_Month"]) },
-                { name: "AFH_1M", label: "Away From High 1M %", type: "number", get: (r) => parseFloat(r["Away_From_High_1_Month"]) },
-                { name: "AFH_2M", label: "Away From High 2M %", type: "number", get: (r) => parseFloat(r["Away_From_High_2_Month"]) },
-                { name: "AFH_3M", label: "Away From High 3M %", type: "number", get: (r) => parseFloat(r["Away_From_High_3_Month"]) },
-                { name: "AFH_4M", label: "Away From High 4M %", type: "number", get: (r) => parseFloat(r["Away_From_High_4_Month"]) },
-                { name: "AFH_5M", label: "Away From High 5M %", type: "number", get: (r) => parseFloat(r["Away_From_High_5_Month"]) },
-                { name: "AFH_6M", label: "Away From High 6M %", type: "number", get: (r) => parseFloat(r["Away_From_High_6_Month"]) },
-                { name: "AFH_9M", label: "Away From High 9M %", type: "number", get: (r) => parseFloat(r["Away_From_High_9_Month"]) },
-                { name: "CHG_1D", label: "1 Day Change %", type: "number", get: (r) => parseFloat(r["1 Day Chng%"]) },
-                { name: "CHG_5D", label: "5 Day Change %", type: "number", get: (r) => parseFloat(r["5 Days Chng%"]) },
-                { name: "CHG_1M", label: "1 Month Change %", type: "number", get: (r) => parseFloat(r["1 Month Chng%"]) },
-                { name: "CHG_2M", label: "2 Month Change %", type: "number", get: (r) => parseFloat(r["2 Months Chng%"]) },
-                { name: "CHG_4M", label: "4 Month Change %", type: "number", get: (r) => parseFloat(r["4 Months Chng%"]) },
-                { name: "CHG_6M", label: "6 Month Change %", type: "number", get: (r) => parseFloat(r["6 Months Chng%"]) },
-                { name: "EPS_Q1", label: "EPS Latest Qtr %", type: "number", get: (r) => parseFloat(r["EPS Latest Qtr %"]) },
-                { name: "EPS_Q2", label: "EPS Prev Qtr %", type: "number", get: (r) => parseFloat(r["EPS Prev Qtr %"]) },
-                { name: "SALES_Q1", label: "Sales Latest Qtr %", type: "number", get: (r) => parseFloat(r["Sales Latest Qtr %"]) },
-                { name: "SALES_Q2", label: "Sales Prev Qtr %", type: "number", get: (r) => parseFloat(r["Sales Prev Qtr %"]) },
-                { name: "BI_RANK_PCT", label: "Basic Industry Rank Top %", type: "number", get: (r) => { const pr = peerRankMap.get(r.Code); return pr ? pr.biPct : NaN; } },
-                { name: "IND_RANK_PCT", label: "Industry Rank Top %", type: "number", get: (r) => { const pr = peerRankMap.get(r.Code); return pr ? pr.indPct : NaN; } },
-                { name: "BI5D_RANK_PCT", label: "BI 5D Rank Top %", type: "number", get: (r) => { const g = groupRankMap.get(r["Basic Industry"]); return g && g.bi5dPct !== undefined ? g.bi5dPct : NaN; } },
-                { name: "IND5D_RANK_PCT", label: "Industry 5D Rank Top %", type: "number", get: (r) => { const g = groupRankMap.get(r["Industry"]); return g && g.ind5dPct !== undefined ? g.ind5dPct : NaN; } },
-                { name: "BI1M_RANK_PCT", label: "BI 1M Rank Top %", type: "number", get: (r) => { const g = groupRankMap.get(r["Basic Industry"]); return g && g.bi1mPct !== undefined ? g.bi1mPct : NaN; } },
-                { name: "IND1M_RANK_PCT", label: "Industry 1M Rank Top %", type: "number", get: (r) => { const g = groupRankMap.get(r["Industry"]); return g && g.ind1mPct !== undefined ? g.ind1mPct : NaN; } },
-                { name: "VOL_ABOVE_AVG", label: "Volume Above Avg", type: "bool", get: (r) => r["Volume Above Avg"] },
-                { name: "TURNOVER_ABOVE_AVG", label: "Turnover Above Avg", type: "bool", get: (r) => r["Turnover Above Avg"] },
-                { name: "DELIVERY_ABOVE_AVG", label: "Delivery Above Avg", type: "bool", get: (r) => r["Delivery Above Avg"] },
-                { name: "TRADABLE", label: "Is Tradable", type: "bool", get: (r) => r["Is Tradable"] },
-                { name: "FNO", label: "F&O", type: "bool", get: (r) => r["F&O"] },
-                { name: "SECTOR", label: "Sector", type: "text", get: (r) => r["Sector"] },
-                { name: "INDUSTRY", label: "Industry", type: "text", get: (r) => r["Industry"] },
-                { name: "MACRO_SECTOR", label: "Macro Economic Sector", type: "text", get: (r) => r["Macro Economic Sector"] },
-                { name: "BASIC_INDUSTRY", label: "Basic Industry", type: "text", get: (r) => r["Basic Industry"] },
-                { name: "PRICE_BAND", label: "Price Band %", type: "text", get: (r) => String(r["Price Band %"]) },
-                { name: "CODE", label: "Code", type: "text", get: (r) => r["Code"] },
-                { name: "NAME", label: "Name", type: "text", get: (r) => r["Name"] },
-            ];
-
-            function advPopulateFieldSelect() {
-                const sel = document.getElementById("advFieldSelect");
-                const sel2 = document.getElementById("advValueFieldSelect");
-                const opts = ADV_FIELDS.map(
-                    (f) => `<option value="${f.name}">${f.label} (${f.name})</option>`,
-                ).join("");
-                if (sel && !sel.dataset.populated) {
-                    sel.innerHTML = '<option value="">Field…</option>' + opts;
-                    sel.dataset.populated = "1";
-                }
-                if (sel2 && !sel2.dataset.populated) {
-                    sel2.innerHTML = '<option value="">Field…</option>' + opts;
-                    sel2.dataset.populated = "1";
-                }
-            }
-
-            function advToggleCompareMode() {
-                const on = document.getElementById("advCompareFieldToggle").checked;
-                document.getElementById("advValueInput").style.display = on
-                    ? "none"
-                    : "";
-                document.getElementById("advValueFieldSelect").style.display = on
-                    ? ""
-                    : "none";
-            }
-
-            function advOnFieldChange() {
-                const fieldName = document.getElementById("advFieldSelect").value;
-                const field = ADV_FIELDS.find((f) => f.name === fieldName);
-                const dl = document.getElementById("advValueList");
-                const valInput = document.getElementById("advValueInput");
-                dl.innerHTML = "";
-                if (!field) {
-                    valInput.placeholder = "value";
-                    return;
-                }
-                if (field.type === "bool") {
-                    dl.innerHTML = '<option value="Yes"><option value="No">';
-                    valInput.placeholder = "Yes / No";
-                } else if (field.type === "text") {
-                    const vals = new Set();
-                    (typeof allData !== "undefined" ? allData : []).forEach((r) => {
-                        const v = field.get(r);
-                        if (v !== undefined && v !== null && v !== "") vals.add(String(v));
-                    });
-                    dl.innerHTML = [...vals]
-                        .sort()
-                        .slice(0, 3000)
-                        .map((v) => `<option value="${v.replace(/"/g, "&quot;")}">`)
-                        .join("");
-                    valInput.placeholder = "Select or type value";
-                } else {
-                    valInput.placeholder = "Numeric value e.g. 25";
-                }
-            }
-
-            function advInsertToken(token) {
-                const ta = document.getElementById("f_adv_query");
-                if (!ta) return;
-                const start = ta.selectionStart ?? ta.value.length;
-                const end = ta.selectionEnd ?? ta.value.length;
-                const before = ta.value.slice(0, start);
-                const after = ta.value.slice(end);
-                const needsSpaceBefore =
-                    before.length && !/\s$/.test(before) && token !== ")" ? " " : "";
-                const insertion = needsSpaceBefore + token + " ";
-                ta.value = before + insertion + after;
-                const newPos = (before + insertion).length;
-                ta.focus();
-                ta.setSelectionRange(newPos, newPos);
-                advOnQueryInput();
-            }
-
-            function advInsertCondition() {
-                const fieldName = document.getElementById("advFieldSelect").value;
-                const op = document.getElementById("advOpSelect").value;
-                const compareMode = document.getElementById(
-                    "advCompareFieldToggle",
-                ).checked;
-
-                if (!fieldName) {
-                    alert("Pick a field first.");
-                    return;
-                }
-
-                if (compareMode) {
-                    const otherField = document.getElementById(
-                        "advValueFieldSelect",
-                    ).value;
-                    if (!otherField) {
-                        alert("Pick the field to compare against.");
-                        return;
-                    }
-                    if (otherField === fieldName) {
-                        alert("Pick two different fields to compare.");
-                        return;
-                    }
-                    advInsertToken(`${fieldName} ${op} ${otherField}`);
-                    return;
-                }
-
-                let val = document.getElementById("advValueInput").value.trim();
-                if (!val) {
-                    alert("Enter or pick a value first.");
-                    return;
-                }
-                const field = ADV_FIELDS.find((f) => f.name === fieldName);
-                const isNumericVal = /^[-+]?\d+(\.\d+)?$/.test(val);
-                if (field && field.type !== "number" && !isNumericVal) {
-                    if (!/^["'].*["']$/.test(val)) val = `"${val.replace(/"/g, "")}"`;
-                }
-                advInsertToken(`${fieldName} ${op} ${val}`);
-                document.getElementById("advValueInput").value = "";
-            }
-
-            function advClearQuery() {
-                const ta = document.getElementById("f_adv_query");
-                if (ta) ta.value = "";
-                advOnQueryInput();
-            }
-
-            // -- Tokenizer / parser for the advanced query language --
-            function advTokenize(str) {
-                const tokens = [];
-                const re =
-                    /\s*(<=|>=|!=|<>|=|<|>|\(|\)|"[^"]*"|'[^']*'|[A-Za-z_][A-Za-z0-9_]*|[-+]?\d+(?:\.\d+)?)\s*/y;
-                let idx = 0;
-                while (idx < str.length) {
-                    re.lastIndex = idx;
-                    const m = re.exec(str);
-                    if (!m) {
-                        throw new Error(
-                            `Unexpected character near "${str.slice(idx, idx + 10)}"`,
-                        );
-                    }
-                    tokens.push(m[1]);
-                    idx = re.lastIndex;
-                }
-                return tokens;
-            }
-
-            const ADV_OPS = ["=", "!=", "<>", ">", "<", ">=", "<="];
-
-            function advCompareValues(rawVal, op, value, type) {
-                const normOp = op === "<>" ? "!=" : op;
-                if (type === "number") {
-                    const v = typeof rawVal === "number" ? rawVal : parseFloat(rawVal);
-                    const target = typeof value === "number" ? value : parseFloat(value);
-                    if (isNaN(v) || isNaN(target)) return false;
-                    switch (normOp) {
-                        case "=":
-                            return v === target;
-                        case "!=":
-                            return v !== target;
-                        case ">":
-                            return v > target;
-                        case "<":
-                            return v < target;
-                        case ">=":
-                            return v >= target;
-                        case "<=":
-                            return v <= target;
-                    }
-                    return false;
-                } else if (type === "bool") {
-                    const boolVal =
-                        rawVal === "Yes" || rawVal === true || rawVal == 1;
-                    const targetStr = String(value).toLowerCase();
-                    const targetBool = ["yes", "true", "1"].includes(targetStr);
-                    if (normOp === "=") return boolVal === targetBool;
-                    if (normOp === "!=") return boolVal !== targetBool;
-                    return false;
-                } else {
-                    const strVal = (rawVal ?? "").toString().toLowerCase();
-                    const targetStr = String(value).toLowerCase();
-                    if (normOp === "=") return strVal === targetStr;
-                    if (normOp === "!=") return strVal !== targetStr;
-                    return false;
-                }
-            }
-
-            function advParse(tokens) {
-                let pos = 0;
-                const peek = () => tokens[pos];
-                const next = () => tokens[pos++];
-
-                function parseExpr() {
-                    let left = parseTerm();
-                    while (peek() && peek().toUpperCase() === "OR") {
-                        next();
-                        const right = parseTerm();
-                        const l = left,
-                            r = right;
-                        left = (row) => l(row) || r(row);
-                    }
-                    return left;
-                }
-                function parseTerm() {
-                    let left = parseFactor();
-                    while (peek() && peek().toUpperCase() === "AND") {
-                        next();
-                        const right = parseFactor();
-                        const l = left,
-                            r = right;
-                        left = (row) => l(row) && r(row);
-                    }
-                    return left;
-                }
-                function parseFactor() {
-                    if (peek() && peek().toUpperCase() === "NOT") {
-                        next();
-                        const f = parseFactor();
-                        return (row) => !f(row);
-                    }
-                    if (peek() === "(") {
-                        next();
-                        const e = parseExpr();
-                        if (peek() !== ")")
-                            throw new Error('Missing closing ")"');
-                        next();
-                        return e;
-                    }
-                    return parseCondition();
-                }
-                function parseCondition() {
-                    const fieldTok = next();
-                    if (fieldTok === undefined)
-                        throw new Error("Expected a field name");
-                    if (fieldTok === "(" || fieldTok === ")")
-                        throw new Error(`Unexpected "${fieldTok}"`);
-                    const fieldKey = fieldTok.toUpperCase();
-                    const field = ADV_FIELDS.find((f) => f.name === fieldKey);
-                    if (!field) throw new Error(`Unknown field "${fieldTok}"`);
-                    const opTok = next();
-                    if (!opTok || !ADV_OPS.includes(opTok))
-                        throw new Error(
-                            `Expected an operator (>=, <=, >, <, =, !=) after "${fieldTok}"`,
-                        );
-                    const valTok = next();
-                    if (valTok === undefined)
-                        throw new Error(
-                            `Expected a value after "${fieldTok} ${opTok}"`,
-                        );
-
-                    // Field-vs-field comparison: the "value" token is itself a
-                    // known field name (unquoted, not numeric), e.g.
-                    // CHG_1M >= CHG_2M compares two rows' own values live.
-                    const valUpper = valTok.toUpperCase();
-                    const isQuoted = /^["'].*["']$/.test(valTok);
-                    const isNumericTok = /^[-+]?\d+(?:\.\d+)?$/.test(valTok);
-                    if (!isQuoted && !isNumericTok) {
-                        const otherField = ADV_FIELDS.find(
-                            (f) => f.name === valUpper,
-                        );
-                        if (otherField) {
-                            const type =
-                                field.type === "number" &&
-                                otherField.type === "number"
-                                    ? "number"
-                                    : field.type;
-                            return (row) =>
-                                advCompareValues(
-                                    field.get(row),
-                                    opTok,
-                                    otherField.get(row),
-                                    type,
-                                );
-                        }
-                    }
-
-                    let value;
-                    if (isQuoted) {
-                        value = valTok.slice(1, -1);
-                    } else if (isNumericTok) {
-                        value = parseFloat(valTok);
-                    } else {
-                        value = valTok;
-                    }
-                    return (row) =>
-                        advCompareValues(field.get(row), opTok, value, field.type);
-                }
-
-                if (!tokens.length) throw new Error("Empty query");
-                const expr = parseExpr();
-                if (pos !== tokens.length)
-                    throw new Error(`Unexpected token "${tokens[pos]}"`);
-                return expr;
-            }
-
-            function advGetPredicate(queryText) {
-                const text = (queryText || "").trim();
-                if (!text) return null;
-                const tokens = advTokenize(text);
-                if (!tokens.length) return null;
-                return advParse(tokens);
-            }
-
-            let advValidateTimer = null;
-            function advOnQueryInput() {
-                clearTimeout(advValidateTimer);
-                advValidateTimer = setTimeout(() => {
-                    advValidateQuery();
-                    applyFilters();
-                }, 300);
-            }
-
-            function advValidateQuery() {
-                const el = document.getElementById("f_adv_query");
-                const statusEl = document.getElementById("advQueryStatus");
-                if (!el || !statusEl) return;
-                const text = el.value.trim();
-                if (!text) {
-                    statusEl.textContent = "";
-                    statusEl.className = "adv-query-status";
-                    return;
-                }
-                try {
-                    const pred = advGetPredicate(text);
-                    const base = typeof allData !== "undefined" ? allData : [];
-                    const matchCount = pred ? base.filter(pred).length : base.length;
-                    statusEl.textContent = `✓ Valid — matches ${matchCount.toLocaleString("en-IN")} of ${base.length.toLocaleString("en-IN")} stocks`;
-                    statusEl.className = "adv-query-status adv-query-ok";
-                } catch (e) {
-                    statusEl.textContent = `⚠ ${e.message}`;
-                    statusEl.className = "adv-query-status adv-query-err";
-                }
-            }
-
-            // After restoring a saved search, sync the builder dropdowns
-            // (field / operator / value) to reflect the LAST condition in
-            // the restored query text, purely so the builder controls don't
-            // look "empty" even though the textarea (the actual source of
-            // truth used for filtering) already has the full expression.
-            function advSyncBuilderFromQuery(queryText) {
-                const text = (queryText || "").trim();
-                const fieldSel = document.getElementById("advFieldSelect");
-                const opSel = document.getElementById("advOpSelect");
-                const valInput = document.getElementById("advValueInput");
-                const valFieldSel = document.getElementById("advValueFieldSelect");
-                const compareToggle = document.getElementById(
-                    "advCompareFieldToggle",
-                );
-                if (!fieldSel || !opSel || !valInput) return;
-                if (!text) {
-                    fieldSel.value = "";
-                    opSel.value = ">=";
-                    valInput.value = "";
-                    if (compareToggle) compareToggle.checked = false;
-                    advToggleCompareMode();
-                    return;
-                }
-                try {
-                    const tokens = advTokenize(text);
-                    // Find the LAST "FIELD OP VALUE" triple in the token
-                    // stream so the builder reflects the most recent
-                    // condition the person was working on.
-                    for (let i = tokens.length - 3; i >= 0; i--) {
-                        const [fTok, oTok, vTok] = [
-                            tokens[i],
-                            tokens[i + 1],
-                            tokens[i + 2],
-                        ];
-                        const field = ADV_FIELDS.find(
-                            (f) => f.name === fTok.toUpperCase(),
-                        );
-                        if (!field || !ADV_OPS.includes(oTok)) continue;
-                        fieldSel.value = field.name;
-                        opSel.value = oTok;
-                        advOnFieldChange();
-                        const otherField = ADV_FIELDS.find(
-                            (f) => f.name === vTok.toUpperCase(),
-                        );
-                        const isQuoted = /^["'].*["']$/.test(vTok);
-                        const isNumericTok = /^[-+]?\d+(?:\.\d+)?$/.test(vTok);
-                        if (!isQuoted && !isNumericTok && otherField) {
-                            if (compareToggle) compareToggle.checked = true;
-                            advToggleCompareMode();
-                            valFieldSel.value = otherField.name;
-                        } else {
-                            if (compareToggle) compareToggle.checked = false;
-                            advToggleCompareMode();
-                            valInput.value = isQuoted
-                                ? vTok.slice(1, -1)
-                                : vTok;
-                        }
-                        return;
-                    }
-                } catch (e) {
-                    // Query text doesn't parse cleanly (yet) — leave the
-                    // builder controls as-is rather than guessing.
-                }
-            }
 
             function loadSavedSearches() {
                 try {
@@ -11549,8 +10831,6 @@
                     if (field.type === "check") el.checked = !!val;
                     else el.value = val;
                 });
-                advSyncBuilderFromQuery(state.f_adv_query || "");
-                advValidateQuery();
                 applyFilters();
             }
 
@@ -11578,7 +10858,7 @@
                       )
                     : null;
 
-                const results = allData.filter((r) => {
+                return allData.filter((r) => {
                     const search = get("f_search").toLowerCase();
                     if (search) {
                         const code = (r.Code || "").toLowerCase(),
@@ -11743,27 +11023,6 @@
                     if (gbool("f_fno") && r["F&O"] != 1) return false;
                     return true;
                 });
-
-                // Advanced query builder, honored the same way as applyFilters()
-                // so saved searches (single or "Run Selected" multi-combine)
-                // behave identically to the live filter panel.
-                if (gbool("f_adv_enabled") && get("f_adv_query").trim()) {
-                    try {
-                        const advPred = advGetPredicate(get("f_adv_query"));
-                        if (advPred) return results.filter(advPred);
-                    } catch (e) {
-                        // Invalid saved query text: log it so it's visible
-                        // during debugging, and fall back to the
-                        // non-advanced results rather than throwing or
-                        // silently returning zero rows.
-                        console.warn(
-                            "Advanced query in saved search failed to parse:",
-                            get("f_adv_query"),
-                            e.message,
-                        );
-                    }
-                }
-                return results;
             }
 
             // ---- UI: Save modal ----
@@ -12786,7 +12045,6 @@
             renderSavedList();
             mselUpdateTrigger("f_priceband"); // sync trigger label for the static HTML checkboxes
             refreshWatchlistUI(); // populate watchlist filter options + panel from localStorage on load
-            advPopulateFieldSelect(); // populate the Advanced Query field dropdown
         </script>
         <!-- PWA: Install prompt toast -->
         <div class="pwa-toast" id="pwaInstallToast">
