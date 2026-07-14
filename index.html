@@ -3157,6 +3157,72 @@
                     </div>
                 </div>
 
+                <!-- Debt -->
+                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                    <div class="filter-label">Debt</div>
+                    <div class="range-group">
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="f_debt_min"
+                            placeholder="Min"
+                            oninput="applyFilters()"
+                        />
+                        <span class="range-sep">&ndash;</span>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="f_debt_max"
+                            placeholder="Max"
+                            oninput="applyFilters()"
+                        />
+                    </div>
+                </div>
+
+                <!-- Cash Flow -->
+                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                    <div class="filter-label">Cash Flow</div>
+                    <div class="range-group">
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="f_cashflow_min"
+                            placeholder="Min"
+                            oninput="applyFilters()"
+                        />
+                        <span class="range-sep">&ndash;</span>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="f_cashflow_max"
+                            placeholder="Max"
+                            oninput="applyFilters()"
+                        />
+                    </div>
+                </div>
+
+                <!-- Book Val (P/B Ratio) -->
+                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                    <div class="filter-label">Book Val (P/B)</div>
+                    <div class="range-group">
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="f_bookval_min"
+                            placeholder="Min"
+                            oninput="applyFilters()"
+                        />
+                        <span class="range-sep">&ndash;</span>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="f_bookval_max"
+                            placeholder="Max"
+                            oninput="applyFilters()"
+                        />
+                    </div>
+                </div>
+
                 <!-- Net Turnover (Cr) -->
                 <div class="col-12 col-sm-6 col-md-3 col-xl-2">
                     <div class="filter-label">Net Turnover (₹ Cr)</div>
@@ -3235,6 +3301,54 @@
                             type="number"
                             class="form-control"
                             id="f_5dr_max"
+                            placeholder="Max"
+                            step="0.1"
+                            oninput="applyFilters()"
+                        />
+                    </div>
+                </div>
+
+                <!-- 1 Day Chng% -->
+                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                    <div class="filter-label">1D Chng%</div>
+                    <div class="range-group">
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="f_chg1d_min"
+                            placeholder="Min"
+                            step="0.1"
+                            oninput="applyFilters()"
+                        />
+                        <span class="range-sep">&ndash;</span>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="f_chg1d_max"
+                            placeholder="Max"
+                            step="0.1"
+                            oninput="applyFilters()"
+                        />
+                    </div>
+                </div>
+
+                <!-- 5 Days Chng% -->
+                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                    <div class="filter-label">5D Chng%</div>
+                    <div class="range-group">
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="f_chg5d_min"
+                            placeholder="Min"
+                            step="0.1"
+                            oninput="applyFilters()"
+                        />
+                        <span class="range-sep">&ndash;</span>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="f_chg5d_max"
                             placeholder="Max"
                             step="0.1"
                             oninput="applyFilters()"
@@ -4290,6 +4404,20 @@
                             onclick="sortBy('Debt')"
                         >
                             Debt
+                        </th>
+                        <th
+                            class="num"
+                            data-col="cashflow"
+                            onclick="sortBy('Cash Flow')"
+                        >
+                            Cash Flow
+                        </th>
+                        <th
+                            class="num"
+                            data-col="bookval"
+                            onclick="sortBy('Book Val')"
+                        >
+                            Book Val
                         </th>
                         <th
                             data-col="macro"
@@ -7405,6 +7533,18 @@
                                     <span>Debt</span>
                                 </label>
                             </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="cashflow" />
+                                    <span>Cash Flow</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="bookval" />
+                                    <span>Book Val</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -8697,6 +8837,12 @@
                 const clMax = gn("f_close_max");
                 const roeMin = gn("f_roe_min");
                 const roeMax = gn("f_roe_max");
+                const debtMin = gn("f_debt_min");
+                const debtMax = gn("f_debt_max");
+                const cashflowMin = gn("f_cashflow_min");
+                const cashflowMax = gn("f_cashflow_max");
+                const bookvalMin = gn("f_bookval_min");
+                const bookvalMax = gn("f_bookval_max");
                 const toMin = gn("f_to_min");
                 const toMax = gn("f_to_max");
                 const promMin = gn("f_prom_min");
@@ -8720,6 +8866,10 @@
                 const afh6mMax = gn("f_afh6m_max");
                 const afh9mMin = gn("f_afh9m_min");
                 const afh9mMax = gn("f_afh9m_max");
+                const chg1dMin = gn("f_chg1d_min");
+                const chg1dMax = gn("f_chg1d_max");
+                const chg5dMin = gn("f_chg5d_min");
+                const chg5dMax = gn("f_chg5d_max");
                 const chg1mMin = gn("f_chg1m_min");
                 const chg1mMax = gn("f_chg1m_max");
                 const chg2mMin = gn("f_chg2m_min");
@@ -8843,6 +8993,24 @@
                     if (roeMax !== null && (isNaN(roe) || roe > roeMax))
                         return false;
 
+                    const debt = parseFloat(r["Debt"]);
+                    if (debtMin !== null && (isNaN(debt) || debt < debtMin))
+                        return false;
+                    if (debtMax !== null && (isNaN(debt) || debt > debtMax))
+                        return false;
+
+                    const cashflow = parseFloat(r["Cash Flow"]);
+                    if (cashflowMin !== null && (isNaN(cashflow) || cashflow < cashflowMin))
+                        return false;
+                    if (cashflowMax !== null && (isNaN(cashflow) || cashflow > cashflowMax))
+                        return false;
+
+                    const bookval = parseFloat(r["Book Val"]);
+                    if (bookvalMin !== null && (isNaN(bookval) || bookval < bookvalMin))
+                        return false;
+                    if (bookvalMax !== null && (isNaN(bookval) || bookval > bookvalMax))
+                        return false;
+
                     const to = parseFloat(r["Net Turnover"]) / 10_000_000;
                     if (toMin !== null && (isNaN(to) || to < toMin))
                         return false;
@@ -8917,6 +9085,18 @@
                     if (afh9mMin !== null && (isNaN(afh9m) || afh9m < afh9mMin))
                         return false;
                     if (afh9mMax !== null && (isNaN(afh9m) || afh9m > afh9mMax))
+                        return false;
+
+                    const chg1d = parseFloat(r["1 Day Chng%"]);
+                    if (chg1dMin !== null && (isNaN(chg1d) || chg1d < chg1dMin))
+                        return false;
+                    if (chg1dMax !== null && (isNaN(chg1d) || chg1d > chg1dMax))
+                        return false;
+
+                    const chg5d = parseFloat(r["5 Days Chng%"]);
+                    if (chg5dMin !== null && (isNaN(chg5d) || chg5d < chg5dMin))
+                        return false;
+                    if (chg5dMax !== null && (isNaN(chg5d) || chg5d > chg5dMax))
                         return false;
 
                     const chg1m = parseFloat(r["1 Month Chng%"]);
@@ -9064,6 +9244,12 @@
                     "f_close_max",
                     "f_roe_min",
                     "f_roe_max",
+                    "f_debt_min",
+                    "f_debt_max",
+                    "f_cashflow_min",
+                    "f_cashflow_max",
+                    "f_bookval_min",
+                    "f_bookval_max",
                     "f_to_min",
                     "f_to_max",
                     "f_prom_min",
@@ -9087,6 +9273,10 @@
                     "f_afh6m_max",
                     "f_afh9m_min",
                     "f_afh9m_max",
+                    "f_chg1d_min",
+                    "f_chg1d_max",
+                    "f_chg5d_min",
+                    "f_chg5d_max",
                     "f_chg1m_min",
                     "f_chg1m_max",
                     "f_chg2m_min",
@@ -9171,6 +9361,8 @@
                 pe: true,
                 roe: true,
                 debt: true,
+                cashflow:true,
+                bookval:true,
                 macro: true,
                 sector: true,
                 industry: true,
@@ -9333,6 +9525,8 @@
                     "PE",
                     "ROE",
                     "Debt",
+                    "Cash Flow",
+                    "Book Val",
                     "Macro Economic Sector",
                     "Sector",
                     "Industry",
@@ -9706,6 +9900,8 @@
                 <td data-col="pe" class="num">${fNum(r.PE, 1)}</td>
                 <td data-col="roe" class="num">${fNum(r.ROE, 1)}</td>
                 <td data-col="debt" class="num">${fNum(r.Debt, 0)}</td>
+                <td data-col="cashflow" class="num">${fNum(r["Cash Flow"], 0)}</td>
+                <td data-col="bookval" class="num">${fNum(r["Book Val"], 1)}</td>
                 <td data-col="macro"><span class="sector-pill">${r["Macro Economic Sector"] || "—"}</span></td>
                 <td data-col="sector" style="color:var(--muted);font-size:11px">${r["Sector"] || "—"}</td>
                 <td data-col="industry" style="color:var(--muted);font-size:11px">${r["Industry"] || "—"}</td>
@@ -10381,6 +10577,12 @@
                 { id: "f_close_max", type: "num" },
                 { id: "f_roe_min", type: "num" },
                 { id: "f_roe_max", type: "num" },
+                { id: "f_debt_min", type: "num" },
+                { id: "f_debt_max", type: "num" },
+                { id: "f_cashflow_min", type: "num" },
+                { id: "f_cashflow_max", type: "num" },
+                { id: "f_bookval_min", type: "num" },
+                { id: "f_bookval_max", type: "num" },
                 { id: "f_to_min", type: "num" },
                 { id: "f_to_max", type: "num" },
                 { id: "f_prom_min", type: "num" },
@@ -10404,6 +10606,10 @@
                 { id: "f_afh6m_max", type: "num" },
                 { id: "f_afh9m_min", type: "num" },
                 { id: "f_afh9m_max", type: "num" },
+                { id: "f_chg1d_min", type: "num" },
+                { id: "f_chg1d_max", type: "num" },
+                { id: "f_chg5d_min", type: "num" },
+                { id: "f_chg5d_max", type: "num" },
                 { id: "f_chg1m_min", type: "num" },
                 { id: "f_chg1m_max", type: "num" },
                 { id: "f_chg2m_min", type: "num" },
@@ -10463,6 +10669,12 @@
                 f_close_max: "Close Max",
                 f_roe_min: "ROE Min",
                 f_roe_max: "ROE Max",
+                f_debt_min: "Debt Min",
+                f_debt_max: "Debt Max",
+                f_cashflow_min: "Cash Flow Min",
+                f_cashflow_max: "Cash Flow Max",
+                f_bookval_min: "Book Val Min",
+                f_bookval_max: "Book Val Max",
                 f_to_min: "Turnover Min Cr",
                 f_to_max: "Turnover Max Cr",
                 f_prom_min: "Prom Hold Min",
@@ -10486,6 +10698,10 @@
                 f_afh6m_max:"Away From High 6M% Max",
                 f_afh9m_min:"Away From High 9M% Min",
                 f_afh9m_max:"Away From High 9M% Max",
+                f_chg1d_min: "1D Chng% Min",
+                f_chg1d_max: "1D Chng% Max",
+                f_chg5d_min: "5D Chng% Min",
+                f_chg5d_max: "5D Chng% Max",
                 f_chg1m_min: "1M Chng% Min",
                 f_chg1m_max: "1M Chng% Max",
                 f_chg2m_min: "2M Chng% Min",
@@ -10696,6 +10912,9 @@
                     if (!chk("f_pe", "PE")) return false;
                     if (!chk("f_close", "Close")) return false;
                     if (!chk("f_roe", "ROE")) return false;
+                    if (!chk("f_debt", "Debt")) return false;
+                    if (!chk("f_cashflow", "Cash Flow")) return false;
+                    if (!chk("f_bookval", "Book Val")) return false;
                     if (!chk("f_to", "Net Turnover", 10_000_000)) return false;
                     if (!chk("f_prom", "Prom Hold %")) return false;
                     if (!chk("f_eps1", "EPS Latest Qtr %")) return false;
@@ -10726,6 +10945,8 @@
                         return false;
                     if (!chk("f_afh9m", "Away_From_High_9_Month"))
                         return false;
+                    if (!chk("f_chg1d", "1 Day Chng%")) return false;
+                    if (!chk("f_chg5d", "5 Days Chng%")) return false;
                     if (!chk("f_chg1m", "1 Month Chng%")) return false;
                     if (!chk("f_chg2m", "2 Months Chng%")) return false;
                     if (!chk("f_chg4m", "4 Months Chng%")) return false;
