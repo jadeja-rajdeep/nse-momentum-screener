@@ -1383,6 +1383,47 @@
                 border: 1px solid var(--border);
             }
 
+            /* ---- FILTERED INDUSTRY BREAKDOWN MODAL (wide, no truncation) ---- */
+            .fib-modal {
+                background: var(--surface);
+                border: 1px solid rgba(139, 92, 246, 0.25);
+                border-radius: 12px;
+                width: 100%;
+                max-width: 1300px;
+                margin: auto;
+                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+            }
+            .fib-table-wrap {
+                border-radius: 8px;
+                border: 1px solid var(--border);
+            }
+            .fib-name-cell {
+                font-weight: 700;
+                color: var(--text);
+                font-size: 12.5px;
+                white-space: normal;
+                word-break: break-word;
+                line-height: 1.35;
+            }
+            .fib-breadcrumb {
+                font-size: 10px;
+                color: var(--muted);
+                white-space: normal;
+                word-break: break-word;
+                line-height: 1.4;
+                margin-bottom: 3px;
+            }
+            .fib-count-badge {
+                background: rgba(139, 92, 246, 0.12);
+                border: 1px solid rgba(139, 92, 246, 0.25);
+                color: #a78bfa;
+                font-family: var(--mono);
+                font-size: 11px;
+                padding: 2px 8px;
+                border-radius: 10px;
+                white-space: nowrap;
+            }
+
             /* ---- HELP / GUIDE MODAL ---- */
             .help-modal-overlay {
                 display: none;
@@ -4542,6 +4583,31 @@
                 Compare Watchlist
             </button>
 
+            <!-- Industry Breakdown of filtered stocks — only visible when a filter is active -->
+            <button
+                class="btn-tv-watchlist"
+                id="btnFilteredIndustryBreakdown"
+                onclick="openFilteredIndustryModal()"
+                style="display: none"
+                title="Industry / Basic Industry breakdown of currently filtered stocks"
+            >
+                <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <line x1="4" y1="20" x2="4" y2="10" />
+                    <line x1="10" y1="20" x2="10" y2="4" />
+                    <line x1="16" y1="20" x2="16" y2="14" />
+                </svg>
+                Industry Breakdown
+            </button>
+
             <!-- Active-comparison chip -->
             <div
                 id="compareChip"
@@ -5130,6 +5196,79 @@
                 </div>
                 <div class="tv-modal-body" id="compareModalBody">
                     <!-- Step 1 (pick watchlist) or Step 2 (results) rendered here via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTERED INDUSTRY BREAKDOWN MODAL -->
+        <div
+            class="ind-modal-overlay"
+            id="filteredIndustryModal"
+            onclick="closeFilteredIndustryModalOnOverlay(event)"
+        >
+            <div class="fib-modal">
+                <div class="ind-modal-header">
+                    <div>
+                        <div class="ind-modal-title">
+                            📂 Filtered Stocks — Industry Breakdown
+                        </div>
+                        <div
+                            class="ind-modal-meta"
+                            id="filteredIndustryModalMeta"
+                        ></div>
+                    </div>
+                    <button
+                        class="peer-modal-close"
+                        onclick="closeFilteredIndustryModal()"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div class="ind-modal-body">
+                    <div
+                        style="
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 16px;
+                        "
+                    >
+                        <div>
+                            <div
+                                style="
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                    color: var(--muted);
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.03em;
+                                    margin-bottom: 8px;
+                                "
+                            >
+                                Industry
+                            </div>
+                            <div
+                                class="fib-table-wrap"
+                                id="filteredIndustryTableWrap"
+                            ></div>
+                        </div>
+                        <div>
+                            <div
+                                style="
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                    color: var(--muted);
+                                    text-transform: uppercase;
+                                    letter-spacing: 0.03em;
+                                    margin-bottom: 8px;
+                                "
+                            >
+                                Basic Industry
+                            </div>
+                            <div
+                                class="fib-table-wrap"
+                                id="filteredBasicIndustryTableWrap"
+                            ></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -10470,6 +10609,9 @@
                     isFiltered ? "" : "none";
                 document.getElementById("btnCompareWatchlist").style.display =
                     isFiltered ? "" : "none";
+                document.getElementById(
+                    "btnFilteredIndustryBreakdown",
+                ).style.display = isFiltered ? "" : "none";
 
                 // If the filter was cleared, an active comparison no longer
                 // makes sense (whole table would be "added") — clear it.
@@ -11185,7 +11327,14 @@
                             In watchlist, missing from today's scan
                         </div>
                     </div>
-                    <div class="tv-step-label">Stocks that dropped out of the scan</div>
+                    <div class="tv-step-label" style="display:flex;justify-content:space-between;align-items:center">
+                        <span>Stocks that dropped out of the scan</span>
+                        ${
+                            removedCodes.length
+                                ? `<button class="btn-remove-wl" style="background:none;border:1px solid var(--border);color:var(--muted)" onclick="removeAllCompareDropouts()">Remove all (${removedCodes.length})</button>`
+                                : ""
+                        }
+                    </div>
                     <div class="compare-removed-list">${removedHtml}</div>
                     <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center">
                         <button class="btn-page" style="padding:4px 12px;font-size:11px" onclick="openCompareModal()">← Pick a different watchlist</button>
@@ -11206,6 +11355,29 @@
                     compareState.removedCodes.filter((c) => c !== code);
                 refreshWatchlistUI(); // updates stars/panel and re-renders the table page
                 renderPage(); // reapply compare highlighting on top of the refresh
+                renderCompareResultsStep();
+            }
+
+            function removeAllCompareDropouts() {
+                const removedCodes = compareState.removedCodes;
+                if (!removedCodes.length) return;
+                if (
+                    !confirm(
+                        `Remove all ${removedCodes.length} stock(s) that dropped out of the scan from "${compareState.watchlistName}"?`,
+                    )
+                )
+                    return;
+                const lists = loadWatchlists();
+                const wl = lists.find(
+                    (w) => w.id === compareState.watchlistId,
+                );
+                if (!wl) return;
+                const removedSet = new Set(removedCodes);
+                wl.codes = wl.codes.filter((c) => !removedSet.has(c));
+                saveWatchlists(lists);
+                compareState.removedCodes = [];
+                refreshWatchlistUI();
+                renderPage();
                 renderCompareResultsStep();
             }
 
@@ -12690,6 +12862,91 @@
                     );
                 document.getElementById("indModal").classList.add("open");
             }
+            // ---- Filtered Stocks Industry Breakdown modal ----
+            function buildChainGroupCounts(rows, field) {
+                const counts = new Map();
+                rows.forEach((r) => {
+                    const key = (r[field] || "").toString().trim();
+                    if (!key) return;
+                    const macro = (r["Macro Economic Sector"] || "").toString().trim();
+                    const sector = (r["Sector"] || "").toString().trim();
+                    const industry = (r["Industry"] || "").toString().trim();
+                    const parentParts =
+                        field === "Basic Industry"
+                            ? [macro, sector, industry]
+                            : [macro, sector];
+                    const breadcrumb = parentParts.filter(Boolean).join(" › ");
+                    const existing = counts.get(key);
+                    if (existing) {
+                        existing.count += 1;
+                    } else {
+                        counts.set(key, { name: key, breadcrumb, count: 1 });
+                    }
+                });
+                return Array.from(counts.values()).sort(
+                    (a, b) => b.count - a.count,
+                );
+            }
+
+            function renderSimpleCountTable(groups) {
+                if (!groups.length) {
+                    return '<div class="ind-drill-hint">No data available.</div>';
+                }
+                const trs = groups
+                    .map(
+                        (g) => `<tr>
+                <td>
+                  ${g.breadcrumb ? `<div class="fib-breadcrumb">${g.breadcrumb}</div>` : ""}
+                  <div class="fib-name-cell">${g.name}</div>
+                </td>
+                <td style="text-align:right"><span class="fib-count-badge">${g.count}</span></td>
+              </tr>`,
+                    )
+                    .join("");
+                return `<table class="ind-table">
+              <thead><tr>
+                <th>Name</th>
+                <th style="text-align:right">Stocks</th>
+              </tr></thead>
+              <tbody>${trs}</tbody>
+            </table>`;
+            }
+
+            function openFilteredIndustryModal() {
+                const industryGroups = buildChainGroupCounts(
+                    filteredData,
+                    "Industry",
+                );
+                const basicIndustryGroups = buildChainGroupCounts(
+                    filteredData,
+                    "Basic Industry",
+                );
+
+                document.getElementById(
+                    "filteredIndustryTableWrap",
+                ).innerHTML = renderSimpleCountTable(industryGroups);
+                document.getElementById(
+                    "filteredBasicIndustryTableWrap",
+                ).innerHTML = renderSimpleCountTable(basicIndustryGroups);
+
+                document.getElementById("filteredIndustryModalMeta").textContent =
+                    `${filteredData.length.toLocaleString("en-IN")} filtered stocks · ${industryGroups.length} industries · ${basicIndustryGroups.length} basic industries`;
+
+                document
+                    .getElementById("filteredIndustryModal")
+                    .classList.add("open");
+            }
+
+            function closeFilteredIndustryModal() {
+                document
+                    .getElementById("filteredIndustryModal")
+                    .classList.remove("open");
+            }
+
+            function closeFilteredIndustryModalOnOverlay(e) {
+                if (e.target === e.currentTarget) closeFilteredIndustryModal();
+            }
+
             // ============ HELP / GUIDE MODAL ============
             function openHelpModal() {
                 document.getElementById("helpModal").classList.add("open");
