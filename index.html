@@ -5529,6 +5529,13 @@
                             <span class="help-tab-icon">⚙</span> Settings &amp;
                             Tools
                         </div>
+                        <div class="help-tab" data-help-tab="exportcsv">
+                            <span class="help-tab-icon">📤</span> Export CSV
+                        </div>
+                        <div class="help-tab" data-help-tab="colvisibility">
+                            <span class="help-tab-icon">▦</span> Column
+                            Visibility
+                        </div>
                         <div class="help-tab" data-help-tab="pwa">
                             <span class="help-tab-icon">📲</span> Install App
                         </div>
@@ -7798,6 +7805,206 @@
                                     <strong
                                         >Use Export Settings regularly.</strong
                                     >
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- EXPORT CSV -->
+                        <div class="help-section" data-help-section="exportcsv">
+                            <h2>📤 Export CSV</h2>
+                            <div class="help-tagline">
+                                Click the <span class="help-kbd">Export CSV</span>
+                                button (visible whenever a filter is active) to
+                                download the current filtered stock list as a
+                                spreadsheet file.
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    What gets exported
+                                </div>
+                                <p>
+                                    The export downloads
+                                    <strong>every row currently matching your
+                                    active filters</strong> — not just the rows
+                                    visible on screen or the current page.
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong>All data columns are included,
+                                        regardless of your Column Visibility
+                                        settings.</strong> Even if you've hidden
+                                        columns from the on-screen table to
+                                        reduce clutter, the CSV file always
+                                        contains the complete set of fields —
+                                        including RS ratings, Away From High
+                                        metrics, RVOL, sector/industry ranks,
+                                        and every other computed value.
+                                    </li>
+                                    <li>
+                                        Peer comparison fields (BI Rank, BI
+                                        Rank%, IND Rank, IND Rank%) and
+                                        short-term momentum fields (BI/IND 5D
+                                        and 1M with percentages) are appended as
+                                        extra columns automatically.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Why it's separate from Column Visibility
+                                </div>
+                                <p>
+                                    Column Visibility only controls what's
+                                    convenient to
+                                    <em>look at</em> on screen. Export CSV is
+                                    meant for
+                                    <em>analysis and record-keeping</em>, so it
+                                    always gives you the full dataset —
+                                    nothing is left out just because you
+                                    tidied up your table view.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Benefits
+                                </div>
+                                <ul>
+                                    <li>
+                                        Open the exported file in Excel,
+                                        Google Sheets, or any spreadsheet tool
+                                        to sort, chart, or run your own
+                                        calculations.
+                                    </li>
+                                    <li>
+                                        Keep a dated snapshot of a screener run
+                                        — useful for tracking how a watchlist
+                                        or filter's results evolve over time.
+                                    </li>
+                                    <li>
+                                        Share results with others without
+                                        needing them to open the screener
+                                        itself.
+                                    </li>
+                                    <li>
+                                        Feed the data into other tools (Pine
+                                        Script backtests, portfolio trackers,
+                                        custom models) since CSV is a
+                                        universal format.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div
+                                class="help-block"
+                                style="
+                                    background: rgba(244, 63, 94, 0.06);
+                                    border: 1px solid rgba(244, 63, 94, 0.25);
+                                    border-radius: 8px;
+                                    padding: 12px 14px;
+                                "
+                            >
+                                <div
+                                    class="help-block-title"
+                                    style="color: #f43f5e"
+                                >
+                                    ⚠ No active filter, no button
+                                </div>
+                                <p>
+                                    The Export CSV button only appears once at
+                                    least one filter is applied. Apply a filter
+                                    (or load a Saved Search) first, then the
+                                    button will show up to export that
+                                    filtered result set.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- COLUMN VISIBILITY -->
+                        <div
+                            class="help-section"
+                            data-help-section="colvisibility"
+                        >
+                            <h2>▦ Column Visibility</h2>
+                            <div class="help-tagline">
+                                Open the
+                                <span class="help-kbd">▦ Column Visibility</span>
+                                panel to choose exactly which columns appear
+                                in the main table.
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    What it does
+                                </div>
+                                <p>
+                                    The screener computes dozens of metrics per
+                                    stock — RS ratings, Away From High across
+                                    eight timeframes, RVOL, EMAs, sector/industry
+                                    ranks, and more. Column Visibility lets you
+                                    toggle each one on or off in the table so
+                                    only the fields you care about right now
+                                    are shown.
+                                </p>
+                                <ul>
+                                    <li>
+                                        A small set of
+                                        <strong>Core Columns</strong> (like
+                                        Symbol/Code and price) are always
+                                        visible and can't be hidden, so the
+                                        table remains usable at a glance.
+                                    </li>
+                                    <li>
+                                        Every other column can be shown or
+                                        hidden individually with a checkbox.
+                                    </li>
+                                    <li>
+                                        Your choices are saved in the browser
+                                        (localStorage) and persist across
+                                        sessions, so the table looks the same
+                                        next time you open the screener.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Benefits
+                                </div>
+                                <ul>
+                                    <li>
+                                        Reduce horizontal scrolling and visual
+                                        clutter by hiding metrics you don't use
+                                        for your current strategy.
+                                    </li>
+                                    <li>
+                                        Build a focused view — e.g. show only
+                                        VCP-related columns when hunting for
+                                        tight-consolidation setups, or only RS
+                                        and Away-From-High columns when
+                                        ranking momentum leaders.
+                                    </li>
+                                    <li>
+                                        Faster scanning on smaller screens or
+                                        mobile, where fewer columns means less
+                                        squeezing and zooming.
+                                    </li>
+                                    <li>
+                                        Doesn't affect your data — hiding a
+                                        column only changes what's displayed;
+                                        the underlying values are still used
+                                        by filters, sorting, and CSV export.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    How it relates to Export CSV
+                                </div>
+                                <p>
+                                    Column Visibility is purely a
+                                    <strong>display</strong> preference. It has
+                                    no effect on the
+                                    <span class="help-kbd">Export CSV</span>
+                                    feature — exported files always include
+                                    every column, whether or not it's currently
+                                    hidden in the table.
                                 </p>
                             </div>
                         </div>
