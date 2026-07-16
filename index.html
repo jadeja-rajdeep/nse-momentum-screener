@@ -2872,6 +2872,13 @@
                     bottom: 12px;
                 }
             }
+
+            /* FILTER INDUSTRY BREAKDOWN */
+            .ind-table-filter th:nth-child(1), .ind-table-filter td:nth-child(1),
+            .ind-table-filter th:nth-child(2), .ind-table-filter td:nth-child(2){
+                min-width: auto !important;
+                max-width: auto !important;
+            }
         </style>
     </head>
     <body>
@@ -12913,7 +12920,7 @@
               </tr>`,
                     )
                     .join("");
-                return `<table class="ind-table">
+                return `<table class="ind-table-filter">
               <thead><tr>
                 <th>Name</th>
                 <th style="text-align:right">Stocks</th>
