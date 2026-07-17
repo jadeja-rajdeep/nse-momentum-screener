@@ -878,130 +878,6 @@
                 height: 15px;
                 cursor: pointer;
             }
-            .setup-preset-wrap {
-                position: relative;
-                display: inline-block;
-                margin-bottom: 10px;
-            }
-            .btn-setup-preset {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: rgba(0, 212, 170, 0.08);
-                border: 1px solid rgba(0, 212, 170, 0.35);
-                color: inherit;
-                border-radius: 8px;
-                padding: 7px 14px;
-                font-size: 13px;
-                font-weight: 700;
-                cursor: pointer;
-                transition: all 0.2s;
-            }
-            .btn-setup-preset:hover {
-                background: rgba(0, 212, 170, 0.16);
-                border-color: rgba(0, 212, 170, 0.6);
-            }
-            .btn-setup-preset.active-preset {
-                background: rgba(0, 212, 170, 0.22);
-                border-color: var(--accent);
-            }
-            .setup-preset-caret {
-                font-size: 10px;
-                opacity: 0.7;
-                transition: transform 0.15s;
-            }
-            .setup-preset-wrap.open .setup-preset-caret {
-                transform: rotate(180deg);
-            }
-            .setup-preset-panel {
-                display: none;
-                position: absolute;
-                top: calc(100% + 6px);
-                left: 0;
-                z-index: 50;
-                background: var(--card-bg, #10201d);
-                border: 1px solid rgba(0, 212, 170, 0.3);
-                border-radius: 10px;
-                padding: 12px;
-                min-width: 260px;
-                max-width: 320px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-            }
-            .setup-preset-wrap.open .setup-preset-panel {
-                display: block;
-            }
-            .setup-preset-panel-title {
-                font-size: 11px;
-                text-transform: uppercase;
-                letter-spacing: 0.04em;
-                opacity: 0.6;
-                margin-bottom: 8px;
-                font-weight: 700;
-            }
-            .setup-preset-pills {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-                margin-bottom: 8px;
-            }
-            .setup-pill {
-                display: inline-flex;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 2px;
-                border-radius: 8px;
-                padding: 7px 10px;
-                cursor: pointer;
-                border: 1px solid color-mix(in srgb, var(--pill-color) 55%, transparent);
-                background: color-mix(in srgb, var(--pill-color) 14%, transparent);
-                color: inherit;
-                text-align: left;
-                width: 100%;
-                transition: all 0.15s;
-            }
-            .setup-pill:hover {
-                background: color-mix(in srgb, var(--pill-color) 26%, transparent);
-            }
-            .setup-pill.active-pill {
-                background: color-mix(in srgb, var(--pill-color) 38%, transparent);
-                border-color: var(--pill-color);
-            }
-            .setup-pill-label {
-                font-size: 12.5px;
-                font-weight: 700;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .setup-pill-label::before {
-                content: "";
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-                background: var(--pill-color);
-                display: inline-block;
-                flex-shrink: 0;
-            }
-            .setup-pill-desc {
-                font-size: 10.5px;
-                opacity: 0.75;
-                line-height: 1.3;
-            }
-            .setup-preset-clear {
-                width: 100%;
-                text-align: center;
-                background: none;
-                border: 1px dashed rgba(255, 99, 99, 0.4);
-                color: #ff7b7b;
-                border-radius: 6px;
-                padding: 5px;
-                font-size: 11px;
-                font-weight: 600;
-                cursor: pointer;
-            }
-            .setup-preset-clear:hover {
-                background: rgba(255, 99, 99, 0.1);
-            }
             .adv-query-box {
                 border: 1px solid rgba(0, 212, 170, 0.3);
                 background: rgba(0, 212, 170, 0.05);
@@ -4505,36 +4381,6 @@
                         />
                         <span class="tradable-check-label">📑 F&amp;O</span>
                     </label>
-                </div>
-            </div>
-
-            <!-- Row: Setup Presets -->
-            <div class="row g-2 mb-2 mt-2">
-                <div class="col-12">
-                    <div class="setup-preset-wrap" id="setupPresetWrap">
-                        <button
-                            type="button"
-                            class="btn-setup-preset"
-                            id="setupPresetToggleBtn"
-                            onclick="toggleSetupPresetPanel()"
-                        >
-                            🎯 <span id="setupPresetBtnLabel">Setup Preset</span>
-                            <span class="setup-preset-caret">▾</span>
-                        </button>
-                        <div class="setup-preset-panel" id="setupPresetPanel">
-                            <div class="setup-preset-panel-title">Choose a setup</div>
-                            <div class="setup-preset-pills" id="setupPresetPills"></div>
-                            <button
-                                type="button"
-                                class="setup-preset-clear"
-                                id="setupPresetClearBtn"
-                                onclick="clearSetupPreset()"
-                                style="display: none"
-                            >
-                                ✕ Clear preset
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -10789,13 +10635,6 @@
                 if (advTa) advTa.value = "";
                 advValidateQuery();
                 applyFilters();
-
-                // Manual "Clear All" should also drop any active setup preset badge state.
-                if (typeof activeSetupPresetId !== "undefined" && activeSetupPresetId) {
-                    activeSetupPresetId = null;
-                    if (typeof renderSetupPresetPills === "function") renderSetupPresetPills();
-                    if (typeof updateSetupPresetButtonLabel === "function") updateSetupPresetButtonLabel();
-                }
             }
 
             // ============ COLUMN VISIBILITY ============
@@ -12502,140 +12341,6 @@
                 { name: "CODE", label: "Code", type: "text", get: (r) => r["Code"] },
                 { name: "NAME", label: "Name", type: "text", get: (r) => r["Name"] },
             ];
-
-            // ============ SETUP PRESETS ============
-            // Single source of truth for one-click setup presets. Each preset can set:
-            //  - simpleFilters: { fieldId: value } for plain number/text inputs
-            //  - multiSelectFilters: { fieldId: [values] } for msel dropdowns (f_sector, f_industry, etc.)
-            //  - checkFilters: { fieldId: true/false } for checkboxes
-            //  - advQuery: string written into the Advanced Query textarea (auto-enabled)
-            // Edit thresholds/logic here only — UI renders straight from this array.
-            const SETUP_PRESETS = [
-                {
-                    id: "momentum",
-                    label: "Momentum Pivot",
-                    color: "#22c55e",
-                    description: "Tight, low-volatility base forming near highs",
-                    simpleFilters: { f_rs_min: 288, f_mcap_min: 500, f_to_min: 5,f_5dr_max:15,f_bi_rank_pct:30,f_ind_rank_pct:50,f_afh_0_5m_min:-3,f_afh_0_5m_max:6,f_afh1m_min:-3,f_afh1m_max:6,f_afh9m_min:-26,f_rvol_avg_3m_min:0.9,f_chg5d_min:-3 },
-                    advQuery: "LIN_3M >= 0.65 OR LIN_1M >= 0.65",
-                },
-                {
-                    id: "reversal",
-                    label: "Reversal",
-                    color: "#3b82f6",
-                    description: "Just Coming From Downtrend. Now Forming a Base",
-                    simpleFilters: { f_mcap_min: 500, f_to_min: 5,f_5dr_max:15,f_bi_rank_pct:30,f_ind_rank_pct:50,f_afh_0_5m_min:-3,f_afh_0_5m_max:6,f_chg1m_min:0,f_chg2m_min:0,f_chg6m_max:10,f_afh9m_min:-26,f_rvol_avg_3m_min:0.9,f_chg5d_min:-3 },
-                    advQuery: "LIN_3M >= 0.65 OR LIN_1M >= 0.65",
-                },
-                {
-                    id: "industry",
-                    label: "Hot Industry",
-                    color: "#eab308",
-                    description: "Strong stocks from strong industry.",
-                    simpleFilters: { f_mcap_min: 500, f_to_min: 5,f_5dr_max:15,f_bi_rank_pct:30,f_ind_rank_pct:50,f_afh_0_5m_min:-3,f_afh_0_5m_max:6,f_afh1m_min:-3,f_afh1m_max:6,f_afh9m_min:-26,f_rvol_avg_3m_min:0.9,f_chg5d_min:-3 },
-                    advQuery: "( LIN_3M >= 0.65 OR LIN_1M >= 0.65 ) AND ( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 )",
-                }
-            ];
-
-            let activeSetupPresetId = null;
-
-            function renderSetupPresetPills() {
-                const wrap = document.getElementById("setupPresetPills");
-                if (!wrap) return;
-                wrap.innerHTML = SETUP_PRESETS.map((p) => `
-                    <button
-                        type="button"
-                        class="setup-pill${activeSetupPresetId === p.id ? " active-pill" : ""}"
-                        style="--pill-color: ${p.color}"
-                        onclick="applySetupPreset('${p.id}')"
-                    >
-                        <span class="setup-pill-label">${p.label}</span>
-                        <span class="setup-pill-desc">${p.description}</span>
-                    </button>
-                `).join("");
-                const clearBtn = document.getElementById("setupPresetClearBtn");
-                if (clearBtn) clearBtn.style.display = activeSetupPresetId ? "block" : "none";
-            }
-
-            function toggleSetupPresetPanel() {
-                const wrap = document.getElementById("setupPresetWrap");
-                if (!wrap) return;
-                wrap.classList.toggle("open");
-            }
-
-            function closeSetupPresetPanel() {
-                const wrap = document.getElementById("setupPresetWrap");
-                if (wrap) wrap.classList.remove("open");
-            }
-
-            document.addEventListener("click", (e) => {
-                const wrap = document.getElementById("setupPresetWrap");
-                if (wrap && wrap.classList.contains("open") && !wrap.contains(e.target)) {
-                    wrap.classList.remove("open");
-                }
-            });
-
-            function updateSetupPresetButtonLabel() {
-                const labelEl = document.getElementById("setupPresetBtnLabel");
-                const btn = document.getElementById("setupPresetToggleBtn");
-                if (!labelEl || !btn) return;
-                if (activeSetupPresetId) {
-                    const preset = SETUP_PRESETS.find((p) => p.id === activeSetupPresetId);
-                    labelEl.textContent = preset ? preset.label : "Setup Preset";
-                    btn.classList.add("active-preset");
-                } else {
-                    labelEl.textContent = "Setup Preset";
-                    btn.classList.remove("active-preset");
-                }
-            }
-
-            function applySetupPreset(id) {
-                const preset = SETUP_PRESETS.find((p) => p.id === id);
-                if (!preset) return;
-
-                // Only one setup preset active at a time — clicking the active one again clears it.
-                if (activeSetupPresetId === id) {
-                    clearSetupPreset();
-                    return;
-                }
-
-                clearFilters(); // reset everything before applying a fresh preset
-                activeSetupPresetId = id;
-
-                Object.entries(preset.simpleFilters || {}).forEach(([fieldId, val]) => {
-                    const el = document.getElementById(fieldId);
-                    if (el) el.value = val;
-                });
-
-                Object.entries(preset.multiSelectFilters || {}).forEach(([fieldId, values]) => {
-                    mselSetSelected(fieldId, values);
-                });
-
-                Object.entries(preset.checkFilters || {}).forEach(([fieldId, checked]) => {
-                    const el = document.getElementById(fieldId);
-                    if (el) el.checked = checked;
-                });
-
-                if (preset.advQuery) {
-                    const advTa = document.getElementById("f_adv_query");
-                    const advEnabled = document.getElementById("f_adv_enabled");
-                    if (advTa) advTa.value = preset.advQuery;
-                    if (advEnabled) advEnabled.checked = true;
-                    advOnQueryInput();
-                }
-
-                applyFilters();
-                renderSetupPresetPills();
-                updateSetupPresetButtonLabel();
-                closeSetupPresetPanel();
-            }
-
-            function clearSetupPreset() {
-                activeSetupPresetId = null;
-                clearFilters();
-                renderSetupPresetPills();
-                updateSetupPresetButtonLabel();
-            }
 
             function advPopulateFieldSelect() {
                 const sel = document.getElementById("advFieldSelect");
@@ -14453,7 +14158,6 @@
             mselUpdateTrigger("f_priceband"); // sync trigger label for the static HTML checkboxes
             refreshWatchlistUI(); // populate watchlist filter options + panel from localStorage on load
             advPopulateFieldSelect(); // populate the Advanced Query field dropdown
-            renderSetupPresetPills(); // populate the Setup Preset pill list
         </script>
         <!-- PWA: Install prompt toast -->
         <div class="pwa-toast" id="pwaInstallToast">
