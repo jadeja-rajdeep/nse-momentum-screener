@@ -1494,6 +1494,36 @@
             }
 
             /* ---- SAVE MODAL ---- */
+            .new-alert-badges {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 3px;
+                margin-top: 2px;
+                max-width: 180px;
+            }
+            .new-alert-badge {
+                display: inline-block;
+                font-size: 9px;
+                line-height: 1.4;
+                font-weight: 600;
+                padding: 1px 5px;
+                border-radius: 999px;
+                white-space: nowrap;
+                max-width: 130px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                cursor: default;
+            }
+            .new-alert-badge-preset {
+                background: rgba(34, 197, 94, 0.15);
+                color: #16a34a;
+                border: 1px solid rgba(34, 197, 94, 0.35);
+            }
+            .new-alert-badge-saved {
+                background: rgba(59, 130, 246, 0.15);
+                color: #2563eb;
+                border: 1px solid rgba(59, 130, 246, 0.35);
+            }
             .ss-modal-overlay {
                 display: none;
                 position: fixed;
@@ -4509,7 +4539,7 @@
             </div>
 
             <!-- Row: Setup Presets -->
-            <div class="row g-2 mb-2 mt-2">
+            <div class="row g-2 mt-2">
                 <div class="col-12">
                     <div class="setup-preset-wrap" id="setupPresetWrap">
                         <button
@@ -4718,6 +4748,35 @@
         <div class="multi-banner" id="multiBanner" style="display: none">
             <span id="multiBannerText"></span>
             <button onclick="clearMultiSearch()">✕ Clear</button>
+        </div>
+
+        <!-- ALERT BADGE SUMMARY MODAL -->
+        <div
+            class="ss-modal-overlay"
+            id="alertBadgeModal"
+            onclick="closeAlertBadgeModalOnOverlay(event)"
+        >
+            <div class="ss-modal">
+                <div class="ss-modal-header">
+                    <span>🆕 New Stocks Today</span>
+                    <button class="peer-modal-close" onclick="closeAlertBadgeModal()">
+                        ✕
+                    </button>
+                </div>
+                <div class="ss-modal-body">
+                    <div
+                        class="filter-label"
+                        id="alertBadgeSummaryDate"
+                        style="margin-bottom: 6px"
+                    ></div>
+                    <div id="alertBadgeSummaryBody" class="ss-preview"></div>
+                    <div class="d-flex gap-2 mt-3 justify-content-end">
+                        <button class="btn-save-confirm" onclick="closeAlertBadgeModal()">
+                            Got it
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- SAVE MODAL -->
@@ -10078,6 +10137,12 @@
                     document.getElementById("loading").style.display = "none";
                     document.getElementById("mainTable").style.display = "";
 
+                    // Silently run every preset & saved search against today's
+                    // data and diff against yesterday's stored result to find
+                    // new stocks — populates alertBadgeMap (used by renderPage)
+                    // and pops a summary alert if the data date has changed.
+                    runAlertBadgeCheck(dates.length ? dates[0] : null);
+
                     applyFilters();
                 } catch (e) {
                     document.getElementById("loading").style.display = "none";
@@ -11174,7 +11239,7 @@
                         return `
               <tr${rowClasses.length ? ` class="${rowClasses.join(" ")}"` : ""}>
                 <td class="code-cell peer-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Click for peer comparison" style="cursor:pointer">${r.Code || "—"}<span class="wl-star${isInAnyWatchlist(r.Code) ? " in-watchlist" : ""}" data-wl-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Add to watchlist">${isInAnyWatchlist(r.Code) ? "★" : "☆"}</span>${isCompareAdded ? '<span class="compare-new-badge" title="Not in compared watchlist">NEW</span>' : ""}</td>
-                <td class="name-cell tv-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Open on TradingView" style="cursor:pointer">${r.Name || "—"}</td>
+                <td class="name-cell tv-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Open on TradingView" style="cursor:pointer">${r.Name || "—"}${getAlertBadgesHtml(r.Code)}</td>
                 <td data-col="close" class="num">${fNum(r.Close, 2)}</td>
                 <td data-col="nr" class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
                 <td data-col="5dr" class="num">${(() => {
@@ -13345,6 +13410,254 @@
                     }
                 }
                 return results;
+            }
+
+            // ============ ALERT BADGES (new-stock detection) ============
+            // Every time m.json's data date changes, we silently re-run every
+            // Setup Preset and every Saved Search against the fresh data,
+            // compare the resulting stock lists to yesterday's stored lists,
+            // and badge any stock that's newly appearing under the Name
+            // column — plus pop a one-time summary alert of the counts.
+            const ALERT_SNAPSHOT_KEY = "nse_screener_alert_snapshot"; // yesterday's full result sets (for diffing)
+            const ALERT_BADGES_KEY = "nse_screener_alert_badges"; // today's per-code badge list (cache so we don't recompute on every reload)
+
+            // Code -> [{ type: 'preset'|'saved', name: '...' }, ...] for stocks
+            // that are new today vs. yesterday. Populated by runAlertBadgeCheck().
+            let alertBadgeMap = {};
+
+            // Convert a SETUP_PRESETS entry into a runFilterState()-compatible
+            // state object (same shape captureFilters()/saved searches use).
+            function buildPresetFilterState(preset) {
+                const state = {};
+                Object.entries(preset.simpleFilters || {}).forEach(
+                    ([fieldId, val]) => {
+                        state[fieldId] = String(val);
+                    },
+                );
+                Object.entries(preset.multiSelectFilters || {}).forEach(
+                    ([fieldId, values]) => {
+                        state[fieldId] = values;
+                    },
+                );
+                Object.entries(preset.checkFilters || {}).forEach(
+                    ([fieldId, checked]) => {
+                        if (checked) state[fieldId] = true;
+                    },
+                );
+                if (preset.advQuery) {
+                    state.f_adv_enabled = true;
+                    state.f_adv_query = preset.advQuery;
+                }
+                return state;
+            }
+
+            // Silently run every preset + every saved search against the
+            // currently loaded allData and return their result-code lists.
+            function computeAlertWatchSets() {
+                const presets = {};
+                SETUP_PRESETS.forEach((p) => {
+                    try {
+                        const results = runFilterState(
+                            buildPresetFilterState(p),
+                        );
+                        presets[p.id] = {
+                            label: p.label,
+                            codes: results.map((r) => r.Code),
+                        };
+                    } catch (e) {
+                        console.warn(
+                            "Alert badge: preset run failed for",
+                            p.id,
+                            e,
+                        );
+                    }
+                });
+
+                const saved = {};
+                loadSavedSearches().forEach((s) => {
+                    try {
+                        const results = runFilterState(s.state || {});
+                        saved[s.id] = {
+                            name: s.name,
+                            codes: results.map((r) => r.Code),
+                        };
+                    } catch (e) {
+                        console.warn(
+                            "Alert badge: saved search run failed for",
+                            s.name,
+                            e,
+                        );
+                    }
+                });
+
+                return { presets, saved };
+            }
+
+            function loadAlertSnapshot() {
+                try {
+                    return JSON.parse(
+                        localStorage.getItem(ALERT_SNAPSHOT_KEY) || "null",
+                    );
+                } catch (e) {
+                    return null;
+                }
+            }
+            function saveAlertSnapshot(snapshot) {
+                try {
+                    localStorage.setItem(
+                        ALERT_SNAPSHOT_KEY,
+                        JSON.stringify(snapshot),
+                    );
+                } catch (e) {
+                    console.warn("Alert badge: could not save snapshot", e);
+                }
+            }
+            function loadAlertBadgesCache() {
+                try {
+                    return JSON.parse(
+                        localStorage.getItem(ALERT_BADGES_KEY) || "null",
+                    );
+                } catch (e) {
+                    return null;
+                }
+            }
+            function saveAlertBadgesCache(obj) {
+                try {
+                    localStorage.setItem(
+                        ALERT_BADGES_KEY,
+                        JSON.stringify(obj),
+                    );
+                } catch (e) {
+                    console.warn("Alert badge: could not save badge cache", e);
+                }
+            }
+
+            // Entry point — called once from loadData() right after allData
+            // is ready. currentDate is the data date shown in the 📅 badge.
+            function runAlertBadgeCheck(currentDate) {
+                if (!currentDate) {
+                    alertBadgeMap = {};
+                    return;
+                }
+
+                const prevSnapshot = loadAlertSnapshot();
+                const sameDataDate =
+                    prevSnapshot && prevSnapshot.dataDate === currentDate;
+
+                if (sameDataDate) {
+                    // Data date hasn't changed since we last computed this —
+                    // just reuse the cached badges for rendering. No re-run,
+                    // no popup (we already alerted the user for this date).
+                    const cached = loadAlertBadgesCache();
+                    alertBadgeMap =
+                        cached && cached.dataDate === currentDate
+                            ? cached.byCode
+                            : {};
+                    return;
+                }
+
+                // Data date changed (or this is the very first run ever) —
+                // recompute every preset & saved search and diff against
+                // whatever we had stored from the previous data date.
+                const current = computeAlertWatchSets();
+                const byCode = {};
+                const summary = [];
+
+                const diffGroup = (curGroup, prevGroup, type) => {
+                    Object.entries(curGroup).forEach(([id, info]) => {
+                        const prevInfo = prevGroup && prevGroup[id];
+                        const label = info.label || info.name || id;
+                        if (!prevInfo) return; // nothing to diff against yet (new preset/search)
+                        const prevCodes = new Set(prevInfo.codes || []);
+                        const newCodes = info.codes.filter(
+                            (c) => !prevCodes.has(c),
+                        );
+                        if (!newCodes.length) return;
+                        summary.push({
+                            type,
+                            name: label,
+                            count: newCodes.length,
+                        });
+                        newCodes.forEach((code) => {
+                            if (!byCode[code]) byCode[code] = [];
+                            byCode[code].push({ type, name: label });
+                        });
+                    });
+                };
+
+                diffGroup(
+                    current.presets,
+                    prevSnapshot && prevSnapshot.presets,
+                    "preset",
+                );
+                diffGroup(
+                    current.saved,
+                    prevSnapshot && prevSnapshot.saved,
+                    "saved",
+                );
+
+                alertBadgeMap = byCode;
+                saveAlertBadgesCache({ dataDate: currentDate, byCode });
+                saveAlertSnapshot({
+                    dataDate: currentDate,
+                    presets: current.presets,
+                    saved: current.saved,
+                });
+
+                // Only pop the summary if there WAS a previous date to
+                // compare against (skip on the very first ever load).
+                if (prevSnapshot && summary.length) {
+                    showAlertBadgeSummary(summary, currentDate);
+                }
+            }
+
+            // Tiny "🆕 <name>" pills rendered under the stock name for any
+            // stock that's newly present in a preset/saved-search today.
+            function getAlertBadgesHtml(code) {
+                const items = alertBadgeMap[code];
+                if (!items || !items.length) return "";
+                return `<div class="new-alert-badges">${items
+                    .map((it) => {
+                        const kindLabel =
+                            it.type === "preset" ? "Preset" : "Saved Search";
+                        const safeName = (it.name || "").replace(
+                            /"/g,
+                            "&quot;",
+                        );
+                        return `<span class="new-alert-badge new-alert-badge-${it.type}" title="New in ${kindLabel}: ${safeName}">🆕 ${safeName}</span>`;
+                    })
+                    .join("")}</div>`;
+            }
+
+            // ---- UI: Alert badge summary popup ----
+            function showAlertBadgeSummary(summary, currentDate) {
+                const rows = summary
+                    .map((s) => {
+                        const icon = s.type === "preset" ? "🎯" : "🔖";
+                        const kindLabel =
+                            s.type === "preset" ? "Preset" : "Saved Search";
+                        return `<div class="ss-preview-row"><span class="ss-preview-key">${icon} ${kindLabel} "${s.name}":</span><span class="ss-preview-val">${s.count} new stock${s.count > 1 ? "s" : ""}</span></div>`;
+                    })
+                    .join("");
+                const body = document.getElementById("alertBadgeSummaryBody");
+                if (!body) return;
+                body.innerHTML = rows;
+                const dateEl = document.getElementById(
+                    "alertBadgeSummaryDate",
+                );
+                if (dateEl) dateEl.textContent = "as of " + currentDate;
+                document
+                    .getElementById("alertBadgeModal")
+                    .classList.add("open");
+            }
+            function closeAlertBadgeModal() {
+                document
+                    .getElementById("alertBadgeModal")
+                    .classList.remove("open");
+            }
+            function closeAlertBadgeModalOnOverlay(e) {
+                if (e.target === document.getElementById("alertBadgeModal"))
+                    closeAlertBadgeModal();
             }
 
             // ---- UI: Save modal ----
