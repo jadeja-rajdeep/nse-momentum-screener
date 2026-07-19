@@ -3534,7 +3534,7 @@
             <div class="row g-2 mb-2">
                 <!-- RS Total -->
                 <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">RS Total (0–500)</div>
+                    <div class="filter-label">RS Total (0–400)</div>
                     <div class="range-group">
                         <input
                             type="number"
@@ -3596,28 +3596,6 @@
                             type="number"
                             class="form-control"
                             id="f_rs2m_max"
-                            placeholder="Max"
-                            oninput="applyFilters()"
-                        />
-                    </div>
-                </div>
-
-                <!-- 3M RS -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">RS 3M</div>
-                    <div class="range-group">
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_rs3m_min"
-                            placeholder="Min"
-                            oninput="applyFilters()"
-                        />
-                        <span class="range-sep">&ndash;</span>
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_rs3m_max"
                             placeholder="Max"
                             oninput="applyFilters()"
                         />
@@ -3689,7 +3667,10 @@
                         />
                     </div>
                 </div>
+            </div>
 
+            <!-- Row 3: Linearity, PE, Close, ROE -->
+            <div class="row g-2 mb-2">
                 <!-- 3M Linearity -->
                 <div class="col-12 col-sm-6 col-md-3 col-xl-2">
                     <div class="filter-label">3M Linearity (≥)</div>
@@ -3785,10 +3766,7 @@
                         />
                     </div>
                 </div>
-            </div>
 
-            <!-- Row 3: Linearity, PE, Close, ROE -->
-            <div class="row g-2 mb-2">
                 <!-- Debt -->
                 <div class="col-12 col-sm-6 col-md-3 col-xl-2">
                     <div class="filter-label">Debt</div>
@@ -4029,30 +4007,6 @@
                             type="number"
                             class="form-control"
                             id="f_chg2m_max"
-                            placeholder="Max"
-                            step="0.1"
-                            oninput="applyFilters()"
-                        />
-                    </div>
-                </div>
-
-                <!-- 3 Months Chng% -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">3M Chng%</div>
-                    <div class="range-group">
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_chg3m_min"
-                            placeholder="Min"
-                            step="0.1"
-                            oninput="applyFilters()"
-                        />
-                        <span class="range-sep">&ndash;</span>
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_chg3m_max"
                             placeholder="Max"
                             step="0.1"
                             oninput="applyFilters()"
@@ -5143,9 +5097,6 @@
                         <th data-col="rs-2m" onclick="sortBy('2 Months RS')">
                             RS 2M
                         </th>
-                        <th data-col="rs-3m" onclick="sortBy('3 Months RS')">
-                            RS 3M
-                        </th>
                         <th data-col="rs-4m" onclick="sortBy('4 Months RS')">
                             RS 4M
                         </th>
@@ -5249,13 +5200,6 @@
                             onclick="sortBy('2 Months Chng%')"
                         >
                             2M Chg%
-                        </th>
-                        <th
-                            class="num"
-                            data-col="chg3m"
-                            onclick="sortBy('3 Months Chng%')"
-                        >
-                            3M Chg%
                         </th>
                         <th
                             class="num"
@@ -6027,9 +5971,9 @@
                                 </div>
                                 <ul>
                                     <li>
-                                        <strong>RS Total (0–500)</strong> —
-                                        composite momentum score. Min = 400 for
-                                        strong RS, Min = 470 for top-tier
+                                        <strong>RS Total (0–400)</strong> —
+                                        composite momentum score. Min = 300 for
+                                        strong RS, Min = 370 for top-tier
                                         leaders.
                                     </li>
                                     <li>
@@ -8942,12 +8886,6 @@
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
                                 <label class="abv-check-item">
-                                    <input type="checkbox" data-col="rs-3m" />
-                                    <span>RS 3M</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
                                     <input type="checkbox" data-col="rs-4m" />
                                     <span>RS 4M</span>
                                 </label>
@@ -9038,12 +8976,6 @@
                                 <label class="abv-check-item">
                                     <input type="checkbox" data-col="chg2m" />
                                     <span>2M Chg%</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="chg3m" />
-                                    <span>3M Chg%</span>
                                 </label>
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
@@ -10395,8 +10327,6 @@
                 const mcMax = gn("f_mcap_max");
                 const rs1Min = gn("f_rs1m_min");
                 const rs1Max = gn("f_rs1m_max");
-                const rs3Min = gn("f_rs3m_min");
-                const rs3Max = gn("f_rs3m_max");
                 const rs2Min = gn("f_rs2m_min");
                 const rs2Max = gn("f_rs2m_max");
                 const rs4Min = gn("f_rs4m_min");
@@ -10447,8 +10377,6 @@
                 const chg5dMax = gn("f_chg5d_max");
                 const chg1mMin = gn("f_chg1m_min");
                 const chg1mMax = gn("f_chg1m_max");
-                const chg3mMin = gn("f_chg3m_min");
-                const chg3mMax = gn("f_chg3m_max");
                 const chg2mMin = gn("f_chg2m_min");
                 const chg2mMax = gn("f_chg2m_max");
                 const chg4mMin = gn("f_chg4m_min");
@@ -10520,12 +10448,6 @@
                     if (rs1Min !== null && (isNaN(rs1) || rs1 < rs1Min))
                         return false;
                     if (rs1Max !== null && (isNaN(rs1) || rs1 > rs1Max))
-                        return false;
-
-                    const rs3 = parseFloat(r["3 Months RS"]);
-                    if (rs3Min !== null && (isNaN(rs3) || rs3 < rs3Min))
-                        return false;
-                    if (rs3Max !== null && (isNaN(rs3) || rs3 > rs3Max))
                         return false;
 
                     const rs2 = parseFloat(r["2 Months RS"]);
@@ -10688,12 +10610,6 @@
                     if (chg1mMax !== null && (isNaN(chg1m) || chg1m > chg1mMax))
                         return false;
 
-                    const chg3m = parseFloat(r["3 Months Chng%"]);
-                    if (chg3mMin !== null && (isNaN(chg3m) || chg3m < chg3mMin))
-                        return false;
-                    if (chg3mMax !== null && (isNaN(chg3m) || chg3m > chg3mMax))
-                        return false;
-
                     const chg2m = parseFloat(r["2 Months Chng%"]);
                     if (chg2mMin !== null && (isNaN(chg2m) || chg2m < chg2mMin))
                         return false;
@@ -10839,8 +10755,6 @@
                     "f_mcap_max",
                     "f_rs1m_min",
                     "f_rs1m_max",
-                    "f_rs3m_min",
-                    "f_rs3m_max",
                     "f_rs2m_min",
                     "f_rs2m_max",
                     "f_rs4m_min",
@@ -10891,8 +10805,6 @@
                     "f_chg5d_max",
                     "f_chg1m_min",
                     "f_chg1m_max",
-                    "f_chg3m_min",
-                    "f_chg3m_max",
                     "f_chg2m_min",
                     "f_chg2m_max",
                     "f_chg4m_min",
@@ -10964,7 +10876,6 @@
                 chg1d: true,
                 mcap: true,
                 "rs-1m": true,
-                "rs-3m": true,
                 "rs-2m": true,
                 "rs-4m": true,
                 "rs-6m": true,
@@ -10978,7 +10889,6 @@
                 afh9m: true,
                 chg5d: true,
                 chg1m: true,
-                chg3m: true,
                 chg2m: true,
                 chg4m: true,
                 chg6m: true,
@@ -11129,7 +11039,6 @@
                     "1 Day Chng%",
                     "RS TOTAL",
                     "1 Month RS",
-                    "3 Months RS",
                     "2 Months RS",
                     "4 Months RS",
                     "6 Months RS",
@@ -11146,7 +11055,6 @@
                     "Away_From_High_9_Month",
                     "5 Days Chng%",
                     "1 Month Chng%",
-                    "3 Months Chng%",
                     "2 Months Chng%",
                     "4 Months Chng%",
                     "6 Months Chng%",
@@ -11435,7 +11343,6 @@
                 <td data-col="rs-total">${rsTotalBadge(r["RS TOTAL"])}</td>
                 <td data-col="rs-1m">${rsBadge(r["1 Month RS"])}</td>
                 <td data-col="rs-2m">${rsBadge(r["2 Months RS"])}</td>
-                <td data-col="rs-3m">${rsBadge(r["3 Months RS"])}</td>
                 <td data-col="rs-4m">${rsBadge(r["4 Months RS"])}</td>
                 <td data-col="rs-6m">${rsBadge(r["6 Months RS"])}</td>
                 <td data-col="lin-3m" class="num">${fNum(r["3 Month Linearity >= 0.5"], 3)}</td>
@@ -11532,7 +11439,6 @@
                 <td data-col="chg5d" class="${chngClass(r["5 Days Chng%"])} num">${chngStr(r["5 Days Chng%"])}</td>
                 <td data-col="chg1m" class="${chngClass(r["1 Month Chng%"])} num">${chngStr(r["1 Month Chng%"])}</td>
                 <td data-col="chg2m" class="${chngClass(r["2 Months Chng%"])} num">${chngStr(r["2 Months Chng%"])}</td>
-                <td data-col="chg3m" class="${chngClass(r["3 Months Chng%"])} num">${chngStr(r["3 Months Chng%"])}</td>
                 <td data-col="chg4m" class="${chngClass(r["4 Months Chng%"])} num">${chngStr(r["4 Months Chng%"])}</td>
                 <td data-col="chg6m" class="${chngClass(r["6 Months Chng%"])} num">${chngStr(r["6 Months Chng%"])}</td>
                 <td data-col="mcap" class="num">${fCr(r["Market Cap"])}</td>
@@ -12424,8 +12330,6 @@
                 { id: "f_rs_max", type: "num" },
                 { id: "f_rs1m_min", type: "num" },
                 { id: "f_rs1m_max", type: "num" },
-                { id: "f_rs3m_min", type: "num" },
-                { id: "f_rs3m_max", type: "num" },
                 { id: "f_rs2m_min", type: "num" },
                 { id: "f_rs2m_max", type: "num" },
                 { id: "f_rs4m_min", type: "num" },
@@ -12478,8 +12382,6 @@
                 { id: "f_chg5d_max", type: "num" },
                 { id: "f_chg1m_min", type: "num" },
                 { id: "f_chg1m_max", type: "num" },
-                { id: "f_chg3m_min", type: "num" },
-                { id: "f_chg3m_max", type: "num" },
                 { id: "f_chg2m_min", type: "num" },
                 { id: "f_chg2m_max", type: "num" },
                 { id: "f_chg4m_min", type: "num" },
@@ -12522,8 +12424,6 @@
                 f_rs_max: "RS Total Max",
                 f_rs1m_min: "RS 1M Min",
                 f_rs1m_max: "RS 1M Max",
-                f_rs3m_min: "RS 3M Min",
-                f_rs3m_max: "RS 3M Max",
                 f_rs2m_min: "RS 2M Min",
                 f_rs2m_max: "RS 2M Max",
                 f_rs4m_min: "RS 4M Min",
@@ -12576,8 +12476,6 @@
                 f_chg5d_max: "5D Chng% Max",
                 f_chg1m_min: "1M Chng% Min",
                 f_chg1m_max: "1M Chng% Max",
-                f_chg3m_min: "3M Chng% Min",
-                f_chg3m_max: "3M Chng% Max",
                 f_chg2m_min: "2M Chng% Min",
                 f_chg2m_max: "2M Chng% Max",
                 f_chg4m_min: "4M Chng% Min",
@@ -12616,7 +12514,6 @@
                 { name: "RS_TOTAL", label: "RS Total", type: "number", get: (r) => parseFloat(r["RS TOTAL"]) },
                 { name: "RS_1M", label: "RS 1 Month", type: "number", get: (r) => parseFloat(r["1 Month RS"]) },
                 { name: "RS_2M", label: "RS 2 Months", type: "number", get: (r) => parseFloat(r["2 Months RS"]) },
-                { name: "RS_3M", label: "RS 3 Months", type: "number", get: (r) => parseFloat(r["3 Months RS"]) },
                 { name: "RS_4M", label: "RS 4 Months", type: "number", get: (r) => parseFloat(r["4 Months RS"]) },
                 { name: "RS_6M", label: "RS 6 Months", type: "number", get: (r) => parseFloat(r["6 Months RS"]) },
                 { name: "MCAP_CR", label: "Market Cap (Cr)", type: "number", get: (r) => parseFloat(r["Market Cap"]) / 10_000_000 },
@@ -12645,7 +12542,6 @@
                 { name: "CHG_5D", label: "5 Day Change %", type: "number", get: (r) => parseFloat(r["5 Days Chng%"]) },
                 { name: "CHG_1M", label: "1 Month Change %", type: "number", get: (r) => parseFloat(r["1 Month Chng%"]) },
                 { name: "CHG_2M", label: "2 Month Change %", type: "number", get: (r) => parseFloat(r["2 Months Chng%"]) },
-                { name: "CHG_3M", label: "3 Month Change %", type: "number", get: (r) => parseFloat(r["3 Months Chng%"]) },
                 { name: "CHG_4M", label: "4 Month Change %", type: "number", get: (r) => parseFloat(r["4 Months Chng%"]) },
                 { name: "CHG_6M", label: "6 Month Change %", type: "number", get: (r) => parseFloat(r["6 Months Chng%"]) },
                 { name: "EPS_Q1", label: "EPS Latest Qtr %", type: "number", get: (r) => parseFloat(r["EPS Latest Qtr %"]) },
@@ -12685,7 +12581,7 @@
                     label: "Momentum Pivot",
                     color: "#22c55e",
                     description: "Tight, low-volatility base forming near highs",
-                    simpleFilters: { f_rs_min: 360, f_mcap_min: 500, f_to_min: 5,f_5dr_max:15,f_bi_rank_pct:30,f_ind_rank_pct:50,f_afh_0_5m_min:-3,f_afh_0_5m_max:6,f_afh1m_min:-3,f_afh1m_max:6,f_afh9m_min:-26,f_rvol_avg_3m_min:0.9,f_chg5d_min:-3 },
+                    simpleFilters: { f_rs_min: 288, f_mcap_min: 500, f_to_min: 5,f_5dr_max:15,f_bi_rank_pct:30,f_ind_rank_pct:50,f_afh_0_5m_min:-3,f_afh_0_5m_max:6,f_afh1m_min:-3,f_afh1m_max:6,f_afh9m_min:-26,f_rvol_avg_3m_min:0.9,f_chg5d_min:-3 },
                     advQuery: "LIN_3M >= 0.65 OR LIN_1M >= 0.65",
                 },
                 {
@@ -13375,7 +13271,6 @@
 
                     if (!chk("f_rs", "RS TOTAL")) return false;
                     if (!chk("f_rs1m", "1 Month RS")) return false;
-                    if (!chk("f_rs3m", "3 Months RS")) return false;
                     if (!chk("f_rs2m", "2 Months RS")) return false;
                     if (!chk("f_rs4m", "4 Months RS")) return false;
                     if (!chk("f_rs6m", "6 Months RS")) return false;
@@ -13419,7 +13314,6 @@
                     if (!chk("f_chg1d", "1 Day Chng%")) return false;
                     if (!chk("f_chg5d", "5 Days Chng%")) return false;
                     if (!chk("f_chg1m", "1 Month Chng%")) return false;
-                    if (!chk("f_chg3m", "3 Months Chng%")) return false;
                     if (!chk("f_chg2m", "2 Months Chng%")) return false;
                     if (!chk("f_chg4m", "4 Months Chng%")) return false;
                     if (!chk("f_chg6m", "6 Months Chng%")) return false;
@@ -14104,7 +13998,6 @@
                 { key: "5 Days Chng%", label: "5D %" },
                 { key: "1 Month Chng%", label: "1M %" },
                 { key: "2 Months Chng%", label: "2M %" },
-                { key: "3 Months Chng%", label: "3M %" },
                 { key: "4 Months Chng%", label: "4M %" },
                 { key: "6 Months Chng%", label: "6M %" },
             ];
