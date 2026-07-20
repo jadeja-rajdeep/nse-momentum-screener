@@ -4786,61 +4786,6 @@
                         <span class="tradable-check-label">📶 Higher Low Structure</span>
                     </label>
                 </div>
-
-                <!-- Advancing / Neutral / Declining -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">📊 Adv/Decl</div>
-                    <div
-                        class="msel"
-                        id="msel_f_adv_decl"
-                        data-field="f_adv_decl"
-                    >
-                        <div class="msel-trigger">
-                            <span class="msel-trigger-label placeholder"
-                                >All</span
-                            >
-                            <span class="msel-caret">▼</span>
-                        </div>
-                        <div class="msel-panel">
-                            <div class="msel-actions">
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="all"
-                                >
-                                    Select All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="none"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                            <div class="msel-options">
-                                <label class="msel-opt"
-                                    ><input type="checkbox" value="1" /><span
-                                        class="msel-opt-label"
-                                        >▲ Advancing</span
-                                    ></label
-                                >
-                                <label class="msel-opt"
-                                    ><input type="checkbox" value="0" /><span
-                                        class="msel-opt-label"
-                                        >● Neutral</span
-                                    ></label
-                                >
-                                <label class="msel-opt"
-                                    ><input type="checkbox" value="-1" /><span
-                                        class="msel-opt-label"
-                                        >▼ Declining</span
-                                    ></label
-                                >
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Row: Setup Presets -->
@@ -5361,14 +5306,6 @@
                         </th>
                         <th data-col="tradable" onclick="sortBy('Is Tradable')">
                             Tradable
-                        </th>
-                        <th
-                            class="num"
-                            data-col="adv-decl"
-                            onclick="sortBy('Advancing_Neutral_Declining')"
-                            title="Advancing / Neutral / Declining"
-                        >
-                            Adv/Decl
                         </th>
                         <th
                             class="num"
@@ -9260,15 +9197,6 @@
                                 <label class="abv-check-item">
                                     <input
                                         type="checkbox"
-                                        data-col="adv-decl"
-                                    />
-                                    <span>Adv/Decl</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
                                         data-col="hl-structure"
                                     />
                                     <span>HL Structure</span>
@@ -10006,7 +9934,6 @@
                 f_basic: [],
                 f_priceband: [],
                 f_watchlist: [],
-                f_adv_decl: [],
             };
 
             // Cascade-aware option lists per field (set externally when rebuilding cascade)
@@ -10017,7 +9944,6 @@
                 f_basic: [],
                 f_priceband: ["0", "2", "5", "10", "20"],
                 f_watchlist: [],
-                f_adv_decl: ["1", "0", "-1"],
             };
             const mselOptionLabels = {
                 0: "0% (No Limit)",
@@ -10025,11 +9951,6 @@
                 5: "5%",
                 10: "10%",
                 20: "20%",
-            };
-            const mselAdvDeclLabels = {
-                "1": "▲ Advancing",
-                "0": "● Neutral",
-                "-1": "▼ Declining",
             };
 
             function mselSetOptions(field, options) {
@@ -10069,9 +9990,7 @@
                         const label =
                             field === "f_priceband"
                                 ? mselOptionLabels[o] || o + "%"
-                                : field === "f_adv_decl"
-                                  ? mselAdvDeclLabels[o] || o
-                                  : o;
+                                : o;
                         const checked = selected.has(o) ? "checked" : "";
                         const safe = o.replace(/"/g, "&quot;");
                         return `<label class="msel-opt"><input type="checkbox" value="${safe}" ${checked}><span class="msel-opt-label" title="${label}">${label}</span></label>`;
@@ -10092,9 +10011,7 @@
                     const label =
                         field === "f_priceband"
                             ? mselOptionLabels[sel[0]] || sel[0] + "%"
-                            : field === "f_adv_decl"
-                              ? mselAdvDeclLabels[sel[0]] || sel[0]
-                              : sel[0];
+                            : sel[0];
                     labelEl.textContent = label;
                     labelEl.classList.remove("placeholder");
                     labelEl.classList.add("has-value");
@@ -10808,7 +10725,6 @@
                 const industries = mselGetSelected("f_industry");
                 const basics = mselGetSelected("f_basic");
                 const bands = mselGetSelected("f_priceband");
-                const advDecl = mselGetSelected("f_adv_decl");
                 const wlNames = mselGetSelected("f_watchlist");
                 const wlCodesUnion = wlNames.length
                     ? new Set(
@@ -10946,13 +10862,6 @@
                     if (
                         bands.length &&
                         !bands.includes(String(r["Price Band %"]))
-                    )
-                        return false;
-                    if (
-                        advDecl.length &&
-                        !advDecl.includes(
-                            String(r["Advancing_Neutral_Declining"]),
-                        )
                     )
                         return false;
                     if (wlCodesUnion && !wlCodesUnion.has(r.Code)) return false;
@@ -11429,7 +11338,7 @@
                     const el = document.getElementById(id);
                     if (el) el.value = "";
                 });
-                ["f_priceband", "f_watchlist", "f_adv_decl"].forEach((id) => {
+                ["f_priceband", "f_watchlist"].forEach((id) => {
                     mselClear(id);
                 });
                 // Reset cascading dropdowns + clear all selections
@@ -11475,7 +11384,6 @@
                 nr: true,
                 "5dr": true,
                 tradable: true,
-                "adv-decl": true,
                 "hl-structure": true,
                 "rs-total": true,
                 chg1d: true,
@@ -11649,7 +11557,6 @@
                     "RMV_21",
                     "RMV_42",
                     "Is Tradable",
-                    "Advancing_Neutral_Declining",
                     "Higher_Low_Structure",
                     "_biRank",
                     "_indRank",
@@ -11850,15 +11757,6 @@
                     : '<span class="chng-neg">✗</span>';
             }
 
-            function advDeclIcon(v) {
-                const n = parseFloat(v);
-                if (n == 1) return '<span class="chng-pos">▲</span>';
-                if (n == -1) return '<span class="chng-neg">▼</span>';
-                if (n == 0)
-                    return '<span style="color:var(--accent3)">●</span>';
-                return '<span style="color:var(--muted)">—</span>';
-            }
-
             function formatAllIndex(v) {
                 if (!v) return '<span style="color:var(--muted)">—</span>';
                 const tags = v
@@ -11908,7 +11806,6 @@
                 <td data-col="rmv21" class="num">${fNum(r["RMV_21"], 2)}</td>
                 <td data-col="rmv42" class="num">${fNum(r["RMV_42"], 2)}</td>
                 <td data-col="tradable">${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
-                <td data-col="adv-decl" class="num">${advDeclIcon(r["Advancing_Neutral_Declining"])}</td>
                 <td data-col="hl-structure" class="num">${checkIcon(r["Higher_Low_Structure"])}</td>
                 <td data-col="bi-rank" class="num">${(() => {
                     const p = peerRankMap.get(r.Code);
@@ -12989,7 +12886,6 @@
                 { id: "f_basic", type: "mselect" },
                 { id: "f_priceband", type: "mselect" },
                 { id: "f_watchlist", type: "mselect" },
-                { id: "f_adv_decl", type: "mselect" },
                 { id: "f_rs_min", type: "num" },
                 { id: "f_rs_max", type: "num" },
                 { id: "f_rs1m_min", type: "num" },
@@ -13105,7 +13001,6 @@
                 f_basic: "Basic Industry",
                 f_priceband: "Price Band",
                 f_watchlist: "Watchlist",
-                f_adv_decl: "Adv/Decl",
                 f_rs_min: "RS Total Min",
                 f_rs_max: "RS Total Max",
                 f_rs1m_min: "RS 1M Min",
@@ -13278,7 +13173,6 @@
                 { name: "RS_TREND_5", label: "RS Trend 5", type: "bool", get: (r) => r["RS_Trend_5"] },
                 { name: "RS_TREND_10", label: "RS Trend 10", type: "bool", get: (r) => r["RS_Trend_10"] },
                 { name: "HL_STRUCTURE", label: "Higher Low Structure", type: "bool", get: (r) => r["Higher_Low_Structure"] },
-                { name: "ADV_DECL", label: "Advancing/Neutral/Declining", type: "number", enumValues: ["1", "0", "-1"], get: (r) => r["Advancing_Neutral_Declining"] },
                 { name: "SECTOR", label: "Sector", type: "text", get: (r) => r["Sector"] },
                 { name: "INDUSTRY", label: "Industry", type: "text", get: (r) => r["Industry"] },
                 { name: "MACRO_SECTOR", label: "Macro Economic Sector", type: "text", get: (r) => r["Macro Economic Sector"] },
@@ -13461,11 +13355,6 @@
                 if (field.type === "bool") {
                     dl.innerHTML = '<option value="Yes"><option value="No">';
                     valInput.placeholder = "Yes / No";
-                } else if (field.enumValues) {
-                    dl.innerHTML = field.enumValues
-                        .map((v) => `<option value="${v}">`)
-                        .join("");
-                    valInput.placeholder = field.enumValues.join(" / ");
                 } else if (field.type === "text") {
                     const vals = new Set();
                     (typeof allData !== "undefined" ? allData : []).forEach((r) => {
@@ -13874,7 +13763,6 @@
                 const industries = state.f_industry || [];
                 const basics = state.f_basic || [];
                 const bands = state.f_priceband || [];
-                const advDecl = state.f_adv_decl || [];
                 const watchlists = state.f_watchlist || [];
 
                 if (macros.length) {
@@ -13900,9 +13788,6 @@
                 }
                 if (bands.length) {
                     mselSetSelected("f_priceband", bands);
-                }
-                if (advDecl.length) {
-                    mselSetSelected("f_adv_decl", advDecl);
                 }
                 if (watchlists.length) {
                     // Watchlist names aren't part of the data cascade — make
@@ -13944,7 +13829,6 @@
                 const industries = getArr("f_industry");
                 const basics = getArr("f_basic");
                 const bands = getArr("f_priceband");
-                const advDecl = getArr("f_adv_decl");
                 const wlNames = getArr("f_watchlist");
                 const wlCodesUnion = wlNames.length
                     ? new Set(
@@ -13979,13 +13863,6 @@
                     if (
                         bands.length &&
                         !bands.includes(String(r["Price Band %"]))
-                    )
-                        return false;
-                    if (
-                        advDecl.length &&
-                        !advDecl.includes(
-                            String(r["Advancing_Neutral_Declining"]),
-                        )
                     )
                         return false;
                     if (wlCodesUnion && !wlCodesUnion.has(r.Code)) return false;

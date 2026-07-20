@@ -4530,78 +4530,6 @@
                     </div>
                 </div>
 
-                <!-- Relative Measured Volatility 15 -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">RMV 15</div>
-                    <div class="range-group">
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_rmv15_min"
-                            placeholder="Min"
-                            step="0.01"
-                            oninput="applyFilters()"
-                        />
-                        <span class="range-sep">&ndash;</span>
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_rmv15_max"
-                            placeholder="Max"
-                            step="0.01"
-                            oninput="applyFilters()"
-                        />
-                    </div>
-                </div>
-
-                <!-- Relative Measured Volatility 21 -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">RMV 21</div>
-                    <div class="range-group">
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_rmv21_min"
-                            placeholder="Min"
-                            step="0.01"
-                            oninput="applyFilters()"
-                        />
-                        <span class="range-sep">&ndash;</span>
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_rmv21_max"
-                            placeholder="Max"
-                            step="0.01"
-                            oninput="applyFilters()"
-                        />
-                    </div>
-                </div>
-
-                <!-- Relative Measured Volatility 42 -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">RMV 42</div>
-                    <div class="range-group">
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_rmv42_min"
-                            placeholder="Min"
-                            step="0.01"
-                            oninput="applyFilters()"
-                        />
-                        <span class="range-sep">&ndash;</span>
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="f_rmv42_max"
-                            placeholder="Max"
-                            step="0.01"
-                            oninput="applyFilters()"
-                        />
-                    </div>
-                </div>
-
             </div>
 
             <!-- Row 4: EPS / Sales filters + above avg checks -->
@@ -4749,97 +4677,6 @@
                         />
                         <span class="tradable-check-label">📑 F&amp;O</span>
                     </label>
-                </div>
-
-                <!-- RS Trend 5 -->
-                <div class="col-12 col-md-auto d-flex align-items-end">
-                    <label class="tradable-check-item">
-                        <input
-                            type="checkbox"
-                            id="f_rs_trend_5"
-                            onchange="applyFilters()"
-                        />
-                        <span class="tradable-check-label">📈 RS Trend 5</span>
-                    </label>
-                </div>
-
-                <!-- RS Trend 10 -->
-                <div class="col-12 col-md-auto d-flex align-items-end">
-                    <label class="tradable-check-item">
-                        <input
-                            type="checkbox"
-                            id="f_rs_trend_10"
-                            onchange="applyFilters()"
-                        />
-                        <span class="tradable-check-label">📈 RS Trend 10</span>
-                    </label>
-                </div>
-
-                <!-- Higher Low Structure -->
-                <div class="col-12 col-md-auto d-flex align-items-end">
-                    <label class="tradable-check-item">
-                        <input
-                            type="checkbox"
-                            id="f_hl_structure"
-                            onchange="applyFilters()"
-                        />
-                        <span class="tradable-check-label">📶 Higher Low Structure</span>
-                    </label>
-                </div>
-
-                <!-- Advancing / Neutral / Declining -->
-                <div class="col-12 col-sm-6 col-md-3 col-xl-2">
-                    <div class="filter-label">📊 Adv/Decl</div>
-                    <div
-                        class="msel"
-                        id="msel_f_adv_decl"
-                        data-field="f_adv_decl"
-                    >
-                        <div class="msel-trigger">
-                            <span class="msel-trigger-label placeholder"
-                                >All</span
-                            >
-                            <span class="msel-caret">▼</span>
-                        </div>
-                        <div class="msel-panel">
-                            <div class="msel-actions">
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="all"
-                                >
-                                    Select All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="msel-action-btn"
-                                    data-act="none"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                            <div class="msel-options">
-                                <label class="msel-opt"
-                                    ><input type="checkbox" value="1" /><span
-                                        class="msel-opt-label"
-                                        >▲ Advancing</span
-                                    ></label
-                                >
-                                <label class="msel-opt"
-                                    ><input type="checkbox" value="0" /><span
-                                        class="msel-opt-label"
-                                        >● Neutral</span
-                                    ></label
-                                >
-                                <label class="msel-opt"
-                                    ><input type="checkbox" value="-1" /><span
-                                        class="msel-opt-label"
-                                        >▼ Declining</span
-                                    ></label
-                                >
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -5335,48 +5172,8 @@
                         >
                             5DR%
                         </th>
-                        <th
-                            class="num"
-                            data-col="rmv15"
-                            onclick="sortBy('RMV_15')"
-                            title="Relative Measured Volatility 15"
-                        >
-                            RMV 15
-                        </th>
-                        <th
-                            class="num"
-                            data-col="rmv21"
-                            onclick="sortBy('RMV_21')"
-                            title="Relative Measured Volatility 21"
-                        >
-                            RMV 21
-                        </th>
-                        <th
-                            class="num"
-                            data-col="rmv42"
-                            onclick="sortBy('RMV_42')"
-                            title="Relative Measured Volatility 42"
-                        >
-                            RMV 42
-                        </th>
                         <th data-col="tradable" onclick="sortBy('Is Tradable')">
                             Tradable
-                        </th>
-                        <th
-                            class="num"
-                            data-col="adv-decl"
-                            onclick="sortBy('Advancing_Neutral_Declining')"
-                            title="Advancing / Neutral / Declining"
-                        >
-                            Adv/Decl
-                        </th>
-                        <th
-                            class="num"
-                            data-col="hl-structure"
-                            onclick="sortBy('Higher_Low_Structure')"
-                            title="Higher Low Structure"
-                        >
-                            HL Structure
                         </th>
                         <th
                             class="num"
@@ -5432,18 +5229,6 @@
                             onclick="sortBy('1 Day Chng%')"
                         >
                             1D Chg%
-                        </th>
-                        <th
-                            data-col="rs-trend-5"
-                            onclick="sortBy('RS_Trend_5')"
-                        >
-                            RS Trend 5
-                        </th>
-                        <th
-                            data-col="rs-trend-10"
-                            onclick="sortBy('RS_Trend_10')"
-                        >
-                            RS Trend 10
                         </th>
                         <th data-col="rs-total" onclick="sortBy('RS TOTAL')">
                             RS Total
@@ -9231,47 +9016,11 @@
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
                                 <label class="abv-check-item">
-                                    <input type="checkbox" data-col="rmv15" />
-                                    <span>RMV 15</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="rmv21" />
-                                    <span>RMV 21</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input type="checkbox" data-col="rmv42" />
-                                    <span>RMV 42</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
                                     <input
                                         type="checkbox"
                                         data-col="tradable"
                                     />
                                     <span>Tradable</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="adv-decl"
-                                    />
-                                    <span>Adv/Decl</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="hl-structure"
-                                    />
-                                    <span>HL Structure</span>
                                 </label>
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
@@ -9331,24 +9080,6 @@
                                 <label class="abv-check-item">
                                     <input type="checkbox" data-col="rs-6m" />
                                     <span>RS 6M</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="rs-trend-5"
-                                    />
-                                    <span>RS Trend 5</span>
-                                </label>
-                            </div>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="rs-trend-10"
-                                    />
-                                    <span>RS Trend 10</span>
                                 </label>
                             </div>
                         </div>
@@ -10006,7 +9737,6 @@
                 f_basic: [],
                 f_priceband: [],
                 f_watchlist: [],
-                f_adv_decl: [],
             };
 
             // Cascade-aware option lists per field (set externally when rebuilding cascade)
@@ -10017,7 +9747,6 @@
                 f_basic: [],
                 f_priceband: ["0", "2", "5", "10", "20"],
                 f_watchlist: [],
-                f_adv_decl: ["1", "0", "-1"],
             };
             const mselOptionLabels = {
                 0: "0% (No Limit)",
@@ -10025,11 +9754,6 @@
                 5: "5%",
                 10: "10%",
                 20: "20%",
-            };
-            const mselAdvDeclLabels = {
-                "1": "▲ Advancing",
-                "0": "● Neutral",
-                "-1": "▼ Declining",
             };
 
             function mselSetOptions(field, options) {
@@ -10069,9 +9793,7 @@
                         const label =
                             field === "f_priceband"
                                 ? mselOptionLabels[o] || o + "%"
-                                : field === "f_adv_decl"
-                                  ? mselAdvDeclLabels[o] || o
-                                  : o;
+                                : o;
                         const checked = selected.has(o) ? "checked" : "";
                         const safe = o.replace(/"/g, "&quot;");
                         return `<label class="msel-opt"><input type="checkbox" value="${safe}" ${checked}><span class="msel-opt-label" title="${label}">${label}</span></label>`;
@@ -10092,9 +9814,7 @@
                     const label =
                         field === "f_priceband"
                             ? mselOptionLabels[sel[0]] || sel[0] + "%"
-                            : field === "f_adv_decl"
-                              ? mselAdvDeclLabels[sel[0]] || sel[0]
-                              : sel[0];
+                            : sel[0];
                     labelEl.textContent = label;
                     labelEl.classList.remove("placeholder");
                     labelEl.classList.add("has-value");
@@ -10808,7 +10528,6 @@
                 const industries = mselGetSelected("f_industry");
                 const basics = mselGetSelected("f_basic");
                 const bands = mselGetSelected("f_priceband");
-                const advDecl = mselGetSelected("f_adv_decl");
                 const wlNames = mselGetSelected("f_watchlist");
                 const wlCodesUnion = wlNames.length
                     ? new Set(
@@ -10843,12 +10562,6 @@
                 const dcr10Max = gn("f_dcr10_max");
                 const dcr15Min = gn("f_dcr15_min");
                 const dcr15Max = gn("f_dcr15_max");
-                const rmv15Min = gn("f_rmv15_min");
-                const rmv15Max = gn("f_rmv15_max");
-                const rmv21Min = gn("f_rmv21_min");
-                const rmv21Max = gn("f_rmv21_max");
-                const rmv42Min = gn("f_rmv42_min");
-                const rmv42Max = gn("f_rmv42_max");
                 const peMin = gn("f_pe_min");
                 const peMax = gn("f_pe_max");
                 const clMin = gn("f_close_min");
@@ -10918,9 +10631,6 @@
                 const delAbv = gc("f_del_abv");
                 const tradableOnly = gc("f_tradable");
                 const fnoOnly = gc("f_fno");
-                const rsTrend5Only = gc("f_rs_trend_5");
-                const rsTrend10Only = gc("f_rs_trend_10");
-                const hlStructureOnly = gc("f_hl_structure");
 
                 filteredData = allData.filter((r) => {
                     if (search) {
@@ -10946,13 +10656,6 @@
                     if (
                         bands.length &&
                         !bands.includes(String(r["Price Band %"]))
-                    )
-                        return false;
-                    if (
-                        advDecl.length &&
-                        !advDecl.includes(
-                            String(r["Advancing_Neutral_Declining"]),
-                        )
                     )
                         return false;
                     if (wlCodesUnion && !wlCodesUnion.has(r.Code)) return false;
@@ -11033,24 +10736,6 @@
                     if (dcr15Min !== null && (isNaN(dcr15) || dcr15 < dcr15Min))
                         return false;
                     if (dcr15Max !== null && (isNaN(dcr15) || dcr15 > dcr15Max))
-                        return false;
-
-                    const rmv15 = parseFloat(r["RMV_15"]);
-                    if (rmv15Min !== null && (isNaN(rmv15) || rmv15 < rmv15Min))
-                        return false;
-                    if (rmv15Max !== null && (isNaN(rmv15) || rmv15 > rmv15Max))
-                        return false;
-
-                    const rmv21 = parseFloat(r["RMV_21"]);
-                    if (rmv21Min !== null && (isNaN(rmv21) || rmv21 < rmv21Min))
-                        return false;
-                    if (rmv21Max !== null && (isNaN(rmv21) || rmv21 > rmv21Max))
-                        return false;
-
-                    const rmv42 = parseFloat(r["RMV_42"]);
-                    if (rmv42Min !== null && (isNaN(rmv42) || rmv42 < rmv42Min))
-                        return false;
-                    if (rmv42Max !== null && (isNaN(rmv42) || rmv42 > rmv42Max))
                         return false;
 
                     const pe = parseFloat(r["PE"]);
@@ -11291,10 +10976,6 @@
                         return false;
                     if (tradableOnly && r["Is Tradable"] != 1) return false;
                     if (fnoOnly && r["F&O"] != 1) return false;
-                    if (rsTrend5Only && r["RS_Trend_5"] != 1) return false;
-                    if (rsTrend10Only && r["RS_Trend_10"] != 1) return false;
-                    if (hlStructureOnly && r["Higher_Low_Structure"] != 1)
-                        return false;
 
                     return true;
                 });
@@ -11357,12 +11038,6 @@
                     "f_dcr10_max",
                     "f_dcr15_min",
                     "f_dcr15_max",
-                    "f_rmv15_min",
-                    "f_rmv15_max",
-                    "f_rmv21_min",
-                    "f_rmv21_max",
-                    "f_rmv42_min",
-                    "f_rmv42_max",
                     "f_pe_min",
                     "f_pe_max",
                     "f_close_min",
@@ -11429,7 +11104,7 @@
                     const el = document.getElementById(id);
                     if (el) el.value = "";
                 });
-                ["f_priceband", "f_watchlist", "f_adv_decl"].forEach((id) => {
+                ["f_priceband", "f_watchlist"].forEach((id) => {
                     mselClear(id);
                 });
                 // Reset cascading dropdowns + clear all selections
@@ -11446,8 +11121,6 @@
                     "f_del_abv",
                     "f_tradable",
                     "f_fno",
-                    "f_rs_trend_5",
-                    "f_rs_trend_10",
                     "f_adv_enabled",
                 ].forEach((id) => {
                     const el = document.getElementById(id);
@@ -11475,8 +11148,6 @@
                 nr: true,
                 "5dr": true,
                 tradable: true,
-                "adv-decl": true,
-                "hl-structure": true,
                 "rs-total": true,
                 chg1d: true,
                 mcap: true,
@@ -11485,8 +11156,6 @@
                 "rs-2m": true,
                 "rs-4m": true,
                 "rs-6m": true,
-                "rs-trend-5": true,
-                "rs-trend-10": true,
                 afh_0_5m: true,
                 afh1m: true,
                 afh2m: true,
@@ -11505,9 +11174,6 @@
                 dcr5: true,
                 dcr10: true,
                 dcr15: true,
-                rmv15: true,
-                rmv21: true,
-                rmv42: true,
                 "lin-3m": true,
                 "lin-1m": true,
                 "rvol-avg-3m":true,
@@ -11645,12 +11311,7 @@
                     "Close",
                     "Narrow Range",
                     "5 Days Range%",
-                    "RMV_15",
-                    "RMV_21",
-                    "RMV_42",
                     "Is Tradable",
-                    "Advancing_Neutral_Declining",
-                    "Higher_Low_Structure",
                     "_biRank",
                     "_indRank",
                     "_bi5dRank",
@@ -11658,8 +11319,6 @@
                     "_bi1mRank",
                     "_ind1mRank",
                     "1 Day Chng%",
-                    "RS_Trend_5",
-                    "RS_Trend_10",
                     "RS TOTAL",
                     "1 Month RS",
                     "3 Months RS",
@@ -11838,27 +11497,6 @@
                     : '<span class="abv-no">·</span>';
             }
 
-            function trendIcon(v) {
-                return v == 1
-                    ? '<span class="chng-pos">▲</span>'
-                    : '<span class="chng-neg">▼</span>';
-            }
-
-            function checkIcon(v) {
-                return v == 1
-                    ? '<span class="chng-pos">✓</span>'
-                    : '<span class="chng-neg">✗</span>';
-            }
-
-            function advDeclIcon(v) {
-                const n = parseFloat(v);
-                if (n == 1) return '<span class="chng-pos">▲</span>';
-                if (n == -1) return '<span class="chng-neg">▼</span>';
-                if (n == 0)
-                    return '<span style="color:var(--accent3)">●</span>';
-                return '<span style="color:var(--muted)">—</span>';
-            }
-
             function formatAllIndex(v) {
                 if (!v) return '<span style="color:var(--muted)">—</span>';
                 const tags = v
@@ -11904,12 +11542,7 @@
                               : "var(--muted)";
                     return `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${col}">${v.toFixed(2)}%</span>`;
                 })()}</td>
-                <td data-col="rmv15" class="num">${fNum(r["RMV_15"], 2)}</td>
-                <td data-col="rmv21" class="num">${fNum(r["RMV_21"], 2)}</td>
-                <td data-col="rmv42" class="num">${fNum(r["RMV_42"], 2)}</td>
                 <td data-col="tradable">${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
-                <td data-col="adv-decl" class="num">${advDeclIcon(r["Advancing_Neutral_Declining"])}</td>
-                <td data-col="hl-structure" class="num">${checkIcon(r["Higher_Low_Structure"])}</td>
                 <td data-col="bi-rank" class="num">${(() => {
                     const p = peerRankMap.get(r.Code);
                     if (!p) return "—";
@@ -11995,8 +11628,6 @@
                     return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind1mRank}/${g.ind1mTotal}</span>`;
                 })()}</td>
                 <td data-col="chg1d" class="${chngClass(r["1 Day Chng%"])} num">${chngStr(r["1 Day Chng%"])}</td>
-                <td data-col="rs-trend-5" class="num">${trendIcon(r["RS_Trend_5"])}</td>
-                <td data-col="rs-trend-10" class="num">${trendIcon(r["RS_Trend_10"])}</td>
                 <td data-col="rs-total">${rsTotalBadge(r["RS TOTAL"])}</td>
                 <td data-col="rs-1m">${rsBadge(r["1 Month RS"])}</td>
                 <td data-col="rs-2m">${rsBadge(r["2 Months RS"])}</td>
@@ -12989,7 +12620,6 @@
                 { id: "f_basic", type: "mselect" },
                 { id: "f_priceband", type: "mselect" },
                 { id: "f_watchlist", type: "mselect" },
-                { id: "f_adv_decl", type: "mselect" },
                 { id: "f_rs_min", type: "num" },
                 { id: "f_rs_max", type: "num" },
                 { id: "f_rs1m_min", type: "num" },
@@ -13015,12 +12645,6 @@
                 { id: "f_dcr10_max", type: "num" },
                 { id: "f_dcr15_min", type: "num" },
                 { id: "f_dcr15_max", type: "num" },
-                { id: "f_rmv15_min", type: "num" },
-                { id: "f_rmv15_max", type: "num" },
-                { id: "f_rmv21_min", type: "num" },
-                { id: "f_rmv21_max", type: "num" },
-                { id: "f_rmv42_min", type: "num" },
-                { id: "f_rmv42_max", type: "num" },
                 { id: "f_pe_min", type: "num" },
                 { id: "f_pe_max", type: "num" },
                 { id: "f_close_min", type: "num" },
@@ -13089,9 +12713,6 @@
                 { id: "f_del_abv", type: "check" },
                 { id: "f_tradable", type: "check" },
                 { id: "f_fno", type: "check" },
-                { id: "f_rs_trend_5", type: "check" },
-                { id: "f_rs_trend_10", type: "check" },
-                { id: "f_hl_structure", type: "check" },
                 { id: "f_adv_enabled", type: "check" },
                 { id: "f_adv_query", type: "text" },
             ];
@@ -13105,7 +12726,6 @@
                 f_basic: "Basic Industry",
                 f_priceband: "Price Band",
                 f_watchlist: "Watchlist",
-                f_adv_decl: "Adv/Decl",
                 f_rs_min: "RS Total Min",
                 f_rs_max: "RS Total Max",
                 f_rs1m_min: "RS 1M Min",
@@ -13131,12 +12751,6 @@
                 f_dcr10_max: "DCR 10 Max",
                 f_dcr15_min: "DCR 15 Min",
                 f_dcr15_max: "DCR 15 Max",
-                f_rmv15_min: "RMV 15 Min",
-                f_rmv15_max: "RMV 15 Max",
-                f_rmv21_min: "RMV 21 Min",
-                f_rmv21_max: "RMV 21 Max",
-                f_rmv42_min: "RMV 42 Min",
-                f_rmv42_max: "RMV 42 Max",
                 f_pe_min: "PE Min",
                 f_pe_max: "PE Max",
                 f_close_min: "Close Min",
@@ -13205,9 +12819,6 @@
                 f_del_abv: "Delivery Above Avg",
                 f_tradable: "Is Tradable",
                 f_fno: "F&O",
-                f_rs_trend_5: "RS Trend 5",
-                f_rs_trend_10: "RS Trend 10",
-                f_hl_structure: "Higher Low Structure",
                 f_adv_enabled: "Advanced Query Enabled",
                 f_adv_query: "Advanced Query",
             };
@@ -13257,9 +12868,6 @@
                 { name: "DCR_5", label: "Daily Closing Range 5", type: "number", get: (r) => parseFloat(r["DCR_5"]) },
                 { name: "DCR_10", label: "Daily Closing Range 10", type: "number", get: (r) => parseFloat(r["DCR_10"]) },
                 { name: "DCR_15", label: "Daily Closing Range 15", type: "number", get: (r) => parseFloat(r["DCR_15"]) },
-                { name: "RMV_15", label: "Relative Measured Volatility 15", type: "number", get: (r) => parseFloat(r["RMV_15"]) },
-                { name: "RMV_21", label: "Relative Measured Volatility 21", type: "number", get: (r) => parseFloat(r["RMV_21"]) },
-                { name: "RMV_42", label: "Relative Measured Volatility 42", type: "number", get: (r) => parseFloat(r["RMV_42"]) },
                 { name: "EPS_Q1", label: "EPS Latest Qtr %", type: "number", get: (r) => parseFloat(r["EPS Latest Qtr %"]) },
                 { name: "EPS_Q2", label: "EPS Prev Qtr %", type: "number", get: (r) => parseFloat(r["EPS Prev Qtr %"]) },
                 { name: "SALES_Q1", label: "Sales Latest Qtr %", type: "number", get: (r) => parseFloat(r["Sales Latest Qtr %"]) },
@@ -13275,10 +12883,6 @@
                 { name: "DELIVERY_ABOVE_AVG", label: "Delivery Above Avg", type: "bool", get: (r) => r["Delivery Above Avg"] },
                 { name: "TRADABLE", label: "Is Tradable", type: "bool", get: (r) => r["Is Tradable"] },
                 { name: "FNO", label: "F&O", type: "bool", get: (r) => r["F&O"] },
-                { name: "RS_TREND_5", label: "RS Trend 5", type: "bool", get: (r) => r["RS_Trend_5"] },
-                { name: "RS_TREND_10", label: "RS Trend 10", type: "bool", get: (r) => r["RS_Trend_10"] },
-                { name: "HL_STRUCTURE", label: "Higher Low Structure", type: "bool", get: (r) => r["Higher_Low_Structure"] },
-                { name: "ADV_DECL", label: "Advancing/Neutral/Declining", type: "number", enumValues: ["1", "0", "-1"], get: (r) => r["Advancing_Neutral_Declining"] },
                 { name: "SECTOR", label: "Sector", type: "text", get: (r) => r["Sector"] },
                 { name: "INDUSTRY", label: "Industry", type: "text", get: (r) => r["Industry"] },
                 { name: "MACRO_SECTOR", label: "Macro Economic Sector", type: "text", get: (r) => r["Macro Economic Sector"] },
@@ -13461,11 +13065,6 @@
                 if (field.type === "bool") {
                     dl.innerHTML = '<option value="Yes"><option value="No">';
                     valInput.placeholder = "Yes / No";
-                } else if (field.enumValues) {
-                    dl.innerHTML = field.enumValues
-                        .map((v) => `<option value="${v}">`)
-                        .join("");
-                    valInput.placeholder = field.enumValues.join(" / ");
                 } else if (field.type === "text") {
                     const vals = new Set();
                     (typeof allData !== "undefined" ? allData : []).forEach((r) => {
@@ -13874,7 +13473,6 @@
                 const industries = state.f_industry || [];
                 const basics = state.f_basic || [];
                 const bands = state.f_priceband || [];
-                const advDecl = state.f_adv_decl || [];
                 const watchlists = state.f_watchlist || [];
 
                 if (macros.length) {
@@ -13900,9 +13498,6 @@
                 }
                 if (bands.length) {
                     mselSetSelected("f_priceband", bands);
-                }
-                if (advDecl.length) {
-                    mselSetSelected("f_adv_decl", advDecl);
                 }
                 if (watchlists.length) {
                     // Watchlist names aren't part of the data cascade — make
@@ -13944,7 +13539,6 @@
                 const industries = getArr("f_industry");
                 const basics = getArr("f_basic");
                 const bands = getArr("f_priceband");
-                const advDecl = getArr("f_adv_decl");
                 const wlNames = getArr("f_watchlist");
                 const wlCodesUnion = wlNames.length
                     ? new Set(
@@ -13979,13 +13573,6 @@
                     if (
                         bands.length &&
                         !bands.includes(String(r["Price Band %"]))
-                    )
-                        return false;
-                    if (
-                        advDecl.length &&
-                        !advDecl.includes(
-                            String(r["Advancing_Neutral_Declining"]),
-                        )
                     )
                         return false;
                     if (wlCodesUnion && !wlCodesUnion.has(r.Code)) return false;
@@ -14035,9 +13622,6 @@
                     if (!chk("f_dcr5", "DCR_5")) return false;
                     if (!chk("f_dcr10", "DCR_10")) return false;
                     if (!chk("f_dcr15", "DCR_15")) return false;
-                    if (!chk("f_rmv15", "RMV_15")) return false;
-                    if (!chk("f_rmv21", "RMV_21")) return false;
-                    if (!chk("f_rmv42", "RMV_42")) return false;
                     if (!chk1("f_nr_min", "Narrow Range")) return false;
                     if (!chk("f_5dr", "5 Days Range%")) return false;
                     if (!chk("f_afh_0_5m", "Away_From_High_0_5_Month"))
@@ -14133,12 +13717,6 @@
                     if (gbool("f_tradable") && r["Is Tradable"] != 1)
                         return false;
                     if (gbool("f_fno") && r["F&O"] != 1) return false;
-                    if (gbool("f_rs_trend_5") && r["RS_Trend_5"] != 1)
-                        return false;
-                    if (gbool("f_rs_trend_10") && r["RS_Trend_10"] != 1)
-                        return false;
-                    if (gbool("f_hl_structure") && r["Higher_Low_Structure"] != 1)
-                        return false;
                     return true;
                 });
 
