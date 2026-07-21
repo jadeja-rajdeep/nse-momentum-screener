@@ -6539,6 +6539,202 @@
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
+                                    🚀 3-Month Momentum Filters
+                                </div>
+                                <ul>
+                                    <li>
+                                        <strong>3 Months Chng% Min-Max</strong>
+                                        — absolute price change over the last
+                                        3 months. Use a tight band around zero
+                                        (e.g.
+                                        <span class="help-kbd">-5 to 5</span>)
+                                        to find stocks that have gone flat over
+                                        the quarter — often a maturing base.
+                                        Slots in between the existing 2M and
+                                        4M Chng% filters for finer control.
+                                    </li>
+                                    <li>
+                                        <strong>3 Months RS Min-Max</strong> —
+                                        the individual 3-month Relative
+                                        Strength score, ranked 0–100 across all
+                                        NSE stocks, same scale as RS
+                                        1M/2M/4M/6M. Set Min = 80–90 to require
+                                        the stock to have been a strong
+                                        relative performer specifically over
+                                        the last quarter.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📐 Daily Closing Range (DCR) Filters
+                                </div>
+                                <p style="margin-bottom: 10px">
+                                    <strong
+                                        >DCR_1 / DCR_5 / DCR_10 / DCR_15</strong
+                                    >
+                                    measure where the stock closed within its
+                                    own daily high-low range, averaged over 1,
+                                    5, 10, or 15 days and expressed 0–100%.
+                                    <span class="help-kbd">100</span> means
+                                    every day in the window closed at (or very
+                                    near) its high;
+                                    <span class="help-kbd">0</span> means it
+                                    closed at its low.
+                                    <strong>Higher is better</strong> — it
+                                    shows buyers were in control into the
+                                    close rather than sellers pushing the
+                                    stock down off its highs.
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong>DCR_1</strong> — today's
+                                        single-day closing range. Useful for
+                                        catching a strong close on a breakout
+                                        day.
+                                    </li>
+                                    <li>
+                                        <strong>DCR_5 / DCR_10 / DCR_15</strong>
+                                        — the same measure averaged over the
+                                        last 5, 10, or 15 days. High values
+                                        across all of these mean the stock has
+                                        been closing strong day after day, not
+                                        just once.
+                                    </li>
+                                    <li>
+                                        Set Min = 70–80 on DCR_5 or DCR_10 to
+                                        keep only stocks with consistently
+                                        strong closes over the past couple of
+                                        weeks.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📉 Relative Measured Volatility (RMV)
+                                    Filters
+                                </div>
+                                <p style="margin-bottom: 10px">
+                                    <strong>RMV_15 / RMV_21 / RMV_42</strong>
+                                    identify volatility contraction. Each
+                                    compares the stock's recent volatility over
+                                    the lookback period (15, 21, or 42 days) —
+                                    deliberately
+                                    <em>excluding today's volatility</em> — to
+                                    its own longer-run volatility, expressed
+                                    0–100%.
+                                    <strong>Lower is better</strong>: a value
+                                    generally
+                                    <span class="help-kbd">below 21</span>
+                                    signals the stock's range has contracted
+                                    sharply — the classic "volatility squeeze"
+                                    that often precedes an expansion move (a
+                                    breakout or breakdown).
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong>RMV_15</strong> — shortest
+                                        lookback, reacts fastest to a
+                                        tightening range this week.
+                                    </li>
+                                    <li>
+                                        <strong>RMV_21 / RMV_42</strong> —
+                                        medium and longer lookbacks. All three
+                                        low together = contraction confirmed
+                                        across multiple timeframes, not just a
+                                        one-week lull.
+                                    </li>
+                                    <li>
+                                        Set Max = 21 (or lower, e.g. 15) on
+                                        RMV_21 to isolate stocks in genuine
+                                        contraction. Combine with Narrow Range
+                                        ≥ 3 and RS Total Min = 300 to find
+                                        low-volatility bases inside an
+                                        existing uptrend — prime VCP-style
+                                        setups.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📈 RS Trend Filters (RS_Trend_5 /
+                                    RS_Trend_10)
+                                </div>
+                                <p>
+                                    These checkboxes flag whether
+                                    <strong>RS Total</strong> today is above
+                                    its own highest value from the prior 5 (or
+                                    10) days — deliberately excluding the most
+                                    recent 5 (or 10) days from that comparison
+                                    window, so it isn't just comparing against
+                                    yesterday. A green up arrow means RS
+                                    momentum is freshly breaking out to a new
+                                    local high; a red down arrow means it
+                                    isn't. Tick <strong>RS_Trend_5</strong> for
+                                    a fast-reacting signal, or
+                                    <strong>RS_Trend_10</strong> for
+                                    confirmation over a slightly longer base.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🪜 Higher Low Structure Filter
+                                </div>
+                                <p>
+                                    <strong>Higher_Low_Structure</strong> is a
+                                    checkbox (1 = true / 0 = false) built from
+                                    the last month of price data split into 4
+                                    equal segments. It checks that each
+                                    segment's lowest low is progressively
+                                    higher than the low from two segments
+                                    earlier — with the 3rd and 4th (most
+                                    recent) segments always required to hold
+                                    the overall lowest low of the whole month.
+                                    Ticking this keeps only stocks whose
+                                    pullback lows have been stepping upward —
+                                    an orderly, incrementally higher structure
+                                    rather than a stock chopping around
+                                    randomly.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🔄 Advancing / Neutral / Declining Filter
+                                </div>
+                                <p>
+                                    <strong
+                                        >Advancing_Neutral_Declining</strong
+                                    >
+                                    is a multi-select dropdown with three
+                                    states:
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong>1 — Advancing</strong>: the
+                                        stock's accumulation phase is judged
+                                        complete and it is now positioned to
+                                        advance.
+                                    </li>
+                                    <li>
+                                        <strong>0 — Neutral</strong>: neither
+                                        clearly accumulating nor distributing.
+                                    </li>
+                                    <li>
+                                        <strong>-1 — Declining</strong>: the
+                                        stock is being distributed and is in
+                                        decline.
+                                    </li>
+                                </ul>
+                                <div class="help-tip" style="margin-top: 10px">
+                                    For buying candidates, select only
+                                    <strong>1 (Advancing)</strong> and
+                                    <strong>0 (Neutral)</strong> — the -1
+                                    (Declining) state should generally be
+                                    avoided when looking for new long entries.
+                                </div>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
                                     ✅ Checkbox Filters
                                 </div>
                                 <ul>
@@ -7108,7 +7304,120 @@
                                         clean trending moves — better setups
                                         than high RS with erratic price action.
                                     </li>
+                                    <li>
+                                        <strong>3 Months RS</strong> — the
+                                        individual 3-month RS score, 0–100,
+                                        sitting between the 2M and 4M scores.
+                                        Green ≥ 95, amber ≥ 80, same bands as
+                                        the other timeframe RS columns.
+                                    </li>
+                                    <li>
+                                        <strong>3 Months Chng%</strong> — raw
+                                        price change over the last 3 months.
+                                        Green = positive, red = negative. Pairs
+                                        with 3 Months RS to show whether that
+                                        change is also strong relative to the
+                                        rest of the market.
+                                    </li>
                                 </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📐 Daily Closing Range (DCR_1 / DCR_5 /
+                                    DCR_10 / DCR_15)
+                                </div>
+                                <p>
+                                    Each shows, as a 0–100% value, how close
+                                    the stock closed to the top of its
+                                    high-low range — averaged over 1, 5, 10,
+                                    or 15 days depending on the column.
+                                    <strong>Higher is better</strong>: a
+                                    reading near 100 means the stock has been
+                                    closing right at (or near) its daily high,
+                                    a sign of persistent buying pressure into
+                                    the close; a reading near 0 means it kept
+                                    closing near the daily low, a sign sellers
+                                    were in control. Compare the short (DCR_1)
+                                    and longer (DCR_10/DCR_15) columns
+                                    together — a jump in DCR_1 on an otherwise
+                                    average DCR_15 flags today specifically as
+                                    a strong-close day.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📉 Relative Measured Volatility (RMV_15 /
+                                    RMV_21 / RMV_42)
+                                </div>
+                                <p>
+                                    Each column measures the stock's
+                                    volatility over the last 15, 21, or 42
+                                    days — deliberately excluding today — and
+                                    compares it against the stock's own
+                                    longer-run volatility, expressed 0–100%.
+                                    <strong>Lower is better</strong>: values
+                                    generally
+                                    <span class="help-kbd">below 21</span>
+                                    indicate a genuine volatility contraction
+                                    (a "squeeze"), which historically often
+                                    precedes a sharp expansion move. Low RMV_15,
+                                    RMV_21, and RMV_42 together mean the
+                                    contraction is holding across multiple
+                                    timeframes, not just a one-off quiet day.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📈 RS Trend (RS_Trend_5 / RS_Trend_10)
+                                </div>
+                                <p>
+                                    Displayed as an up/down arrow, colour-coded
+                                    green/red. It shows whether
+                                    <strong>RS Total</strong> today is above its
+                                    own highest value from the prior 5 (or 10)
+                                    trading days — excluding the most recent 5
+                                    (or 10) days from that lookback, so it's
+                                    comparing against an older high-water mark
+                                    rather than just yesterday. A green up
+                                    arrow flags fresh RS momentum breaking to a
+                                    new local high; a red down arrow means RS
+                                    is still below that prior high.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🪜 Higher Low Structure
+                                </div>
+                                <p>
+                                    A ✓ / ✕ column (1 = true, 0 = false).
+                                    Built by splitting the last month of price
+                                    data into 4 equal segments and checking
+                                    that each segment's lowest low sits above
+                                    the low from two segments earlier, with
+                                    the 3rd and 4th (most recent) segments
+                                    required to hold the overall lowest low of
+                                    the month. A ✓ means the stock's pullback
+                                    lows have been forming a clean, orderly
+                                    step-up pattern over the last month.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🔄 Advancing / Neutral / Declining
+                                </div>
+                                <p>
+                                    A single-value column with three possible
+                                    states:
+                                    <strong>1 = Advancing</strong> (accumulation
+                                    phase judged complete, stock positioned to
+                                    move up),
+                                    <strong>0 = Neutral</strong> (no clear
+                                    accumulation or distribution signal), and
+                                    <strong>-1 = Declining</strong> (stock is
+                                    being distributed and trending down). When
+                                    looking for new long candidates, focus on
+                                    1 and 0 — treat -1 as a caution flag.
+                                </p>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
@@ -7416,12 +7725,18 @@
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
-                                    Individual timeframe scores (RS 1M / 2M / 4M
-                                    / 6M)
+                                    Individual timeframe scores (RS 1M / 2M / 3M
+                                    / 4M / 6M)
                                 </div>
                                 <p>
                                     Each timeframe score is ranked 0–100 across
-                                    the entire universe:
+                                    the entire universe. The
+                                    <strong>3 Months RS</strong> column sits
+                                    between the 2M and 4M scores and is
+                                    especially useful for spotting stocks whose
+                                    momentum is building specifically over a
+                                    quarter — the timeframe many quarterly
+                                    earnings-driven moves play out over:
                                 </p>
                                 <ul>
                                     <li>
@@ -9002,6 +9317,61 @@
                                             >⚙ Settings → Export Settings</span
                                         >
                                         to save all watchlists to a backup file.
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🌀 Volatility Contraction (VCP-style) Scan
+                                </div>
+                                <ol>
+                                    <li>
+                                        Set <strong>RMV_21 Max = 21</strong>
+                                        (and optionally RMV_15 Max = 21,
+                                        RMV_42 Max = 25) to isolate stocks
+                                        whose volatility has genuinely
+                                        contracted across multiple lookbacks.
+                                    </li>
+                                    <li>
+                                        Add
+                                        <strong>Higher_Low_Structure = 1</strong>
+                                        so the contraction is happening inside
+                                        an orderly step-up pattern, not random
+                                        chop.
+                                    </li>
+                                    <li>
+                                        Set
+                                        <strong>DCR_10 Min = 65–70</strong> to
+                                        confirm the stock has been closing
+                                        strong within its own range, not
+                                        drifting down to the lows during the
+                                        contraction.
+                                    </li>
+                                    <li>
+                                        Select
+                                        <strong
+                                            >Advancing_Neutral_Declining = 1
+                                            or 0</strong
+                                        >
+                                        to exclude names still under
+                                        distribution.
+                                    </li>
+                                    <li>
+                                        Tick <strong>RS_Trend_5</strong> and
+                                        set <strong>RS Total Min = 300</strong>
+                                        for a final trigger — this catches
+                                        the moment RS momentum starts breaking
+                                        to a new local high out of the
+                                        contraction, a common early signal for
+                                        an expansion move.
+                                    </li>
+                                    <li>
+                                        Optionally check
+                                        <strong>3 Months RS Min = 80</strong>
+                                        to confirm the underlying quarterly
+                                        trend was already strong before the
+                                        squeeze began.
                                     </li>
                                 </ol>
                             </div>
