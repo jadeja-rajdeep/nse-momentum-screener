@@ -12307,6 +12307,7 @@
                     "f_rs_trend_5",
                     "f_rs_trend_10",
                     "f_adv_enabled",
+                    "f_hl_structure"
                 ].forEach((id) => {
                     const el = document.getElementById(id);
                     if (el) el.checked = false;
@@ -14525,8 +14526,17 @@
                         f_afh9m_min: -26,
                         f_rvol_avg_3m_min: 0.9,
                         f_chg5d_min: -3,
+                        f_dcr5_min:50,
+                        f_dcr10_min:50,
+                        f_dcr15_min:50
                     },
-                    advQuery: "LIN_3M >= 0.65 OR LIN_1M >= 0.65",
+                    checkFilters: {
+                        f_hl_structure: true,
+                    },
+                    multiSelectFilters: {
+                        f_adv_decl: ["1","0"],
+                    },
+                    advQuery: '( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes") AND ( ( RMV_15 <= 50 AND RMV_21 <= 50 ) OR RMV_42 <= 50 )',
                 },
                 {
                     id: "reversal",
@@ -14548,8 +14558,17 @@
                         f_afh9m_min: -26,
                         f_rvol_avg_3m_min: 0.9,
                         f_chg5d_min: -3,
+                        f_dcr5_min:50,
+                        f_dcr10_min:50,
+                        f_dcr15_min:50
                     },
-                    advQuery: "LIN_3M >= 0.65 OR LIN_1M >= 0.65",
+                    checkFilters: {
+                        f_hl_structure: true,
+                    },
+                    multiSelectFilters: {
+                        f_adv_decl: ["1","0"],
+                    },
+                    advQuery: '( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes") AND ( ( RMV_15 <= 50 AND RMV_21 <= 50 ) OR RMV_42 <= 50 )',
                 },
                 {
                     id: "industry",
@@ -14569,9 +14588,17 @@
                         f_afh9m_min: -26,
                         f_rvol_avg_3m_min: 0.9,
                         f_chg5d_min: -3,
+                        f_dcr5_min:50,
+                        f_dcr10_min:50,
+                        f_dcr15_min:50
                     },
-                    advQuery:
-                        "( LIN_3M >= 0.65 OR LIN_1M >= 0.65 ) AND ( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 )",
+                    checkFilters: {
+                        f_hl_structure: true,
+                    },
+                    multiSelectFilters: {
+                        f_adv_decl: ["1","0"],
+                    },
+                    advQuery: '( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 ) AND ( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes") AND ( ( RMV_15 <= 50 AND RMV_21 <= 50 ) OR RMV_42 <= 50 )',
                 },
             ];
 
