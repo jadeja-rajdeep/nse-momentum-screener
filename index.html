@@ -14507,6 +14507,29 @@
             // Edit thresholds/logic here only — UI renders straight from this array.
             const SETUP_PRESETS = [
                 {
+                    id: "good_base",
+                    label: "Good Base",
+                    color: "#00ffff",
+                    description:
+                        "Base forming near highs",
+                    simpleFilters: {
+                        f_mcap_min: 500,
+                        f_to_min: 5,
+                        f_5dr_max: 15,
+                        f_bi_rank_pct: 30,
+                        f_afh9m_min: -26,
+                        f_chg5d_min: -3,
+                        f_dcr5_min:50,
+                        f_dcr10_min:50,
+                        f_dcr15_min:50
+                    },
+                    multiSelectFilters: {
+                        f_adv_decl: ["1","0"],
+                        f_priceband:["0","5","10","20"]
+                    },
+                    advQuery: '( ( AFH_2M >= -3 AND AFH_2M <= 6 ) OR ( AFH_3M >= -3 AND AFH_3M <= 6 ) OR ( AFH_4M >= -3 AND AFH_4M <= 6 ) OR ( AFH_5M >= -3 AND AFH_5M <= 6 ) OR ( AFH_6M >= -3 AND AFH_6M <= 6 ) OR ( AFH_9M >= -3 AND AFH_9M <= 6 )) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
+                },
+                {
                     id: "momentum",
                     label: "Momentum Pivot",
                     color: "#22c55e",
