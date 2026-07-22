@@ -12161,20 +12161,7 @@
                 document
                     .querySelectorAll("#filterGroups .filter-group")
                     .forEach((groupEl) => {
-                        let hasValue = filterGroupHasValue(groupEl);
-
-                        // Special-case: the Advanced Query group always has a
-                        // value in advOpSelect (default-selected option), which
-                        // would make filterGroupHasValue() always return true
-                        // even when Advanced Query isn't enabled. So for this
-                        // group, only treat it as "has value" if f_adv_enabled
-                        // is actually checked.
-                        const advEnabledEl = groupEl.querySelector("#f_adv_enabled");
-                        if (advEnabledEl) {
-                            hasValue = !!advEnabledEl.checked;
-                        }
-
-                        if (hasValue) {
+                        if (filterGroupHasValue(groupEl)) {
                             groupEl.classList.add("open");
                             const header = groupEl.querySelector(
                                 ".filter-group-header",
