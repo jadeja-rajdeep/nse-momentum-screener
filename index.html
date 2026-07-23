@@ -14519,6 +14519,7 @@
                         f_bi_rank_pct: 30,
                         f_afh9m_min: -26,
                         f_chg5d_min: -3,
+                        f_chg1m_max:15,
                         f_dcr5_min:50,
                         f_dcr10_min:50,
                         f_dcr15_min:50
@@ -14528,38 +14529,6 @@
                         f_priceband:["0","5","10","20"]
                     },
                     advQuery: '( ( AFH_2M >= -3 AND AFH_2M <= 6 ) OR ( AFH_3M >= -3 AND AFH_3M <= 6 ) OR ( AFH_4M >= -3 AND AFH_4M <= 6 ) OR ( AFH_5M >= -3 AND AFH_5M <= 6 ) OR ( AFH_6M >= -3 AND AFH_6M <= 6 ) OR ( AFH_9M >= -3 AND AFH_9M <= 6 )) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
-                },
-                {
-                    id: "momentum",
-                    label: "Momentum Pivot",
-                    color: "#22c55e",
-                    description:
-                        "Tight, low-volatility base forming near highs",
-                    simpleFilters: {
-                        f_rs_min: 360,
-                        f_mcap_min: 500,
-                        f_to_min: 5,
-                        f_5dr_max: 15,
-                        f_bi_rank_pct: 30,
-                        f_ind_rank_pct: 50,
-                        f_afh_0_5m_min: -3,
-                        f_afh_0_5m_max: 6,
-                        f_afh1m_min: -3,
-                        f_afh1m_max: 6,
-                        f_afh9m_min: -26,
-                        f_rvol_avg_3m_min: 0.9,
-                        f_chg5d_min: -3,
-                        f_dcr5_min:50,
-                        f_dcr10_min:50,
-                        f_dcr15_min:50
-                    },
-                    checkFilters: {
-                        f_hl_structure: true,
-                    },
-                    multiSelectFilters: {
-                        f_adv_decl: ["1","0"],
-                    },
-                    advQuery: '( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes") AND ( ( RMV_15 <= 50 AND RMV_21 <= 50 ) OR RMV_42 <= 50 )',
                 },
                 {
                     id: "reversal",
@@ -14576,6 +14545,7 @@
                         f_afh_0_5m_min: -3,
                         f_afh_0_5m_max: 6,
                         f_chg1m_min: 0,
+                        f_chg1m_max:15,
                         f_chg2m_min: 0,
                         f_chg6m_max: 10,
                         f_afh9m_min: -26,
@@ -14585,13 +14555,16 @@
                         f_dcr10_min:50,
                         f_dcr15_min:50
                     },
+                    /*
                     checkFilters: {
                         f_hl_structure: true,
                     },
+                     */
                     multiSelectFilters: {
                         f_adv_decl: ["1","0"],
+                        f_priceband:["0","5","10","20"]
                     },
-                    advQuery: '( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes") AND ( ( RMV_15 <= 50 AND RMV_21 <= 50 ) OR RMV_42 <= 50 )',
+                    advQuery: '( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
                 },
                 {
                     id: "industry",
@@ -14611,17 +14584,16 @@
                         f_afh9m_min: -26,
                         f_rvol_avg_3m_min: 0.9,
                         f_chg5d_min: -3,
+                        f_chg1m_max:15,
                         f_dcr5_min:50,
                         f_dcr10_min:50,
                         f_dcr15_min:50
                     },
-                    checkFilters: {
-                        f_hl_structure: true,
-                    },
                     multiSelectFilters: {
                         f_adv_decl: ["1","0"],
+                        f_priceband:["0","5","10","20"]
                     },
-                    advQuery: '( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 ) AND ( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes") AND ( ( RMV_15 <= 50 AND RMV_21 <= 50 ) OR RMV_42 <= 50 )',
+                    advQuery: '( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 ) AND ( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
                 },
             ];
 
