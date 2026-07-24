@@ -15606,60 +15606,6 @@
                 }
             }
 
-            // Remove any preset/saved-search entries from a snapshot's
-            // presets/saved maps that no longer exist (deleted by the user
-            // since the snapshot was written), keyed by id.
-            function pruneSnapshotGroups(snapshot) {
-                if (!snapshot) return false;
-                const validPresetIds = new Set(SETUP_PRESETS.map((p) => p.id));
-                const validSavedIds = new Set(
-                    loadSavedSearches().map((s) => s.id),
-                );
-                let changed = false;
-                if (snapshot.presets) {
-                    Object.keys(snapshot.presets).forEach((id) => {
-                        if (!validPresetIds.has(id)) {
-                            delete snapshot.presets[id];
-                            changed = true;
-                        }
-                    });
-                }
-                if (snapshot.saved) {
-                    Object.keys(snapshot.saved).forEach((id) => {
-                        if (!validSavedIds.has(id)) {
-                            delete snapshot.saved[id];
-                            changed = true;
-                        }
-                    });
-                }
-                return changed;
-            }
-
-            // Drop badge entries (by name) that belong to a preset/saved
-            // search that's since been deleted — badges are keyed by label,
-            // not id, so match against the current valid label/name sets.
-            function pruneBadgeMap(byCode) {
-                if (!byCode) return { byCode: {}, changed: false };
-                const validPresetLabels = new Set(
-                    SETUP_PRESETS.map((p) => p.label),
-                );
-                const validSavedNames = new Set(
-                    loadSavedSearches().map((s) => s.name),
-                );
-                let changed = false;
-                const cleaned = {};
-                Object.entries(byCode).forEach(([code, items]) => {
-                    const kept = items.filter((it) =>
-                        it.type === "preset"
-                            ? validPresetLabels.has(it.name)
-                            : validSavedNames.has(it.name),
-                    );
-                    if (kept.length !== items.length) changed = true;
-                    if (kept.length) cleaned[code] = kept;
-                });
-                return { byCode: cleaned, changed };
-            }
-
             // Entry point — called once from loadData() right after allData
             // is ready. currentDate is the data date shown in the 📅 badge.
             function runAlertBadgeCheck(currentDate) {
@@ -15676,33 +15622,17 @@
                     // Data date hasn't changed since we last computed this —
                     // just reuse the cached badges for rendering. No re-run,
                     // no popup (we already alerted the user for this date).
-                    // Also strip out any badges left over from presets or
-                    // saved searches the user has since deleted, and persist
-                    // the cleanup so it doesn't repeat every load.
                     const cached = loadAlertBadgesCache();
-                    const rawByCode =
+                    alertBadgeMap =
                         cached && cached.dataDate === currentDate
                             ? cached.byCode
                             : {};
-                    const { byCode: cleanedByCode, changed } =
-                        pruneBadgeMap(rawByCode);
-                    alertBadgeMap = cleanedByCode;
-                    if (changed) {
-                        saveAlertBadgesCache({
-                            dataDate: currentDate,
-                            byCode: cleanedByCode,
-                        });
-                    }
-                    if (pruneSnapshotGroups(prevSnapshot)) {
-                        saveAlertSnapshot(prevSnapshot);
-                    }
                     return;
                 }
 
                 // Data date changed (or this is the very first run ever) —
                 // recompute every preset & saved search and diff against
                 // whatever we had stored from the previous data date.
-                pruneSnapshotGroups(prevSnapshot);
                 const current = computeAlertWatchSets();
                 const byCode = {};
                 const summary = [];
