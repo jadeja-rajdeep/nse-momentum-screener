@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v52";
+const CACHE_VERSION = "nse-screener-v53";
 const DATA_CACHE = "nse-screener-data-v1";
 
 const STATIC_ASSETS = [
@@ -17,7 +17,10 @@ const STATIC_ASSETS = [
     "./index.html",
     "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
     "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap",
-    "./assets/img/og-image.png"
+    "./assets/img/og-image.png",
+    "./assets/img/favicon.svg",
+    "./assets/img/favicon-32.png",
+    "./assets/img/favicon.png"
 ];
 
 // ── Message: allow page to trigger SW update ─────────────────────────────────
