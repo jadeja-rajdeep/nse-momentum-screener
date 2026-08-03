@@ -11498,6 +11498,7 @@
                 const todayDow = new Date(todayIst + "T00:00:00").getDay(); // 0=Sun, 6=Sat
                 const isSaturday = todayDow === 6;
                 const isSunday = todayDow === 0;
+                const isMonday = todayDow === 1;
                 const isWorkingDay = todayDow >= 1 && todayDow <= 5; // Mon to Fri
                 const beforePublish = hourIst < NSE_PUBLISH_HOUR_IST;
 
@@ -11544,13 +11545,17 @@
                     const isSundayOlderPrePublish =
                         isSunday && dayGap >= 3 && beforePublish;
 
+                    //Monday-specific: Last Data on Friday and before publish time always true.
+                    const isMondayFriday = isMonday && dayGap >= 3 && beforePublish;
+
                     const canServeFromCache =
                         isToday ||
                         isOlderButPrePublish ||
                         isSaturdayFriday ||
                         isSaturdayOlderPrePublish ||
                         isSundayFriday ||
-                        isSundayOlderPrePublish;
+                        isSundayOlderPrePublish ||
+                        isMondayFriday;
 
                     if (!canServeFromCache) return null;
 
