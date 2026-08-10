@@ -13641,12 +13641,13 @@
 
                 const basicIndustry = stock["Basic Industry"] || "";
                 const industry = stock["Industry"] || "";
+                const sector = stock["Sector"] || "";
 
                 // Title
                 document.getElementById("peerModalTitle").textContent =
                     `⚡ ${stock.Code} — ${stock.Name}`;
                 document.getElementById("peerModalMeta").textContent =
-                    `${stock["Macro Economic Sector"] || ""} › ${industry} › ${basicIndustry}`;
+                    `${stock["Macro Economic Sector"] || ""} › ${sector} › ${industry} › ${basicIndustry}`;
 
                 // Build two peer lists
                 const basicPeers = allData.filter(
