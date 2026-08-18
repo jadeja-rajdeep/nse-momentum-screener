@@ -11098,6 +11098,13 @@
                                     data-cpath="volume.maLength"
                                 />
                             </div>
+                            <div class="chart-field">
+                                <label>MA Color</label>
+                                <input
+                                    type="color"
+                                    data-cpath="volume.maColor"
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -13414,6 +13421,7 @@
                     volume: {
                         enabled: true,
                         maLength: 50,
+                        maColor: "#0080ff",
                     },
                     // 6 fixed moving-average slots, each independently
                     // configurable and toggleable.
@@ -18230,6 +18238,9 @@
                     case "ohlc4":
                         return (candle.open + candle.high + candle.low + candle.close) / 4;
 
+                    case "volume":
+                        return candle.v;
+
                     default:
                         return candle.close;
                 }
@@ -18305,7 +18316,7 @@
                 const thead=document.querySelector('#mainTable > thead').getBoundingClientRect().height;
                 const pagebar=document.querySelector('#pagBar').getBoundingClientRect().height;
                 const footer=document.querySelector('footer').getBoundingClientRect().height;
-                return header+statusbar+thead+pagebar+footer+10;//10px extra
+                return header+statusbar+thead+pagebar+footer+25;//20px extra
             }
 
             function generateThumbnailChart() {
@@ -18446,44 +18457,67 @@
                             );
                             chartSeries.setData(data.slice(-180));
 
-                            let chartSeriesVolume = thumbCharts[isin].addSeries(
-                                LightweightCharts.HistogramSeries,
-                                {
-                                    title2: "Volume",
-                                    crosshairMarkerVisible: false,
-                                    lastValueVisible: false,
-                                    priceLineVisible: false,
-                                    priceFormat: { type: "volume" },
-                                    priceScaleId: "volume",
+                            if(chartSettings.volume.enabled==true){
+                                let chartSeriesVolume = thumbCharts[isin].addSeries(
+                                    LightweightCharts.HistogramSeries,
+                                    {
+                                        title: "Volume",
+                                        title2: "Volume",
+                                        crosshairMarkerVisible: false,
+                                        lastValueVisible: false,
+                                        priceLineVisible: false,
+                                        priceFormat: { type: "volume" },
+                                        priceScaleId: "volume",
+                                        scaleMargins: {
+                                            top: 0.8,
+                                            bottom: 0,
+                                        },
+                                    },
+                                );
+
+                                const volumeData = data.map((item) => ({
+                                    time: item.time,
+                                    value: item.v,
+                                    color:
+                                        item.close >= item.open
+                                            ? "rgba(38, 166, 154, 0.6)"
+                                            : "rgba(239, 83, 80, 0.6)",
+                                }));
+                                chartSeriesVolume.setData(volumeData.slice(-180));
+
+                                chartSeriesVolume.priceScale().applyOptions({
                                     scaleMargins: {
                                         top: 0.8,
                                         bottom: 0,
                                     },
-                                },
-                            );
-                            const volumeData = data.map((item) => ({
-                                time: item.time,
-                                value: item.v,
-                                color:
-                                    item.close >= item.open
-                                        ? "rgba(38, 166, 154, 0.6)"
-                                        : "rgba(239, 83, 80, 0.6)",
-                            }));
-                            chartSeriesVolume.setData(volumeData.slice(-180));
-
-                            chartSeriesVolume.priceScale().applyOptions({
-                                scaleMargins: {
-                                    top: 0.8,
-                                    bottom: 0,
-                                },
-                            });
-
-                            thumbCharts[isin]
-                                .priceScale("volume")
-                                .applyOptions({
-                                    scaleMargins: { top: 0.8, bottom: 0 },
-                                    visible: false,
                                 });
+
+                                thumbCharts[isin]
+                                    .priceScale("volume")
+                                    .applyOptions({
+                                        scaleMargins: { top: 0.8, bottom: 0 },
+                                        visible: false,
+                                    });
+
+                                if(chartSettings.volume.maLength>0){
+                                    let chartSeriesVolumeSma = thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
+                                        title2: 'SMA'+chartSettings.volume.maLength.toString(),
+                                        title2: 'SMA'+chartSettings.volume.maLength.toString(),
+                                        color: chartSettings.volume.maColor,
+                                        lineWidth: 1,
+                                        crosshairMarkerVisible: false,
+                                        lastValueVisible: false,
+                                        priceLineVisible: false,
+                                        priceFormat: { type: "volume" },
+                                        priceScaleId: "volume",
+                                        scaleMargins: {
+                                            top: 0.8,
+                                            bottom: 0,
+                                        },
+                                    });
+                                    chartSeriesVolumeSma.setData(calculateSMA(data, chartSettings.volume.maLength,"volume").slice(-180));
+                                }
+                            }
 
                             let maSeries=[];
                             chartSettings.ma.forEach((ma,index)=>{
