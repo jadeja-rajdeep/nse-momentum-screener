@@ -12987,6 +12987,18 @@
                 sortData();
                 currentPage = 1;
                 updateStats();
+
+                if (document.readyState === "loading") {
+                    // Page is not loaded yet — wait until DOM is ready
+                    document.addEventListener("DOMContentLoaded", ()=>{
+                        renderPage();
+                        renderPagination();
+                        const cv = loadColumnVisibility();
+                        applyColumnVisibility(cv);
+                    }, { once: true });
+                    return;
+                }
+
                 renderPage();
                 renderPagination();
                 const cv = loadColumnVisibility();
@@ -13334,7 +13346,7 @@
                     });
                 localStorage.setItem(CV_KEY, JSON.stringify(visibility));
                 closeColumnModal();
-                renderPage();
+                //renderPage();
                 applyColumnVisibility(visibility);
             }
 
@@ -14200,10 +14212,15 @@
                     })
                     .join("");
 
-                //calling thumnail chart function
-                if (chartSettings.enabled == true) {
-                    generateThumbnailChart();
-                }
+                    //calling thumnail chart function
+                    //DELAY the calculation until the DOM is actually injected and ready
+                    requestAnimationFrame(() => {
+                        // This runs AFTER the browser accepts the new HTML layout
+                        if (chartSettings.enabled == true) {
+                            generateThumbnailChart();
+                        }
+                    });
+
             }
 
             // ============ STATS ============
@@ -14530,9 +14547,9 @@
                 const names = lists.map((wl) => wl.name);
                 mselSetOptions("f_watchlist", names);
                 renderWatchlistPanel();
-                renderPage(); // re-render current page so star icons reflect latest state
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
+                //renderPage(); // re-render current page so star icons reflect latest state
+                // const cv = loadColumnVisibility();
+                // applyColumnVisibility(cv);
             }
 
             // ---- Star click → popover ----
@@ -14596,9 +14613,15 @@
                     const lists = loadWatchlists();
                     const wl = lists.find((w) => w.id === id);
                     if (!wl) return;
+                    const span = document.querySelector(`span[data-wl-code="${wlPopoverActiveCode}"]`);
                     if (cb.checked) {
-                        if (!wl.codes.includes(wlPopoverActiveCode))
+                        if (!wl.codes.includes(wlPopoverActiveCode)){
                             wl.codes.push(wlPopoverActiveCode);
+                            if (span) {
+                                span.textContent="★";
+                                span.classList.add("in-watchlist");
+                            }
+                        }
                     } else {
                         wl.codes = wl.codes.filter(
                             (c) => c !== wlPopoverActiveCode,
@@ -14606,6 +14629,14 @@
                     }
                     saveWatchlists(lists);
                     refreshWatchlistUI();
+
+                    //if its not in any watchlist then update the star and remove the in-watchlist class
+                    if(!isInAnyWatchlist(wlPopoverActiveCode)){
+                        if (span) {
+                            span.textContent="☆";
+                            span.classList.remove("in-watchlist");
+                        }
+                    }
                 });
 
             function wlPopoverCreateAndAdd() {
@@ -14719,6 +14750,17 @@
                 const lists = loadWatchlists().filter((wl) => !ids.has(wl.id));
                 saveWatchlists(lists);
                 refreshWatchlistUI();
+
+                //remove watchlist star selection from the current table records in ui.
+                document.querySelectorAll("span.wl-star").forEach((el,index)=>{
+                    const code=el.dataset.wlCode;
+                    if(!isInAnyWatchlist(code)){
+                        if (el) {
+                            el.textContent="☆";
+                            el.classList.remove("in-watchlist");
+                        }
+                    }
+                });
             }
 
             function createWatchlistPrompt() {
@@ -14774,6 +14816,17 @@
                 wl.codes = [];
                 saveWatchlists(lists);
                 refreshWatchlistUI();
+
+                //remove watchlist star selection from the current table records in ui.
+                document.querySelectorAll("span.wl-star").forEach((el,index)=>{
+                    const code=el.dataset.wlCode;
+                    if(!isInAnyWatchlist(code)){
+                        if (el) {
+                            el.textContent="☆";
+                            el.classList.remove("in-watchlist");
+                        }
+                    }
+                });
             }
 
             // Run this single watchlist as the active table filter (sets the
@@ -14831,6 +14884,14 @@
                 });
                 saveWatchlists(lists);
                 refreshWatchlistUI();
+                //update all the current records watchlist star.
+                document.querySelectorAll("span.wl-star").forEach((el,index)=>{
+                    const code=el.dataset.wlCode;
+                    if (el) {
+                        el.textContent="★";
+                        el.classList.add("in-watchlist");
+                    }
+                });
                 alert(
                     `Added ${added} new stock${added !== 1 ? "s" : ""} to "${target.name}" (${target.codes.length} total).`,
                 );
@@ -18312,11 +18373,14 @@
 
             function calculateChartHeight(){
                 const header=document.querySelector('.site-header').getBoundingClientRect().height;
+                const multibanner=document.querySelector('#multiBanner').getBoundingClientRect().height;
                 const statusbar=document.querySelector('#statsBar').getBoundingClientRect().height;
                 const thead=document.querySelector('#mainTable > thead').getBoundingClientRect().height;
                 const pagebar=document.querySelector('#pagBar').getBoundingClientRect().height;
                 const footer=document.querySelector('footer').getBoundingClientRect().height;
-                return header+statusbar+thead+pagebar+footer+25;//20px extra
+                let extra=25;
+                if(screenWidth<=768) extra=15;
+                return header+multibanner+statusbar+thead+pagebar+footer+extra;
             }
 
             function generateThumbnailChart() {
@@ -18327,7 +18391,6 @@
                 }
 
                 const chartSettings=getChartSettings();
-                console.log(chartSettings);
 
                 document
                     .querySelectorAll(".thumb-chart")
@@ -18552,31 +18615,41 @@
                     });
             }
 
-            window.addEventListener("resize", (event) => {
-                let screenWidth = window.innerWidth;
-                let screenHeight = window.innerHeight;
+            function resizeThumbnailChart(){
+                const chartSettings=getChartSettings();
+                if(chartSettings.enabled==true){
+                    let screenWidth = window.innerWidth;
+                    let screenHeight = window.innerHeight;
 
-                for (const key in thumbCharts) {
-                    const chartDiv=document.querySelector(`[data-isin="${key}"]`);
-                    const currentTr = chartDiv.closest("tr");
-                    const previousTr = currentTr
-                        ? currentTr.previousElementSibling
-                        : null;
-                    const previousTrHeight=previousTr.getBoundingClientRect().height;
+                    for (const key in thumbCharts) {
+                        const chartDiv=document.querySelector(`[data-isin="${key}"]`);
+                        const currentTr = chartDiv.closest("tr");
+                        const previousTr = currentTr
+                            ? currentTr.previousElementSibling
+                            : null;
+                        const previousTrHeight=previousTr.getBoundingClientRect().height;
 
-                    let chartWidth =
-                        Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
-                    let otherHeight=calculateChartHeight();
-                    /*
-                    let chartHeight = Math.round(
-                        Math.min(chartWidth / 1.8, screenHeight - (otherHeight + previousTrHeight)),
-                    );
-                    */
-                    let chartHeight = Math.round(screenHeight - (otherHeight + previousTrHeight));
+                        let chartWidth =
+                            Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
+                        let otherHeight=calculateChartHeight();
+                        /*
+                        let chartHeight = Math.round(
+                            Math.min(chartWidth / 1.8, screenHeight - (otherHeight + previousTrHeight)),
+                        );
+                        */
+                        let chartHeight = Math.round(screenHeight - (otherHeight + previousTrHeight));
 
-                    thumbCharts[key].resize(chartWidth, chartHeight, true);
-                    thumbCharts[key].timeScale().fitContent();
+                        thumbCharts[key].resize(chartWidth, chartHeight, true);
+                        thumbCharts[key].timeScale().fitContent();
+                    }
                 }
+            }
+
+            window.addEventListener("resize", (event) => {
+                requestAnimationFrame(() => {
+                    // This runs AFTER the browser accepts the new HTML layout
+                    resizeThumbnailChart();
+                });
             });
 
             // ============ INIT ============
@@ -18602,6 +18675,7 @@
                         window.open(url, "_blank", "noopener");
                     }
                 });
+
             loadData();
             renderSavedList();
             mselUpdateTrigger("f_priceband"); // sync trigger label for the static HTML checkboxes
