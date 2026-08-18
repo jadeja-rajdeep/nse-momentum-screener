@@ -1,0 +1,565 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fast Candle Chart — Demo</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;margin:24px;color:#222}
+  h1{font-size:16px}
+  .card{max-width:760px;border:1px solid #eee;border-radius:8px;padding:12px;margin-bottom:24px}
+  .read{font-size:12.5px;margin-bottom:6px;min-height:16px}
+  .hint{font-size:12px;color:#8a929c;margin-top:6px}
+</style>
+</head>
+<body>
+  <h1>fast-candle-chart.js demo</h1>
+  <div class="card">
+    <div class="read" id="read1"></div>
+    <div id="chart1"></div>
+    <div class="hint">Scroll to zoom · drag to pan · move mouse for crosshair</div>
+  </div>
+  <div class="card">
+    <div id="chart2"></div>
+    <div class="hint">Compact / thumbnail mode (no axes, no crosshair) — used in cards/lists</div>
+  </div>
+
+<script>
+/*!
+ * fast-candle-chart.js
+ * A lightweight, dependency-free, canvas-based candlestick chart engine.
+ *
+ * Why this exists: the SVG version in app.js (candleChart) re-builds one giant
+ * innerHTML string on every redraw/hover. That's fine for a handful of static
+ * cards, but it doesn't scale to interactive zoom/pan/crosshair on a full
+ * chart — every mousemove was re-writing a few hundred DOM nodes.
+ *
+ * This engine instead:
+ *   - Renders candles/volume/MAs/boxes on ONE canvas layer, redrawn only when
+ *     data or the visible range actually change (not on every mousemove).
+ *   - Renders the crosshair + OHLC readout on a SEPARATE, tiny overlay canvas,
+ *     redrawn every frame via requestAnimationFrame while the pointer moves.
+ *   - Uses devicePixelRatio-aware canvases so it's crisp on retina without
+ *     drawing more geometry than needed.
+ *   - Exposes a small plugin/overlay system so callers can add their own
+ *     drawing (base boxes, squat markers, breakout arrows, RS line, etc.)
+ *     without touching the core — same visual vocabulary as the old
+ *     candleChart, just pluggable instead of hardcoded.
+ *   - Ships an adapter, `candleChartFast(bars, opts)`, with the SAME
+ *     call signature as the existing `candleChart(bars, opts)` so it can be
+ *     swapped in with a one-line change at call sites.
+ *
+ * No dependencies. No build step. ~500 lines, single file.
+ */
+(function (global) {
+  "use strict";
+
+  const DPR = () => Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  // ---- moving averages (same math as app.js, kept local so this file has no deps) ----
+  function sma(cs, n) {
+    const o = new Array(cs.length).fill(null);
+    let s = 0;
+    for (let i = 0; i < cs.length; i++) { s += cs[i]; if (i >= n) s -= cs[i - n]; if (i >= n - 1) o[i] = s / n; }
+    return o;
+  }
+  function ema(cs, n) {
+    const o = new Array(cs.length).fill(null), k = 2 / (n + 1);
+    let e = null;
+    for (let i = 0; i < cs.length; i++) { e = e == null ? cs[i] : cs[i] * k + e * (1 - k); if (i >= n - 1) o[i] = e; }
+    return o;
+  }
+
+  class FastCandleChart {
+    /**
+     * @param {HTMLElement} container
+     * @param {Object} opts
+     *   bars: [{d,o,h,l,c,v}]           required, ascending by date
+     *   height: number                  px, default 340 (or 170 if compact)
+     *   compact: bool                   thumbnail mode: no axes/crosshair/volume-scale labels
+     *   theme: {up,down,grid,text,bg}   colors, all optional
+     *   lines: [{y,label,color,right}]  horizontal reference levels (pivot, stop, etc.)
+     *   ma: [{period,type:'sma'|'ema',color}]   overlays computed from close price
+     *   overlays: [(ctx,view)=>void]    custom draw functions, called after core render
+     *   volume: bool                    default true
+     *   onHover: (bar,index)=>void      fired on crosshair move (and on leave with null)
+     *   readoutEl: HTMLElement          if set, engine writes an OHLC line into it itself
+     */
+    constructor(container, opts) {
+      this.el = container;
+      this.opts = Object.assign({
+        compact: false, volume: true, height: null,
+        theme: { up: "#1a8a4a", down: "#d2392f", grid: "#f1f3f5", text: "#9aa3ad",
+                 volUp: "#cfe7d8", volDown: "#f1d4d1", cross: "#334155", panel: "#334155" }
+      }, opts || {});
+      this.bars = opts.bars || [];
+      this.overlays = (opts.overlays || []).slice();
+      this._view = { a: 0, b: this.bars.length };      // visible index range [a,b)
+      this._raf = null;
+      this._buildDom();
+      this._bindEvents();
+      this._computeMAs();
+      this.resize();
+    }
+
+    // ---------------------------------------------------------------- DOM --
+    _buildDom() {
+      const wrap = document.createElement("div");
+      wrap.className = "fcc-wrap";
+      wrap.style.cssText = "position:relative;width:100%;user-select:none;touch-action:none;";
+      const h = this.opts.height || (this.opts.compact ? 170 : 340);
+      wrap.style.height = h + "px";
+
+      this.base = document.createElement("canvas");
+      this.overlay = document.createElement("canvas");
+      [this.base, this.overlay].forEach((c, i) => {
+        c.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;display:block;";
+        c.style.zIndex = String(i);
+      });
+      this.overlay.style.cursor = "crosshair";
+      wrap.appendChild(this.base);
+      wrap.appendChild(this.overlay);
+      this.el.appendChild(wrap);
+      this.wrap = wrap;
+      this.bctx = this.base.getContext("2d");
+      this.octx = this.overlay.getContext("2d");
+    }
+
+    // ---------------------------------------------------------------- MAs --
+    _computeMAs() {
+      const closes = this.bars.map(b => b.c);
+      this._maSeries = (this.opts.ma || []).map(m => ({
+        color: m.color || "#2563eb",
+        width: m.width || 1.4,
+        values: (m.type === "ema" ? ema : sma)(closes, m.period)
+      }));
+    }
+
+    // ------------------------------------------------------------ sizing --
+    resize() {
+      const rect = this.wrap.getBoundingClientRect();
+      const w = Math.max(40, Math.round(rect.width));
+      const h = Math.max(40, Math.round(rect.height));
+      if (this._cssW === w && this._cssH === h) { this._layout(); this.render(); return; }
+      this._cssW = w; this._cssH = h;
+      const dpr = DPR();
+      [this.base, this.overlay].forEach(c => {
+        c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+      });
+      this.bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this.octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this._layout();
+      this.render();
+    }
+
+    _layout() {
+      const compact = this.opts.compact, W = this._cssW, H = this._cssH;
+      const padT = compact ? 8 : 16, padB = compact ? 16 : 30;
+      const volH = this.opts.volume ? (compact ? 16 : 38) : 0;
+      const pl = compact ? 4 : 8, pr = compact ? 6 : 54;
+      this.L = { W, H, padT, padB, volH, pl, pr,
+        yTop: padT, yBot: H - padB - volH, vy0: H - padB };
+    }
+
+    // ------------------------------------------------------------- data ---
+    setData(bars) {
+      this.bars = bars || [];
+      this._view = { a: 0, b: this.bars.length };
+      this._computeMAs();
+      this.render();
+    }
+    setOptions(opts) {
+      Object.assign(this.opts, opts || {});
+      if (opts && opts.ma) this._computeMAs();
+      this.render();
+    }
+    addOverlay(fn) { this.overlays.push(fn); return this; }
+    zoomTo(a, b) {
+      const n = this.bars.length;
+      a = clamp(Math.round(a), 0, n - 1); b = clamp(Math.round(b), a + 5, n);
+      this._view = { a, b }; this.render();
+    }
+    resetZoom() { this._view = { a: 0, b: this.bars.length }; this.render(); }
+
+    // ---------------------------------------------------------- scales ----
+    _scales() {
+      const { a, b } = this._view;
+      const vis = this.bars.slice(a, b);
+      const n = vis.length || 1;
+      const L = this.L;
+      const slot = (L.W - L.pl - L.pr) / n;
+      const cw = Math.max(1, Math.min(13, slot * 0.72));
+      const x = i => L.pl + slot * (i + 0.5);          // i is index WITHIN vis
+      const lo = Math.min(...vis.map(bar => bar.l));
+      const hi = Math.max(...vis.map(bar => bar.h));
+      const extraVals = (this.opts.lines || []).map(l => l.y).filter(v => v != null);
+      const lo2 = Math.min(lo, ...(extraVals.length ? extraVals : [lo]));
+      const hi2 = Math.max(hi, ...(extraVals.length ? extraVals : [hi]));
+      const span = (hi2 - lo2) || 1;
+      const padHi = hi2 + span * 0.06, padLo = Math.max(0, lo2 - span * 0.06);
+      const y = v => L.yTop + (L.yBot - L.yTop) * (1 - (v - padLo) / (padHi - padLo));
+      const vmax = Math.max(1, ...vis.map(bar => bar.v || 0));
+      return { a, b, vis, n, slot, cw, x, y, padLo, padHi, vmax };
+    }
+
+    // ---------------------------------------------------------- render ----
+    render() {
+      const ctx = this.bctx, L = this.L, th = this.opts.theme, compact = this.opts.compact;
+      ctx.clearRect(0, 0, L.W, L.H);
+      if (!this.bars.length) return;
+      const S = this._scales(); this._S = S;
+
+      this._drawAxes(ctx, S, th, compact);
+      (this.opts.lines || []).forEach(l => this._drawLevel(ctx, S, l));
+      if (this.opts.volume) this._drawVolume(ctx, S, th);
+      this._drawCandles(ctx, S, th);
+      this._maSeries.forEach(m => this._drawLine(ctx, S, m));
+      // custom overlays (base boxes, markers, breakout arrows, RS line, ...)
+      this.overlays.forEach(fn => { try { fn(ctx, { S, L, bars: this.bars, opts: this.opts }); } catch (e) { /* one bad overlay shouldn't kill the chart */ } });
+    }
+
+    _drawAxes(ctx, S, th, compact) {
+      const L = this.L, plotW = L.W - L.pl - L.pr;
+      const maxL = Math.max(3, Math.floor(plotW / 78));
+      const step = Math.max(1, Math.ceil(S.n / maxL));
+      ctx.font = "10.5px -apple-system,BlinkMacSystemFont,sans-serif";
+      ctx.fillStyle = th.text; ctx.strokeStyle = th.grid; ctx.lineWidth = 1;
+      let lastX = -1e9;
+      for (let i = 0; i < S.n; i += step) {
+        const bar = S.vis[i], xx = S.x(i);
+        if (xx - lastX < 40) continue; lastX = xx;
+        ctx.beginPath(); ctx.moveTo(xx, L.yTop); ctx.lineTo(xx, L.vy0); ctx.stroke();
+        const d = bar.d;
+        const label = `${+d.slice(8, 10)} ${MON[+d.slice(5, 7) - 1]}`;
+        const anc = xx < L.pl + 24 ? "left" : xx > L.W - L.pr - 24 ? "right" : "center";
+        ctx.textAlign = anc === "center" ? "center" : anc === "left" ? "start" : "end";
+        ctx.fillText(label, xx, L.H - 8);
+      }
+      if (!compact) {
+        for (let k = 0; k <= 3; k++) {
+          const v = S.padLo + (S.padHi - S.padLo) * k / 3, yy = S.y(v);
+          ctx.strokeStyle = "#f6f7f8";
+          ctx.beginPath(); ctx.moveTo(L.pl, yy); ctx.lineTo(L.W - L.pr, yy); ctx.stroke();
+          ctx.fillStyle = th.text; ctx.textAlign = "left";
+          ctx.fillText("₹" + Math.round(v).toLocaleString("en-IN"), L.W - L.pr + 4, yy + 3);
+        }
+      }
+    }
+
+    _drawLevel(ctx, S, l) {
+      const L = this.L, yy = S.y(l.y), col = l.color || "#1a8a4a";
+      ctx.save();
+      ctx.strokeStyle = col; ctx.lineWidth = 1.1; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(L.pl, yy); ctx.lineTo(L.W - L.pr, yy); ctx.stroke();
+      ctx.setLineDash([]);
+      if (l.label) {
+        ctx.fillStyle = col; ctx.font = "600 11px -apple-system,BlinkMacSystemFont,sans-serif";
+        ctx.textAlign = l.right ? "right" : "left";
+        ctx.fillText(l.label, l.right ? L.W - L.pr : L.pl + 2, yy - 5);
+      }
+      ctx.restore();
+    }
+
+    _drawVolume(ctx, S, th) {
+      const L = this.L;
+      for (let i = 0; i < S.n; i++) {
+        const bar = S.vis[i], up = bar.c >= bar.o;
+        const h = (bar.v || 0) / S.vmax * L.volH;
+        ctx.fillStyle = up ? th.volUp : th.volDown;
+        ctx.fillRect(S.x(i) - S.cw / 2, L.vy0 - h, S.cw, h);
+      }
+    }
+
+    _drawCandles(ctx, S, th) {
+      for (let i = 0; i < S.n; i++) {
+        const bar = S.vis[i], up = bar.c >= bar.o, col = up ? th.up : th.down;
+        const xc = S.x(i), yo = S.y(bar.o), yc = S.y(bar.c);
+        const top = Math.min(yo, yc), bh = Math.max(0.8, Math.abs(yc - yo));
+        ctx.strokeStyle = col; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(xc, S.y(bar.h)); ctx.lineTo(xc, S.y(bar.l)); ctx.stroke();
+        ctx.fillStyle = col;
+        ctx.fillRect(xc - S.cw / 2, top, S.cw, bh);
+      }
+    }
+
+    _drawLine(ctx, S, series) {
+      ctx.strokeStyle = series.color; ctx.lineWidth = series.width; ctx.lineJoin = "round";
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i < S.n; i++) {
+        const v = series.values[S.a + i];
+        if (v == null) { started = false; continue; }
+        const xx = S.x(i), yy = S.y(v);
+        if (!started) { ctx.moveTo(xx, yy); started = true; } else ctx.lineTo(xx, yy);
+      }
+      ctx.stroke();
+    }
+
+    // --------------------------------------------------------- crosshair --
+    _drawCrosshair(sx, sy) {
+      const ctx = this.octx, L = this.L, S = this._S;
+      ctx.clearRect(0, 0, L.W, L.H);
+      if (!S || this.opts.compact) return;
+      let i = clamp(Math.round((sx - L.pl) / S.slot - 0.5), 0, S.n - 1);
+      const bar = S.vis[i]; if (!bar) return;
+      const xc = S.x(i), cy = clamp(sy, L.yTop, L.yBot);
+      const price = S.padLo + (S.padHi - S.padLo) * (1 - (cy - L.yTop) / (L.yBot - L.yTop));
+
+      ctx.save();
+      ctx.strokeStyle = "#9aa3ad"; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(xc, L.yTop); ctx.lineTo(xc, L.yBot); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(L.pl, cy); ctx.lineTo(L.W - L.pr, cy); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // price tag (right edge)
+      const priceTxt = "₹" + (price >= 100 ? Math.round(price).toLocaleString("en-IN") : price.toFixed(1));
+      ctx.font = "700 10px -apple-system,BlinkMacSystemFont,sans-serif";
+      const pw = ctx.measureText(priceTxt).width + 8;
+      ctx.fillStyle = this.opts.theme.panel;
+      ctx.fillRect(L.W - L.pr, cy - 7.5, pw, 15);
+      ctx.fillStyle = "#fff"; ctx.textAlign = "left";
+      ctx.fillText(priceTxt, L.W - L.pr + 4, cy + 3);
+
+      // date tag (bottom)
+      const dateTxt = `${+bar.d.slice(8, 10)} ${MON[+bar.d.slice(5, 7) - 1]} '${bar.d.slice(2, 4)}`;
+      const dw = 56, dxc = clamp(xc, L.pl + dw / 2, L.W - L.pr - dw / 2);
+      ctx.fillStyle = this.opts.theme.panel;
+      ctx.fillRect(dxc - dw / 2, L.H - 15, dw, 14);
+      ctx.fillStyle = "#fff"; ctx.textAlign = "center";
+      ctx.fillText(dateTxt, dxc, L.H - 5);
+      ctx.restore();
+
+      if (this.opts.onHover) this.opts.onHover(bar, S.a + i);
+      if (this.opts.readoutEl) this.opts.readoutEl.innerHTML = this._fmtBar(bar, S.a + i);
+    }
+
+    _clearCrosshair() {
+      this.octx.clearRect(0, 0, this.L.W, this.L.H);
+      if (this.opts.onHover) this.opts.onHover(null, -1);
+      if (this.opts.readoutEl && this.bars.length) {
+        const last = this.bars.length - 1;
+        this.opts.readoutEl.innerHTML = this._fmtBar(this.bars[last], last);
+      }
+    }
+
+    _fmtBar(bar, i) {
+      const prev = i > 0 ? this.bars[i - 1] : null;
+      const chg = (prev && prev.c) ? (bar.c / prev.c - 1) * 100 : (bar.o ? (bar.c / bar.o - 1) * 100 : 0);
+      const pct = `<span style="color:${chg >= 0 ? "#1a8a4a" : "#d2392f"}">${chg >= 0 ? "+" : ""}${chg.toFixed(1)}%</span>`;
+      const vfmt = v => v >= 1e7 ? (v / 1e7).toFixed(1) + "Cr" : v >= 1e5 ? (v / 1e5).toFixed(1) + "L" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : String(v);
+      return `<b>${bar.d}</b> · O ${bar.o} H ${bar.h} L ${bar.l} C <b>${bar.c}</b> ${pct} · vol ${vfmt(bar.v || 0)}`;
+    }
+
+    // ----------------------------------------------------------- events ---
+    _bindEvents() {
+      const el = this.overlay;
+      let dragging = false, dragStartX = 0, dragStartView = null, pinchDist0 = null, pinchView0 = null;
+
+      const toLocal = e => {
+        const r = el.getBoundingClientRect();
+        const t = e.touches ? e.touches[0] : e;
+        return { x: t.clientX - r.left, y: t.clientY - r.top };
+      };
+
+      const onMove = e => {
+        if (this._raf) return;
+        this._raf = requestAnimationFrame(() => {
+          this._raf = null;
+          const p = toLocal(e);
+          if (dragging) this._pan(p.x - dragStartX, dragStartView);
+          this._drawCrosshair(p.x, p.y);
+        });
+      };
+      const onLeave = () => { if (!dragging) this._clearCrosshair(); };
+
+      el.addEventListener("mousemove", onMove);
+      el.addEventListener("mouseleave", onLeave);
+      el.addEventListener("touchmove", onMove, { passive: true });
+      el.addEventListener("touchend", onLeave);
+
+      el.addEventListener("mousedown", e => { dragging = true; dragStartX = toLocal(e).x; dragStartView = Object.assign({}, this._view); });
+      window.addEventListener("mouseup", () => { dragging = false; });
+      el.addEventListener("touchstart", e => {
+        if (e.touches.length === 1) { dragging = true; dragStartX = toLocal(e).x; dragStartView = Object.assign({}, this._view); }
+        else if (e.touches.length === 2) { pinchDist0 = this._touchDist(e); pinchView0 = Object.assign({}, this._view); }
+      }, { passive: true });
+      el.addEventListener("touchmove", e => {
+        if (e.touches.length === 2 && pinchDist0) {
+          const d = this._touchDist(e), f = pinchDist0 / d;
+          this._zoomAround((pinchView0.a + pinchView0.b) / 2, f, pinchView0);
+        }
+      }, { passive: true });
+      el.addEventListener("touchend", () => { pinchDist0 = null; }, { passive: true });
+
+      el.addEventListener("wheel", e => {
+        e.preventDefault();
+        const p = toLocal(e);
+        const S = this._S; if (!S) return;
+        const centerIdx = S.a + clamp((p.x - this.L.pl) / S.slot, 0, S.n);
+        const factor = Math.exp(e.deltaY * 0.001);
+        this._zoomAround(centerIdx, factor, this._view);
+      }, { passive: false });
+
+      this._ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => this.resize()) : null;
+      if (this._ro) this._ro.observe(this.wrap);
+    }
+
+    _touchDist(e) {
+      const [a, b] = [e.touches[0], e.touches[1]];
+      return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    }
+
+    _pan(dxPx, fromView) {
+      const S = this._S; if (!S) return;
+      const n = this.bars.length;
+      const width = fromView.b - fromView.a;
+      const shift = Math.round(-dxPx / S.slot);
+      let a = clamp(fromView.a + shift, 0, n - width);
+      this._view = { a, b: a + width };
+      this.render();
+    }
+
+    _zoomAround(centerIdx, factor, fromView) {
+      const n = this.bars.length;
+      const width = fromView.b - fromView.a;
+      let newWidth = clamp(Math.round(width * factor), 15, n);
+      const ratio = (centerIdx - fromView.a) / width;
+      let a = Math.round(centerIdx - ratio * newWidth);
+      a = clamp(a, 0, n - newWidth);
+      this._view = { a, b: a + newWidth };
+      this.render();
+    }
+
+    destroy() {
+      if (this._ro) this._ro.disconnect();
+      this.wrap.remove();
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Handy overlay builders — same visual vocabulary as the old candleChart,
+  // exposed as composable functions so callers opt into only what they need.
+  // ---------------------------------------------------------------------
+  const overlays = {
+    /** Rectangular base/consolidation boxes: {fromDate,toDate,high,low,label,color} */
+    boxes(list) {
+      return (ctx, { S, L, bars }) => {
+        (list || []).forEach(bb => {
+          let fi = bars.findIndex(b => b.d >= bb.fromDate); if (fi < 0) return;
+          let ti = bb.toDate ? bars.findIndex(b => b.d > bb.toDate) : bars.length - 1;
+          ti = ti < 0 ? bars.length - 1 : ti;
+          fi -= S.a; ti -= S.a;
+          if (ti < 0 || fi > S.n) return;
+          fi = clamp(fi, 0, S.n - 1); ti = clamp(ti, 0, S.n - 1);
+          const bx = S.x(fi) - S.cw / 2, bx2 = S.x(ti) + S.cw / 2, byT = S.y(bb.high), byB = S.y(bb.low);
+          if (bx2 - bx <= 6 || byB - byT <= 3) return;
+          const col = bb.color || "#1a8a4a";
+          ctx.save();
+          ctx.fillStyle = col; ctx.globalAlpha = bb.alpha != null ? bb.alpha : 0.08;
+          ctx.fillRect(bx, byT, bx2 - bx, byB - byT);
+          ctx.globalAlpha = 1; ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.setLineDash([5, 4]);
+          ctx.strokeRect(bx, byT, bx2 - bx, byB - byT);
+          if (bb.label) { ctx.setLineDash([]); ctx.fillStyle = col; ctx.font = "9.5px sans-serif"; ctx.textAlign = "left";
+            ctx.fillText(bb.label, Math.max(L.pl + 2, bx), Math.min(byB + 13, L.yBot - 1)); }
+          ctx.restore();
+        });
+      };
+    },
+    /** Small glyph markers on given dates: {date, glyph, color} */
+    markers(list) {
+      return (ctx, { S, bars }) => {
+        (list || []).forEach(m => {
+          const gi = bars.findIndex(b => b.d === m.date); if (gi < 0) return;
+          const i = gi - S.a; if (i < 0 || i >= S.n) return;
+          ctx.fillStyle = m.color || "#b8860b"; ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+          ctx.fillText(m.glyph || "•", S.x(i), S.y(S.vis[i].h) - 7);
+        });
+      };
+    }
+  };
+
+  // ---------------------------------------------------------------------
+  // Drop-in adapter matching the legacy `candleChart(bars, opts)` signature,
+  // returning a wrapper <div> exactly like the SVG version so call sites
+  // (e.g. `el.appendChild(candleChart(...))`) don't need to change shape —
+  // only the function name.
+  // ---------------------------------------------------------------------
+  function candleChartFast(bars, opts) {
+    opts = opts || {};
+    const wrap = document.createElement("div");
+    wrap.className = "cc-wrap";
+    if (!bars || !bars.length) { wrap.innerHTML = '<p class="sub">No price data.</p>'; return wrap; }
+
+    const ma = [];
+    if (opts.ma50) ma.push({ period: 0, color: "#2563eb", _precomputed: opts.ma50 });
+    if (opts.ma200) ma.push({ period: 0, color: "#ea8a2f", _precomputed: opts.ma200 });
+
+    const chart = new FastCandleChart(wrap, {
+      bars,
+      compact: !!opts.compact,
+      height: opts.H || (opts.compact ? 170 : 340),
+      volume: true,
+      lines: opts.lines || [],
+      readoutEl: opts.readoutEl || null,
+    });
+    // precomputed MA arrays (already aligned to `bars`) bypass internal sma/ema calc
+    if (opts.ma50) chart._maSeries.push({ color: "#2563eb", width: 1.4, values: opts.ma50 });
+    if (opts.ma200) chart._maSeries.push({ color: "#ea8a2f", width: 1.4, values: opts.ma200 });
+    if (opts.baseBoxes) chart.addOverlay(overlays.boxes(opts.baseBoxes.map(b => ({
+      fromDate: b.fromDate, toDate: b.toDate, high: b.high, low: b.low,
+      label: b.weeks ? `${b.tag || "base"} · ${Math.round(b.weeks)} wks` : null,
+      color: b.live ? "#1a8a4a" : "#334155"
+    }))));
+    if (opts.squatDates && opts.squatDates.length)
+      chart.addOverlay(overlays.markers(opts.squatDates.map(d => ({ date: d, glyph: "⚑", color: "#b8860b" }))));
+    if (opts.boMark)
+      chart.addOverlay(overlays.markers([{ date: opts.boMark, glyph: "▲", color: "#1a8a4a" }]));
+    chart.render();
+    wrap._chart = chart;                 // expose the instance for further control (zoom, setData, etc.)
+    return wrap;
+  }
+
+  global.FastCandleChart = FastCandleChart;
+  global.candleChartFast = candleChartFast;
+  global.fccOverlays = overlays;
+})(typeof window !== "undefined" ? window : this);
+
+</script>
+<script>
+  // synth OHLCV data
+  function genBars(n) {
+    const bars = []; let price = 500, d = new Date("2024-01-01");
+    for (let i = 0; i < n; i++) {
+      const drift = (Math.random() - 0.48) * 6;
+      const o = price;
+      const c = Math.max(5, o + drift);
+      const h = Math.max(o, c) + Math.random() * 4;
+      const l = Math.min(o, c) - Math.random() * 4;
+      const v = Math.round(50000 + Math.random() * 200000);
+      bars.push({ d: d.toISOString().slice(0, 10), o: +o.toFixed(1), h: +h.toFixed(1), l: +l.toFixed(1), c: +c.toFixed(1), v });
+      price = c; d.setDate(d.getDate() + 1);
+    }
+    return bars;
+  }
+  const bars = genBars(300);
+  const closes = bars.map(b => b.c);
+  function sma(cs, n) { const o = new Array(cs.length).fill(null); let s = 0; for (let i = 0; i < cs.length; i++) { s += cs[i]; if (i >= n) s -= cs[i - n]; if (i >= n - 1) o[i] = s / n; } return o; }
+
+  const chart1 = new FastCandleChart(document.getElementById("chart1"), {
+    bars,
+    height: 340,
+    ma: [{ period: 50, type: "sma", color: "#2563eb" }, { period: 100, type: "sma", color: "#ea8a2f" }],
+    lines: [{ y: bars[bars.length - 1].c * 1.08, label: "pivot", color: "#1a8a4a" }],
+    readoutEl: document.getElementById("read1")
+  });
+  chart1.addOverlay(fccOverlays.boxes([
+    { fromDate: bars[220].d, toDate: bars[260].d, high: Math.max(...bars.slice(220,260).map(b=>b.h)), low: Math.min(...bars.slice(220,260).map(b=>b.l)), label: "base · 8 wks", color: "#1a8a4a" }
+  ]));
+  chart1.addOverlay(fccOverlays.markers([{ date: bars[240].d, glyph: "⚑", color: "#b8860b" }]));
+
+  // legacy-signature adapter, compact card style
+  document.getElementById("chart2").appendChild(candleChartFast(bars.slice(-90), { compact: true, H: 170 }));
+</script>
+</body>
+</html>

@@ -40,9 +40,14 @@
         <meta name="robots" content="index, follow, max-image-preview:large" />
         <meta name="author" content="jadeja_rajdeep" />
 
-        <link rel="icon" type="image/svg+xml" href="./assets/img/favicon.svg">
-        <link rel="icon" type="image/png" sizes="32x32" href="./assets/img/favicon-32.png">
-        <link rel="apple-touch-icon" href="./assets/img/favicon.png">
+        <link rel="icon" type="image/svg+xml" href="./assets/img/favicon.svg" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="./assets/img/favicon-32.png"
+        />
+        <link rel="apple-touch-icon" href="./assets/img/favicon.png" />
 
         <!-- Canonical URL -->
         <link
@@ -156,8 +161,13 @@
 
         <!-- Preconnect to the origins we depend on, so DNS/TLS happen early -->
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+        <link
+            rel="preconnect"
+            href="https://fonts.googleapis.com"
+            crossorigin
+        />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://unpkg.com" crossorigin />
 
         <!--
             Bootstrap CSS + Google Fonts are loaded non-render-blocking:
@@ -177,7 +187,7 @@
             rel="stylesheet"
             crossorigin
             media="print"
-            onload="this.media='all'"
+            onload="this.media = 'all'"
         />
         <link
             rel="preload"
@@ -190,7 +200,7 @@
             rel="stylesheet"
             crossorigin
             media="print"
-            onload="this.media='all'"
+            onload="this.media = 'all'"
         />
         <noscript>
             <link
@@ -747,6 +757,22 @@
             }
 
             /* ---- TABLE ---- */
+            /* 1. The Scroll Container */
+            #tableWrapper.table-wrapper{
+                scroll-snap-type: y mandatory; /* Forces snapping vertically */
+                /* FIX: Adjust this value to match your sticky table header's height */
+                scroll-padding-top: 32px;
+            }
+            /* 2. The Snapping Section (Every 2 Rows Wrapped together) */
+            tr.snap-section {
+              scroll-snap-align: start; /* Snaps the top of these 2 rows to the container top */
+              scroll-snap-stop: always; /* Prevents users from accidentally skipping sections */
+            }
+            /* FIX: Prevents visible outline when clicked, while keeping arrows working */
+            #tableWrapper.table-wrapper:focus {
+              outline: none;
+            }
+
             .table-wrapper {
                 overflow-x: auto;
                 overflow-y: auto;
@@ -800,7 +826,7 @@
             tbody tr.tradable-row:hover {
                 background: rgba(0, 212, 170, 0.09);
             }
-            #mainTable tbody tr:hover {
+            #mainTable tbody > tr:hover {
                 background: rgba(0, 212, 170, 0.09);
             }
             tbody td {
@@ -835,8 +861,8 @@
             thead th:nth-child(2) {
                 z-index: 20;
             }
-            tbody tr:hover td:nth-child(1),
-            tbody tr:hover td:nth-child(2) {
+            #mainTable > tbody > tr:not(.chart-row):hover > td:nth-child(1),
+            #mainTable > tbody > tr:not(.chart-row):hover > td:nth-child(2) {
                 background: var(--surface2);
             }
 
@@ -2812,6 +2838,126 @@
                 border: 1px solid rgba(244, 63, 94, 0.25);
             }
 
+            /* ---- CHART SETTINGS MODAL ---- */
+            #chartSettingsModal .settings-modal {
+                max-width: 640px;
+            }
+            .chart-section-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 12px;
+            }
+            .chart-section-toggle .abv-check-item {
+                gap: 7px;
+            }
+            .chart-section-toggle .abv-check-item span {
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--text);
+            }
+            .chart-field-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: flex-end;
+            }
+            .chart-field {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                flex: 1 1 100px;
+                min-width: 100px;
+            }
+            .chart-field.chart-field-color {
+                flex: 0 0 64px;
+                min-width: 64px;
+            }
+            .chart-field label {
+                font-size: 9px;
+                color: var(--muted);
+                font-family: var(--mono);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .chart-field select,
+            .chart-field input[type="number"] {
+                width: 100%;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                color: var(--text);
+                border-radius: 6px;
+                padding: 6px 7px;
+                font-size: 11px;
+                font-family: var(--mono);
+            }
+            .chart-field input[type="color"] {
+                width: 100%;
+                height: 30px;
+                padding: 2px;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--surface);
+                cursor: pointer;
+            }
+            .chart-ma-table {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                overflow-x: auto;
+            }
+            .chart-ma-head,
+            .chart-ma-row {
+                display: grid;
+                grid-template-columns: 26px 64px 60px 1fr 42px;
+                gap: 8px;
+                align-items: center;
+                min-width: 380px;
+            }
+            .chart-ma-head {
+                font-size: 9px;
+                color: var(--muted);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                font-family: var(--mono);
+                padding: 0 2px;
+            }
+            .chart-ma-row select,
+            .chart-ma-row input[type="number"] {
+                width: 100%;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                color: var(--text);
+                border-radius: 6px;
+                padding: 5px 6px;
+                font-size: 11px;
+                font-family: var(--mono);
+            }
+            .chart-ma-row input[type="checkbox"] {
+                accent-color: var(--accent);
+                width: 14px;
+                height: 14px;
+            }
+            .chart-ma-row input[type="color"] {
+                width: 100%;
+                height: 26px;
+                padding: 2px;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--surface);
+                cursor: pointer;
+            }
+            .chart-settings-master {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .chart-settings-master .abv-check-item span {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--text);
+            }
+
             /* ---- AUTHOR / ABOUT MODAL ---- */
             .author-modal-overlay {
                 display: none;
@@ -3312,7 +3458,39 @@
                 min-width: auto !important;
                 max-width: auto !important;
             }
+
+            /*chart css start*/
+            #mainTable tbody tr.chart-row td.chart-cell {
+                ...
+                padding: 0 !important;   /* new — so the sticky div sits flush at the cell's left edge */
+            }
+            #mainTable tbody tr.chart-row td.chart-cell .thumb-chart {
+                position: sticky;
+                left: 0;
+                display: inline-block;   /* so sticky has a real box to stick, not the full row width */
+            }
+
+            .thumb-chart .tv-lightweight-charts td:nth-child(1) {
+              position: inherit !important;
+              left: initial !important;
+              z-index: initial !important;
+              background:inherit !important;
+              min-width:inherit !important;
+              width: 0  !important;
+              visibility: hidden !important;
+            }
+            .thumb-chart .tv-lightweight-charts td:nth-child(2){
+                position: relative !important;
+                left: initial !important;
+                z-index: initial !important;
+                background: transparent !important;
+                min-width: 180px;
+                border-right:0 !important;
+            }
         </style>
+
+        <!-- Latest production standalone build at the time of this demo (5.2.1). -->
+        <script src="https://unpkg.com/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js"></script>
     </head>
     <body>
         <!-- HEADER -->
@@ -3650,7 +3828,9 @@
                         onclick="toggleFilterGroup('group2')"
                         aria-expanded="false"
                     >
-                        <span class="filter-group-title">Company / Sector Search</span>
+                        <span class="filter-group-title"
+                            >Company / Sector Search</span
+                        >
                         <span class="filter-group-caret">▾</span>
                     </button>
                     <div class="filter-group-body">
@@ -3842,7 +4022,9 @@
                         onclick="toggleFilterGroup('group3')"
                         aria-expanded="false"
                     >
-                        <span class="filter-group-title">Relative Strength (RS)</span>
+                        <span class="filter-group-title"
+                            >Relative Strength (RS)</span
+                        >
                         <span class="filter-group-caret">▾</span>
                     </button>
                     <div class="filter-group-body">
@@ -4183,7 +4365,9 @@
                         onclick="toggleFilterGroup('group4')"
                         aria-expanded="false"
                     >
-                        <span class="filter-group-title">Sector & Industry Rank</span>
+                        <span class="filter-group-title"
+                            >Sector & Industry Rank</span
+                        >
                         <span class="filter-group-caret">▾</span>
                     </button>
                     <div class="filter-group-body">
@@ -4551,7 +4735,9 @@
                         onclick="toggleFilterGroup('group6')"
                         aria-expanded="false"
                     >
-                        <span class="filter-group-title">Trend Quality & Volatility</span>
+                        <span class="filter-group-title"
+                            >Trend Quality & Volatility</span
+                        >
                         <span class="filter-group-caret">▾</span>
                     </button>
                     <div class="filter-group-body">
@@ -4777,7 +4963,9 @@
                         onclick="toggleFilterGroup('group7')"
                         aria-expanded="false"
                     >
-                        <span class="filter-group-title">Valuation & Liquidity</span>
+                        <span class="filter-group-title"
+                            >Valuation & Liquidity</span
+                        >
                         <span class="filter-group-caret">▾</span>
                     </button>
                     <div class="filter-group-body">
@@ -4931,7 +5119,9 @@
                         onclick="toggleFilterGroup('group8')"
                         aria-expanded="false"
                     >
-                        <span class="filter-group-title">Price Change & DCR</span>
+                        <span class="filter-group-title"
+                            >Price Change & DCR</span
+                        >
                         <span class="filter-group-caret">▾</span>
                     </button>
                     <div class="filter-group-body">
@@ -5893,6 +6083,14 @@
                 <button
                     class="btn-page"
                     style="padding: 2px 10px; font-size: 11px"
+                    onclick="openChartSettingsModal()"
+                >
+                    📈 Charts
+                </button>
+                <span style="color: var(--border)">|</span>
+                <button
+                    class="btn-page"
+                    style="padding: 2px 10px; font-size: 11px"
                     onclick="openColumnModal()"
                 >
                     ▦ Columns
@@ -5918,7 +6116,7 @@
         <div id="error-msg"></div>
 
         <!-- TABLE -->
-        <div class="table-wrapper" id="tableWrapper">
+        <div class="table-wrapper" id="tableWrapper" tabindex="0">
             <div id="loading">
                 <div class="spinner"></div>
                 Loading stock data…
@@ -10417,64 +10615,43 @@
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
                                 <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="aai-1d"
-                                    />
+                                    <input type="checkbox" data-col="aai-1d" />
                                     <span>AAI 1D</span>
                                 </label>
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
                                 <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="aai-5d"
-                                    />
+                                    <input type="checkbox" data-col="aai-5d" />
                                     <span>AAI 5D</span>
                                 </label>
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
                                 <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="aai-1m"
-                                    />
+                                    <input type="checkbox" data-col="aai-1m" />
                                     <span>AAI 1M</span>
                                 </label>
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
                                 <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="aai-2m"
-                                    />
+                                    <input type="checkbox" data-col="aai-2m" />
                                     <span>AAI 2M</span>
                                 </label>
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
                                 <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="aai-3m"
-                                    />
+                                    <input type="checkbox" data-col="aai-3m" />
                                     <span>AAI 3M</span>
                                 </label>
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
                                 <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="aai-4m"
-                                    />
+                                    <input type="checkbox" data-col="aai-4m" />
                                     <span>AAI 4M</span>
                                 </label>
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
                                 <label class="abv-check-item">
-                                    <input
-                                        type="checkbox"
-                                        data-col="aai-6m"
-                                    />
+                                    <input type="checkbox" data-col="aai-6m" />
                                     <span>AAI 6M</span>
                                 </label>
                             </div>
@@ -10857,6 +11034,263 @@
                         <button
                             class="btn-save-confirm"
                             onclick="saveColumnVisibility()"
+                        >
+                            ✓ Apply
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHART SETTINGS MODAL -->
+        <div
+            class="settings-modal-overlay"
+            id="chartSettingsModal"
+            onclick="closeChartSettingsModalOnOverlay(event)"
+        >
+            <div class="settings-modal" onclick="event.stopPropagation()">
+                <div class="settings-modal-header">
+                    <div>
+                        <div class="settings-modal-title">📈 Charts</div>
+                        <div class="tv-modal-meta">
+                            Chart indicator defaults — saved to localStorage,
+                            included in export/import
+                        </div>
+                    </div>
+                    <button
+                        class="peer-modal-close"
+                        onclick="closeChartSettingsModal()"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div class="settings-modal-body">
+                    <!-- MASTER TOGGLE -->
+                    <div class="settings-section">
+                        <div class="chart-settings-master">
+                            <label class="abv-check-item">
+                                <input type="checkbox" data-cpath="enabled" />
+                                <span>Enable charts in tools</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- VOLUME -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">Volume</div>
+                        <div class="chart-field-row">
+                            <label
+                                class="abv-check-item"
+                                style="flex: 0 0 auto"
+                            >
+                                <input
+                                    type="checkbox"
+                                    data-cpath="volume.enabled"
+                                />
+                                <span>Enable</span>
+                            </label>
+                            <div class="chart-field">
+                                <label>MA Length</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    data-cpath="volume.maLength"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MOVING AVERAGES -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">
+                            Moving Averages (6)
+                        </div>
+                        <div class="chart-ma-table">
+                            <div class="chart-ma-head">
+                                <span></span>
+                                <span>Type</span>
+                                <span>Length</span>
+                                <span>Source</span>
+                                <span>Color</span>
+                            </div>
+                            <div
+                                class="chart-ma-row"
+                                id="chartMaRowTpl"
+                                style="display: none"
+                            ></div>
+                            <!-- 6 rows rendered by JS into #chartMaRows -->
+                            <div
+                                class="chart-ma-table"
+                                id="chartMaRows"
+                                style="gap: 8px"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <!-- RSI -->
+                    <div class="settings-section">
+                        <div class="chart-section-toggle">
+                            <label class="abv-check-item">
+                                <input
+                                    type="checkbox"
+                                    data-cpath="rsi.enabled"
+                                />
+                                <span>RSI</span>
+                            </label>
+                        </div>
+                        <div class="chart-field-row">
+                            <div class="chart-field">
+                                <label>Length</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    data-cpath="rsi.length"
+                                />
+                            </div>
+                            <div class="chart-field">
+                                <label>Source</label>
+                                <select
+                                    data-cpath="rsi.source"
+                                    data-chart-source-select
+                                ></select>
+                            </div>
+                            <div class="chart-field">
+                                <label>Smoothing</label>
+                                <select data-cpath="rsi.smoothingType">
+                                    <option value="none">None</option>
+                                    <option value="ema">EMA</option>
+                                    <option value="sma">SMA</option>
+                                </select>
+                            </div>
+                            <div class="chart-field">
+                                <label>Smoothing Length</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    data-cpath="rsi.smoothingLength"
+                                />
+                            </div>
+                            <div class="chart-field chart-field-color">
+                                <label>RSI Color</label>
+                                <input
+                                    type="color"
+                                    data-cpath="rsi.lineColor"
+                                />
+                            </div>
+                            <div class="chart-field chart-field-color">
+                                <label>Smoothing Color</label>
+                                <input
+                                    type="color"
+                                    data-cpath="rsi.smoothingColor"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MACD -->
+                    <div class="settings-section">
+                        <div class="chart-section-toggle">
+                            <label class="abv-check-item">
+                                <input
+                                    type="checkbox"
+                                    data-cpath="macd.enabled"
+                                />
+                                <span>MACD</span>
+                            </label>
+                        </div>
+                        <div class="chart-field-row">
+                            <div class="chart-field">
+                                <label>Source</label>
+                                <select
+                                    data-cpath="macd.source"
+                                    data-chart-source-select
+                                ></select>
+                            </div>
+                            <div class="chart-field">
+                                <label>Fast Length</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    data-cpath="macd.fastLength"
+                                />
+                            </div>
+                            <div class="chart-field">
+                                <label>Slow Length</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    data-cpath="macd.slowLength"
+                                />
+                            </div>
+                            <div class="chart-field">
+                                <label>Signal Length</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    data-cpath="macd.signalLength"
+                                />
+                            </div>
+                            <div class="chart-field">
+                                <label>Oscillator MA</label>
+                                <select data-cpath="macd.oscMaType">
+                                    <option value="ema">EMA</option>
+                                    <option value="sma">SMA</option>
+                                </select>
+                            </div>
+                            <div class="chart-field">
+                                <label>Signal MA</label>
+                                <select data-cpath="macd.signalMaType">
+                                    <option value="ema">EMA</option>
+                                    <option value="sma">SMA</option>
+                                </select>
+                            </div>
+                            <div class="chart-field chart-field-color">
+                                <label>Hist +</label>
+                                <input
+                                    type="color"
+                                    data-cpath="macd.histPositiveColor"
+                                />
+                            </div>
+                            <div class="chart-field chart-field-color">
+                                <label>Hist −</label>
+                                <input
+                                    type="color"
+                                    data-cpath="macd.histNegativeColor"
+                                />
+                            </div>
+                            <div class="chart-field chart-field-color">
+                                <label>MACD Line</label>
+                                <input
+                                    type="color"
+                                    data-cpath="macd.macdLineColor"
+                                />
+                            </div>
+                            <div class="chart-field chart-field-color">
+                                <label>Signal Line</label>
+                                <input
+                                    type="color"
+                                    data-cpath="macd.signalLineColor"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-3">
+                        <button
+                            class="btn-filter-clear"
+                            onclick="closeChartSettingsModal()"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            class="btn-save-confirm"
+                            onclick="saveChartSettings()"
                         >
                             ✓ Apply
                         </button>
@@ -11546,7 +11980,8 @@
                         isSunday && dayGap >= 3 && beforePublish;
 
                     //Monday-specific: Last Data on Friday and before publish time always true.
-                    const isMondayFriday = isMonday && dayGap >= 3 && beforePublish;
+                    const isMondayFriday =
+                        isMonday && dayGap >= 3 && beforePublish;
 
                     const canServeFromCache =
                         isToday ||
@@ -12287,15 +12722,9 @@
                         return false;
 
                     const tenDr = parseFloat(r["10 Days Range%"]);
-                    if (
-                        tenDrMin !== null &&
-                        (isNaN(tenDr) || tenDr < tenDrMin)
-                    )
+                    if (tenDrMin !== null && (isNaN(tenDr) || tenDr < tenDrMin))
                         return false;
-                    if (
-                        tenDrMax !== null &&
-                        (isNaN(tenDr) || tenDr > tenDrMax)
-                    )
+                    if (tenDrMax !== null && (isNaN(tenDr) || tenDr > tenDrMax))
                         return false;
 
                     const fifteenDr = parseFloat(r["15 Days Range%"]);
@@ -12618,7 +13047,8 @@
                         // even when Advanced Query isn't enabled. So for this
                         // group, only treat it as "has value" if f_adv_enabled
                         // is actually checked.
-                        const advEnabledEl = groupEl.querySelector("#f_adv_enabled");
+                        const advEnabledEl =
+                            groupEl.querySelector("#f_adv_enabled");
                         if (advEnabledEl) {
                             hasValue = !!advEnabledEl.checked;
                         }
@@ -12630,7 +13060,7 @@
                             );
                             if (header)
                                 header.setAttribute("aria-expanded", "true");
-                        }else{
+                        } else {
                             groupEl.classList.remove("open");
                         }
                     });
@@ -12769,7 +13199,7 @@
                     "f_aai_4m",
                     "f_aai_6m",
                     "f_adv_enabled",
-                    "f_hl_structure"
+                    "f_hl_structure",
                 ].forEach((id) => {
                     const el = document.getElementById(id);
                     if (el) el.checked = false;
@@ -12947,6 +13377,252 @@
             function closeColumnModalOnOverlay(e) {
                 if (e.target === document.getElementById("columnModal"))
                     closeColumnModal();
+            }
+
+            // ============ CHART SETTINGS ============
+            // Single source of truth for every chart-related option. Grouped
+            // by indicator type; each leaf value is reachable via a plain
+            // dot/array "path" string (e.g. "ma.0.length", "rsi.source"),
+            // which is also what the `data-cpath` attributes on the modal's
+            // inputs use — so the DOM, the storage shape, and the object you
+            // pull in the chart code all line up 1:1.
+            const CHART_KEY = "nse_screener_chart_settings";
+
+            // Common candle-source options shared by MA / RSI / MACD.
+            const CHART_SOURCES = [
+                { value: "open", label: "Open" },
+                { value: "high", label: "High" },
+                { value: "low", label: "Low" },
+                { value: "close", label: "Close" },
+                { value: "hl2", label: "(H+L)/2" },
+                { value: "hlc3", label: "(H+L+C)/3" },
+                { value: "ohlc4", label: "(O+H+L+C)/4" },
+            ];
+
+            const CHART_MA_DEFAULT_COLORS = [
+                "#3b82f6",
+                "#f59e0b",
+                "#10b981",
+                "#ef4444",
+                "#a855f7",
+                "#eab308",
+            ];
+
+            function defaultChartSettings() {
+                return {
+                    enabled: true,
+                    volume: {
+                        enabled: true,
+                        maLength: 50,
+                    },
+                    // 6 fixed moving-average slots, each independently
+                    // configurable and toggleable.
+                    ma: [0, 1, 2, 3, 4, 5].map((i) => ({
+                        enabled: i < 2,
+                        type: "ema",
+                        length: [9, 21, 50, 100, 150, 200][i],
+                        source: "close",
+                        color: CHART_MA_DEFAULT_COLORS[i],
+                    })),
+                    rsi: {
+                        enabled: false,
+                        length: 14,
+                        source: "close",
+                        smoothingType: "none",
+                        smoothingLength: 14,
+                        lineColor: "#8b5cf6",
+                        smoothingColor: "#f59e0b",
+                    },
+                    macd: {
+                        enabled: false,
+                        source: "close",
+                        fastLength: 12,
+                        slowLength: 26,
+                        signalLength: 9,
+                        oscMaType: "ema",
+                        signalMaType: "ema",
+                        histPositiveColor: "#22c55e",
+                        histNegativeColor: "#ef4444",
+                        macdLineColor: "#3b82f6",
+                        signalLineColor: "#f59e0b",
+                    },
+                };
+            }
+
+            // path helpers — "ma.0.length" style dot paths, array indices included
+            function chartGetPath(obj, path) {
+                return path
+                    .split(".")
+                    .reduce((o, k) => (o == null ? undefined : o[k]), obj);
+            }
+            function chartSetPath(obj, path, value) {
+                const keys = path.split(".");
+                let cur = obj;
+                for (let i = 0; i < keys.length - 1; i++) {
+                    const k = keys[i];
+                    if (cur[k] == null)
+                        cur[k] = /^\d+$/.test(keys[i + 1]) ? [] : {};
+                    cur = cur[k];
+                }
+                cur[keys[keys.length - 1]] = value;
+            }
+
+            // Deep-merge saved settings onto the defaults so newly added
+            // fields (future indicators) always have a sane fallback even
+            // for users with an older settings blob already in storage.
+            function chartMergeDefaults(defaults, saved) {
+                if (Array.isArray(defaults)) {
+                    if (!Array.isArray(saved)) return defaults;
+                    return defaults.map((d, i) =>
+                        saved[i] !== undefined
+                            ? chartMergeDefaults(d, saved[i])
+                            : d,
+                    );
+                }
+                if (
+                    defaults &&
+                    typeof defaults === "object" &&
+                    !(defaults instanceof Array)
+                ) {
+                    if (!saved || typeof saved !== "object") return defaults;
+                    const out = { ...defaults };
+                    Object.keys(defaults).forEach((k) => {
+                        out[k] = chartMergeDefaults(defaults[k], saved[k]);
+                    });
+                    return out;
+                }
+                return saved !== undefined ? saved : defaults;
+            }
+
+            function loadChartSettings() {
+                const raw = localStorage.getItem(CHART_KEY);
+                if (!raw) return defaultChartSettings();
+                try {
+                    return chartMergeDefaults(
+                        defaultChartSettings(),
+                        JSON.parse(raw),
+                    );
+                } catch {
+                    return defaultChartSettings();
+                }
+            }
+
+            function saveChartSettingsToStorage(settings) {
+                localStorage.setItem(CHART_KEY, JSON.stringify(settings));
+            }
+
+            function chartSourceOptionsHtml() {
+                return CHART_SOURCES.map(
+                    (s) => `<option value="${s.value}">${s.label}</option>`,
+                ).join("");
+            }
+
+            function renderChartMaRows() {
+                const wrap = document.getElementById("chartMaRows");
+                if (!wrap || wrap.dataset.built) return;
+                wrap.innerHTML = [0, 1, 2, 3, 4, 5]
+                    .map(
+                        (i) => `
+                    <div class="chart-ma-row">
+                        <input type="checkbox" data-cpath="ma.${i}.enabled" title="Enable MA ${i + 1}" />
+                        <select data-cpath="ma.${i}.type">
+                            <option value="ema">EMA</option>
+                            <option value="sma">SMA</option>
+                        </select>
+                        <input type="number" min="1" step="1" data-cpath="ma.${i}.length" />
+                        <select data-cpath="ma.${i}.source">${chartSourceOptionsHtml()}</select>
+                        <input type="color" data-cpath="ma.${i}.color" />
+                    </div>`,
+                    )
+                    .join("");
+                wrap.dataset.built = "1";
+            }
+
+            // Fill every <select data-chart-source-select> with the shared
+            // source list (RSI / MACD source dropdowns).
+            function populateChartSourceSelects() {
+                document
+                    .querySelectorAll(
+                        "#chartSettingsModal select[data-chart-source-select]",
+                    )
+                    .forEach((sel) => {
+                        if (!sel.dataset.built) {
+                            sel.innerHTML = chartSourceOptionsHtml();
+                            sel.dataset.built = "1";
+                        }
+                    });
+            }
+
+            function populateChartSettingsForm(settings) {
+                document
+                    .querySelectorAll("#chartSettingsModal [data-cpath]")
+                    .forEach((el) => {
+                        const val = chartGetPath(settings, el.dataset.cpath);
+                        if (val === undefined) return;
+                        if (el.type === "checkbox") {
+                            el.checked = !!val;
+                        } else {
+                            el.value = val;
+                        }
+                    });
+            }
+
+            function openChartSettingsModal() {
+                renderChartMaRows();
+                populateChartSourceSelects();
+                populateChartSettingsForm(loadChartSettings());
+                document
+                    .getElementById("chartSettingsModal")
+                    .classList.add("open");
+            }
+
+            function closeChartSettingsModal() {
+                const el = document.getElementById("chartSettingsModal");
+                if (el) el.classList.remove("open");
+            }
+
+            function closeChartSettingsModalOnOverlay(e) {
+                if (e.target === document.getElementById("chartSettingsModal"))
+                    closeChartSettingsModal();
+            }
+
+            function saveChartSettings() {
+                const settings = defaultChartSettings();
+                document
+                    .querySelectorAll("#chartSettingsModal [data-cpath]")
+                    .forEach((el) => {
+                        let val;
+                        if (el.type === "checkbox") {
+                            val = el.checked;
+                        } else if (el.type === "number") {
+                            val = parseFloat(el.value);
+                            if (isNaN(val)) val = 0;
+                        } else {
+                            val = el.value;
+                        }
+                        chartSetPath(settings, el.dataset.cpath, val);
+                    });
+                saveChartSettingsToStorage(settings);
+                closeChartSettingsModal();
+                if (typeof applyChartSettings === "function") {
+                    applyChartSettings(settings);
+                }
+            }
+
+            // Hook for the charting layer: call getChartSettings() from
+            // wherever the chart is built to read the current, merged
+            // config — e.g. getChartSettings().ma[0].length,
+            // getChartSettings().rsi.smoothingType, etc.
+            function getChartSettings() {
+                return loadChartSettings();
+            }
+
+            // Placeholder — wire this up once the charting UI exists; it's
+            // called automatically after every Apply so the chart can
+            // re-render with the new settings.
+            function applyChartSettings(settings) {
+                // e.g. myChart.updateIndicators(settings);
+                renderPage();
             }
 
             // ============ FILTERS ============
@@ -13221,6 +13897,8 @@
                 const end = Math.min(start + rowsPerPage, filteredData.length);
                 const page = filteredData.slice(start, end);
 
+                const chartSettings = getChartSettings();
+
                 tbody.innerHTML = page
                     .map((r) => {
                         const rowClasses = [];
@@ -13231,272 +13909,293 @@
                             compareState.addedSet.has(r.Code);
                         if (isCompareAdded)
                             rowClasses.push("compare-added-row");
+
+                        let chartTr='';
+                        if (chartSettings.enabled == true) {
+                            rowClasses.push("snap-section");
+                            //chart blank tr and td code start
+                            chartTr = `
+                                <tr class="chart-row">
+                                    <td colspan="82" class="chart-cell">
+                                        <div class="thumb-chart" data-isin="${r["ISIN"]}"></div>
+                                    </td>
+                                </tr>
+                            `;
+                            //chart blank tr and td code end
+                        }
+
                         return `
-              <tr${rowClasses.length ? ` class="${rowClasses.join(" ")}"` : ""}>
-                <td class="code-cell peer-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Click for peer comparison" style="cursor:pointer">${r.Code || "—"}<span class="wl-star${isInAnyWatchlist(r.Code) ? " in-watchlist" : ""}" data-wl-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Add to watchlist">${isInAnyWatchlist(r.Code) ? "★" : "☆"}</span>${isCompareAdded ? '<span class="compare-new-badge" title="Not in compared watchlist">NEW</span>' : ""}</td>
-                <td class="name-cell tv-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Open on TradingView" style="cursor:pointer">${r.Name || "—"}${getAlertBadgesHtml(r.Code)}</td>
-                <td data-col="close" class="num">${fNum(r.Close, 2)}</td>
-                <td data-col="nr" class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
-                <td data-col="5dr" class="num">${(() => {
-                    const v = parseFloat(r["5 Days Range%"]);
-                    if (isNaN(v))
-                        return '<span style="color:var(--muted)">—</span>';
-                    const col =
-                        v <= 6.5
-                            ? "#10b981"
-                            : v <= 7.5
-                              ? "#f59e0b"
-                              : "var(--muted)";
-                    return `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${col}">${v.toFixed(2)}%</span>`;
-                })()}</td>
-                <td data-col="10dr" class="num">${(() => {
-                    const v = parseFloat(r["10 Days Range%"]);
-                    if (isNaN(v))
-                        return '<span style="color:var(--muted)">—</span>';
-                    return `<span style="font-family:var(--mono);font-size:11px;font-weight:700">${v.toFixed(2)}%</span>`;
-                })()}</td>
-                <td data-col="15dr" class="num">${(() => {
-                    const v = parseFloat(r["15 Days Range%"]);
-                    if (isNaN(v))
-                        return '<span style="color:var(--muted)">—</span>';
-                    return `<span style="font-family:var(--mono);font-size:11px;font-weight:700">${v.toFixed(2)}%</span>`;
-                })()}</td>
-                <td data-col="21dr" class="num">${(() => {
-                    const v = parseFloat(r["21 Days Range%"]);
-                    if (isNaN(v))
-                        return '<span style="color:var(--muted)">—</span>';
-                    return `<span style="font-family:var(--mono);font-size:11px;font-weight:700">${v.toFixed(2)}%</span>`;
-                })()}</td>
-                <td data-col="rmv15" class="num">${fNum(r["RMV_15"], 2)}</td>
-                <td data-col="rmv21" class="num">${fNum(r["RMV_21"], 2)}</td>
-                <td data-col="rmv42" class="num">${fNum(r["RMV_42"], 2)}</td>
-                <td data-col="tradable">${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
-                <td data-col="adv-decl" class="num">${advDeclIcon(r["Advancing_Neutral_Declining"])}</td>
-                <td data-col="hl-structure" class="num">${checkIcon(r["Higher_Low_Structure"])}</td>
-                <td data-col="bi-rank" class="num">${(() => {
-                    const p = peerRankMap.get(r.Code);
-                    if (!p) return "—";
-                    const pct = p.biPct;
-                    const col =
-                        pct <= 10
-                            ? "var(--success)"
-                            : pct <= 25
-                              ? "var(--accent)"
-                              : pct <= 50
-                                ? "var(--muted)"
-                                : "#64748b";
-                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.biRank}/${p.biTotal}</span>`;
-                })()}</td>
-                <td data-col="ind-rank" class="num">${(() => {
-                    const p = peerRankMap.get(r.Code);
-                    if (!p) return "—";
-                    const pct = p.indPct;
-                    const col =
-                        pct <= 10
-                            ? "var(--success)"
-                            : pct <= 25
-                              ? "var(--accent)"
-                              : pct <= 50
-                                ? "var(--muted)"
-                                : "#64748b";
-                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.indRank}/${p.indTotal}</span>`;
-                })()}</td>
-                <td data-col="bi-5d" class="num">${(() => {
-                    const g = groupRankMap.get(r["Basic Industry"]);
-                    if (!g || !g.bi5dRank) return "—";
-                    const pct = g.bi5dPct;
-                    const col =
-                        pct <= 10
-                            ? "var(--success)"
-                            : pct <= 25
-                              ? "var(--accent)"
-                              : pct <= 50
-                                ? "var(--muted)"
-                                : "#64748b";
-                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi5dRank}/${g.bi5dTotal}</span>`;
-                })()}</td>
-                <td data-col="ind-5d" class="num">${(() => {
-                    const g = groupRankMap.get(r["Industry"]);
-                    if (!g || !g.ind5dRank) return "—";
-                    const pct = g.ind5dPct;
-                    const col =
-                        pct <= 10
-                            ? "var(--success)"
-                            : pct <= 25
-                              ? "var(--accent)"
-                              : pct <= 50
-                                ? "var(--muted)"
-                                : "#64748b";
-                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind5dRank}/${g.ind5dTotal}</span>`;
-                })()}</td>
-                <td data-col="bi-1m" class="num">${(() => {
-                    const g = groupRankMap.get(r["Basic Industry"]);
-                    if (!g || !g.bi1mRank) return "—";
-                    const pct = g.bi1mPct;
-                    const col =
-                        pct <= 10
-                            ? "var(--success)"
-                            : pct <= 25
-                              ? "var(--accent)"
-                              : pct <= 50
-                                ? "var(--muted)"
-                                : "#64748b";
-                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi1mRank}/${g.bi1mTotal}</span>`;
-                })()}</td>
-                <td data-col="ind-1m" class="num">${(() => {
-                    const g = groupRankMap.get(r["Industry"]);
-                    if (!g || !g.ind1mRank) return "—";
-                    const pct = g.ind1mPct;
-                    const col =
-                        pct <= 10
-                            ? "var(--success)"
-                            : pct <= 25
-                              ? "var(--accent)"
-                              : pct <= 50
-                                ? "var(--muted)"
-                                : "#64748b";
-                    return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind1mRank}/${g.ind1mTotal}</span>`;
-                })()}</td>
-                <td data-col="chg1d" class="${chngClass(r["1 Day Chng%"])} num">${chngStr(r["1 Day Chng%"])}</td>
-                <td data-col="rs-trend-5" class="num">${trendIcon(r["RS_Trend_5"])}</td>
-                <td data-col="rs-trend-10" class="num">${trendIcon(r["RS_Trend_10"])}</td>
-                <td data-col="aai-1d" class="num">${trendIcon(r["Above All Indices (1D)"])}</td>
-                <td data-col="aai-5d" class="num">${trendIcon(r["Above All Indices (5D)"])}</td>
-                <td data-col="aai-1m" class="num">${trendIcon(r["Above All Indices (1M)"])}</td>
-                <td data-col="aai-2m" class="num">${trendIcon(r["Above All Indices (2M)"])}</td>
-                <td data-col="aai-3m" class="num">${trendIcon(r["Above All Indices (3M)"])}</td>
-                <td data-col="aai-4m" class="num">${trendIcon(r["Above All Indices (4M)"])}</td>
-                <td data-col="aai-6m" class="num">${trendIcon(r["Above All Indices (6M)"])}</td>
-                <td data-col="rs-total">${rsTotalBadge(r["RS TOTAL"])}</td>
-                <td data-col="rs-1m">${rsBadge(r["1 Month RS"])}</td>
-                <td data-col="rs-2m">${rsBadge(r["2 Months RS"])}</td>
-                <td data-col="rs-3m">${rsBadge(r["3 Months RS"])}</td>
-                <td data-col="rs-4m">${rsBadge(r["4 Months RS"])}</td>
-                <td data-col="rs-6m">${rsBadge(r["6 Months RS"])}</td>
-                <td data-col="lin-3m" class="num">${fNum(r["3 Month Linearity >= 0.5"], 3)}</td>
-                <td data-col="lin-1m" class="num">${fNum(r["1 Month Linearity >= 0.5"], 3)}</td>
-                <td data-col="rvol-avg-3m" class="num">${fNum(r["Rvol_Avg_3_Month"], 3)}</td>
-                <td data-col="afh_0_5m" class="num">${(() => {
-                    const perValue = r["Away_From_High_0_5_Month"];
-                    const col =
-                        perValue >= -7 && perValue <= 7
-                            ? "var(--success)"
-                            : perValue < -7
-                              ? "var(--accent3)"
-                              : "var(--muted)";
-                    return `<span style="color:${col}">${fNum(perValue)}</span>`;
-                })()}</td>
-                <td data-col="afh1m" class="num">${(() => {
-                    const perValue = r["Away_From_High_1_Month"];
-                    const col =
-                        perValue >= -7 && perValue <= 7
-                            ? "var(--success)"
-                            : perValue < -7
-                              ? "var(--accent3)"
-                              : "var(--muted)";
-                    return `<span style="color:${col}">${fNum(perValue)}</span>`;
-                })()}</td>
-                <td data-col="afh2m" class="num">${(() => {
-                    const perValue = r["Away_From_High_2_Month"];
-                    const col =
-                        perValue >= -7 && perValue <= 7
-                            ? "var(--success)"
-                            : perValue < -7
-                              ? "var(--accent3)"
-                              : "var(--muted)";
-                    return `<span style="color:${col}">${fNum(perValue)}</span>`;
-                })()}</td>
-                <td data-col="afh3m" class="num">${(() => {
-                    const perValue = r["Away_From_High_3_Month"];
-                    const col =
-                        perValue >= -7 && perValue <= 7
-                            ? "var(--success)"
-                            : perValue < -7
-                              ? "var(--accent3)"
-                              : "var(--muted)";
-                    return `<span style="color:${col}">${fNum(perValue)}</span>`;
-                })()}</td>
-                <td data-col="afh4m" class="num">${(() => {
-                    const perValue = r["Away_From_High_4_Month"];
-                    const col =
-                        perValue >= -7 && perValue <= 7
-                            ? "var(--success)"
-                            : perValue < -7
-                              ? "var(--accent3)"
-                              : "var(--muted)";
-                    return `<span style="color:${col}">${fNum(perValue)}</span>`;
-                })()}</td>
-                <td data-col="afh5m" class="num">${(() => {
-                    const perValue = r["Away_From_High_5_Month"];
-                    const col =
-                        perValue >= -7 && perValue <= 7
-                            ? "var(--success)"
-                            : perValue < -7
-                              ? "var(--accent3)"
-                              : "var(--muted)";
-                    return `<span style="color:${col}">${fNum(perValue)}</span>`;
-                })()}</td>
-                <td data-col="afh6m" class="num">${(() => {
-                    const perValue = r["Away_From_High_6_Month"];
-                    const col =
-                        perValue >= -7 && perValue <= 7
-                            ? "var(--success)"
-                            : perValue < -7
-                              ? "var(--accent3)"
-                              : "var(--muted)";
-                    return `<span style="color:${col}">${fNum(perValue)}</span>`;
-                })()}</td>
-                <td data-col="afh9m" class="num">${(() => {
-                    const perValue = r["Away_From_High_9_Month"];
-                    const col =
-                        perValue >= -7 && perValue <= 7
-                            ? "var(--success)"
-                            : perValue < -7
-                              ? "var(--accent3)"
-                              : "var(--muted)";
-                    return `<span style="color:${col}">${fNum(perValue)}</span>`;
-                })()}</td>
-                <td data-col="chg5d" class="${chngClass(r["5 Days Chng%"])} num">${chngStr(r["5 Days Chng%"])}</td>
-                <td data-col="chg1m" class="${chngClass(r["1 Month Chng%"])} num">${chngStr(r["1 Month Chng%"])}</td>
-                <td data-col="chg2m" class="${chngClass(r["2 Months Chng%"])} num">${chngStr(r["2 Months Chng%"])}</td>
-                <td data-col="chg3m" class="${chngClass(r["3 Months Chng%"])} num">${chngStr(r["3 Months Chng%"])}</td>
-                <td data-col="chg4m" class="${chngClass(r["4 Months Chng%"])} num">${chngStr(r["4 Months Chng%"])}</td>
-                <td data-col="chg6m" class="${chngClass(r["6 Months Chng%"])} num">${chngStr(r["6 Months Chng%"])}</td>
-                <td data-col="dcr1" class="num">${fNum(r["DCR_1"], 2)}</td>
-                <td data-col="dcr5" class="num">${fNum(r["DCR_5"], 2)}</td>
-                <td data-col="dcr10" class="num">${fNum(r["DCR_10"], 2)}</td>
-                <td data-col="dcr15" class="num">${fNum(r["DCR_15"], 2)}</td>
-                <td data-col="mcap" class="num">${fCr(r["Market Cap"])}</td>
-                <td data-col="pe" class="num">${fNum(r.PE, 1)}</td>
-                <td data-col="roe" class="num">${fNum(r.ROE, 1)}</td>
-                <td data-col="debt" class="num">${fNum(r.Debt, 0)}</td>
-                <td data-col="cashflow" class="num">${fNum(r["Cash Flow"], 0)}</td>
-                <td data-col="bookval" class="num">${fNum(r["Book Val"], 1)}</td>
-                <td data-col="macro"><span class="sector-pill">${r["Macro Economic Sector"] || "—"}</span></td>
-                <td data-col="sector" style="color:var(--muted);font-size:11px">${r["Sector"] || "—"}</td>
-                <td data-col="industry" style="color:var(--muted);font-size:11px">${r["Industry"] || "—"}</td>
-                <td data-col="basic-ind" style="color:var(--muted);font-size:11px">${r["Basic Industry"] || "—"}</td>
-                <td data-col="volume" class="num">${fVol(r.Volume)}</td>
-                <td data-col="turnover" class="num">${fTurnover(r["Net Turnover"])}</td>
-                <td data-col="delivery" class="num">${fNum(r["Delivery %"], 1)}</td>
-                <td data-col="vol-up">${abvIcon(r["Volume Above Avg"])}</td>
-                <td data-col="del-up">${abvIcon(r["Delivery Above Avg"])}</td>
-                <td data-col="fno">${fnoIcon(r["F&O"])}</td>
-                <td data-col="band" class="num">${r["Price Band %"] || "—"}</td>
-                <td data-col="holdings" class="holdings-cell">
-                  <span class="hold-prom">P:${fNum(r["Prom Hold %"], 1)}%</span><br>
-                  <span class="hold-emp">E:${fNum(r["Emp Trust %"], 1)}%</span><br>
-                  <span class="hold-pub">D:${fNum(r["Public Hold %"], 1)}%</span>
-                </td>
-                <td data-col="eps1" class="${chngClass(r["EPS Latest Qtr %"])} num">${chngStr(r["EPS Latest Qtr %"], 0)}</td>
-                <td data-col="eps2" class="${chngClass(r["EPS Prev Qtr %"])} num">${chngStr(r["EPS Prev Qtr %"], 0)}</td>
-                <td data-col="sales1" class="${chngClass(r["Sales Latest Qtr %"])} num">${chngStr(r["Sales Latest Qtr %"], 0)}</td>
-                <td data-col="sales2" class="${chngClass(r["Sales Prev Qtr %"])} num">${chngStr(r["Sales Prev Qtr %"], 0)}</td>
-                <td data-col="allindex" class="all-index-cell col-allindex">${formatAllIndex(r["All Index"])}</td>
-              </tr>
-            `;
+                        <tr${rowClasses.length ? ` class="${rowClasses.join(" ")}"` : ""}>
+                            <td class="code-cell peer-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Click for peer comparison" style="cursor:pointer">${r.Code || "—"}<span class="wl-star${isInAnyWatchlist(r.Code) ? " in-watchlist" : ""}" data-wl-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Add to watchlist">${isInAnyWatchlist(r.Code) ? "★" : "☆"}</span>${isCompareAdded ? '<span class="compare-new-badge" title="Not in compared watchlist">NEW</span>' : ""}</td>
+                            <td class="name-cell tv-link" data-code="${(r.Code || "").replace(/"/g, "&quot;")}" title="Open on TradingView" style="cursor:pointer">${r.Name || "—"}${getAlertBadgesHtml(r.Code)}</td>
+                            <td data-col="close" class="num">${fNum(r.Close, 2)}</td>
+                            <td data-col="nr" class="num">${r["Narrow Range"] && r["Narrow Range"] !== "0" ? `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent3)">${r["Narrow Range"]}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+                            <td data-col="5dr" class="num">${(() => {
+                                const v = parseFloat(r["5 Days Range%"]);
+                                if (isNaN(v))
+                                    return '<span style="color:var(--muted)">—</span>';
+                                const col =
+                                    v <= 6.5
+                                        ? "#10b981"
+                                        : v <= 7.5
+                                          ? "#f59e0b"
+                                          : "var(--muted)";
+                                return `<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:${col}">${v.toFixed(2)}%</span>`;
+                            })()}</td>
+                            <td data-col="10dr" class="num">${(() => {
+                                const v = parseFloat(r["10 Days Range%"]);
+                                if (isNaN(v))
+                                    return '<span style="color:var(--muted)">—</span>';
+                                return `<span style="font-family:var(--mono);font-size:11px;font-weight:700">${v.toFixed(2)}%</span>`;
+                            })()}</td>
+                            <td data-col="15dr" class="num">${(() => {
+                                const v = parseFloat(r["15 Days Range%"]);
+                                if (isNaN(v))
+                                    return '<span style="color:var(--muted)">—</span>';
+                                return `<span style="font-family:var(--mono);font-size:11px;font-weight:700">${v.toFixed(2)}%</span>`;
+                            })()}</td>
+                            <td data-col="21dr" class="num">${(() => {
+                                const v = parseFloat(r["21 Days Range%"]);
+                                if (isNaN(v))
+                                    return '<span style="color:var(--muted)">—</span>';
+                                return `<span style="font-family:var(--mono);font-size:11px;font-weight:700">${v.toFixed(2)}%</span>`;
+                            })()}</td>
+                            <td data-col="rmv15" class="num">${fNum(r["RMV_15"], 2)}</td>
+                            <td data-col="rmv21" class="num">${fNum(r["RMV_21"], 2)}</td>
+                            <td data-col="rmv42" class="num">${fNum(r["RMV_42"], 2)}</td>
+                            <td data-col="tradable">${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
+                            <td data-col="adv-decl" class="num">${advDeclIcon(r["Advancing_Neutral_Declining"])}</td>
+                            <td data-col="hl-structure" class="num">${checkIcon(r["Higher_Low_Structure"])}</td>
+                            <td data-col="bi-rank" class="num">${(() => {
+                                const p = peerRankMap.get(r.Code);
+                                if (!p) return "—";
+                                const pct = p.biPct;
+                                const col =
+                                    pct <= 10
+                                        ? "var(--success)"
+                                        : pct <= 25
+                                          ? "var(--accent)"
+                                          : pct <= 50
+                                            ? "var(--muted)"
+                                            : "#64748b";
+                                return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.biRank}/${p.biTotal}</span>`;
+                            })()}</td>
+                            <td data-col="ind-rank" class="num">${(() => {
+                                const p = peerRankMap.get(r.Code);
+                                if (!p) return "—";
+                                const pct = p.indPct;
+                                const col =
+                                    pct <= 10
+                                        ? "var(--success)"
+                                        : pct <= 25
+                                          ? "var(--accent)"
+                                          : pct <= 50
+                                            ? "var(--muted)"
+                                            : "#64748b";
+                                return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${p.indRank}/${p.indTotal}</span>`;
+                            })()}</td>
+                            <td data-col="bi-5d" class="num">${(() => {
+                                const g = groupRankMap.get(r["Basic Industry"]);
+                                if (!g || !g.bi5dRank) return "—";
+                                const pct = g.bi5dPct;
+                                const col =
+                                    pct <= 10
+                                        ? "var(--success)"
+                                        : pct <= 25
+                                          ? "var(--accent)"
+                                          : pct <= 50
+                                            ? "var(--muted)"
+                                            : "#64748b";
+                                return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi5dRank}/${g.bi5dTotal}</span>`;
+                            })()}</td>
+                            <td data-col="ind-5d" class="num">${(() => {
+                                const g = groupRankMap.get(r["Industry"]);
+                                if (!g || !g.ind5dRank) return "—";
+                                const pct = g.ind5dPct;
+                                const col =
+                                    pct <= 10
+                                        ? "var(--success)"
+                                        : pct <= 25
+                                          ? "var(--accent)"
+                                          : pct <= 50
+                                            ? "var(--muted)"
+                                            : "#64748b";
+                                return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind5dRank}/${g.ind5dTotal}</span>`;
+                            })()}</td>
+                            <td data-col="bi-1m" class="num">${(() => {
+                                const g = groupRankMap.get(r["Basic Industry"]);
+                                if (!g || !g.bi1mRank) return "—";
+                                const pct = g.bi1mPct;
+                                const col =
+                                    pct <= 10
+                                        ? "var(--success)"
+                                        : pct <= 25
+                                          ? "var(--accent)"
+                                          : pct <= 50
+                                            ? "var(--muted)"
+                                            : "#64748b";
+                                return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.bi1mRank}/${g.bi1mTotal}</span>`;
+                            })()}</td>
+                            <td data-col="ind-1m" class="num">${(() => {
+                                const g = groupRankMap.get(r["Industry"]);
+                                if (!g || !g.ind1mRank) return "—";
+                                const pct = g.ind1mPct;
+                                const col =
+                                    pct <= 10
+                                        ? "var(--success)"
+                                        : pct <= 25
+                                          ? "var(--accent)"
+                                          : pct <= 50
+                                            ? "var(--muted)"
+                                            : "#64748b";
+                                return `<span style="font-family:var(--mono);font-size:10px;font-weight:700;color:${col}">${g.ind1mRank}/${g.ind1mTotal}</span>`;
+                            })()}</td>
+                            <td data-col="chg1d" class="${chngClass(r["1 Day Chng%"])} num">${chngStr(r["1 Day Chng%"])}</td>
+                            <td data-col="rs-trend-5" class="num">${trendIcon(r["RS_Trend_5"])}</td>
+                            <td data-col="rs-trend-10" class="num">${trendIcon(r["RS_Trend_10"])}</td>
+                            <td data-col="aai-1d" class="num">${trendIcon(r["Above All Indices (1D)"])}</td>
+                            <td data-col="aai-5d" class="num">${trendIcon(r["Above All Indices (5D)"])}</td>
+                            <td data-col="aai-1m" class="num">${trendIcon(r["Above All Indices (1M)"])}</td>
+                            <td data-col="aai-2m" class="num">${trendIcon(r["Above All Indices (2M)"])}</td>
+                            <td data-col="aai-3m" class="num">${trendIcon(r["Above All Indices (3M)"])}</td>
+                            <td data-col="aai-4m" class="num">${trendIcon(r["Above All Indices (4M)"])}</td>
+                            <td data-col="aai-6m" class="num">${trendIcon(r["Above All Indices (6M)"])}</td>
+                            <td data-col="rs-total">${rsTotalBadge(r["RS TOTAL"])}</td>
+                            <td data-col="rs-1m">${rsBadge(r["1 Month RS"])}</td>
+                            <td data-col="rs-2m">${rsBadge(r["2 Months RS"])}</td>
+                            <td data-col="rs-3m">${rsBadge(r["3 Months RS"])}</td>
+                            <td data-col="rs-4m">${rsBadge(r["4 Months RS"])}</td>
+                            <td data-col="rs-6m">${rsBadge(r["6 Months RS"])}</td>
+                            <td data-col="lin-3m" class="num">${fNum(r["3 Month Linearity >= 0.5"], 3)}</td>
+                            <td data-col="lin-1m" class="num">${fNum(r["1 Month Linearity >= 0.5"], 3)}</td>
+                            <td data-col="rvol-avg-3m" class="num">${fNum(r["Rvol_Avg_3_Month"], 3)}</td>
+                            <td data-col="afh_0_5m" class="num">${(() => {
+                                const perValue = r["Away_From_High_0_5_Month"];
+                                const col =
+                                    perValue >= -7 && perValue <= 7
+                                        ? "var(--success)"
+                                        : perValue < -7
+                                          ? "var(--accent3)"
+                                          : "var(--muted)";
+                                return `<span style="color:${col}">${fNum(perValue)}</span>`;
+                            })()}</td>
+                            <td data-col="afh1m" class="num">${(() => {
+                                const perValue = r["Away_From_High_1_Month"];
+                                const col =
+                                    perValue >= -7 && perValue <= 7
+                                        ? "var(--success)"
+                                        : perValue < -7
+                                          ? "var(--accent3)"
+                                          : "var(--muted)";
+                                return `<span style="color:${col}">${fNum(perValue)}</span>`;
+                            })()}</td>
+                            <td data-col="afh2m" class="num">${(() => {
+                                const perValue = r["Away_From_High_2_Month"];
+                                const col =
+                                    perValue >= -7 && perValue <= 7
+                                        ? "var(--success)"
+                                        : perValue < -7
+                                          ? "var(--accent3)"
+                                          : "var(--muted)";
+                                return `<span style="color:${col}">${fNum(perValue)}</span>`;
+                            })()}</td>
+                            <td data-col="afh3m" class="num">${(() => {
+                                const perValue = r["Away_From_High_3_Month"];
+                                const col =
+                                    perValue >= -7 && perValue <= 7
+                                        ? "var(--success)"
+                                        : perValue < -7
+                                          ? "var(--accent3)"
+                                          : "var(--muted)";
+                                return `<span style="color:${col}">${fNum(perValue)}</span>`;
+                            })()}</td>
+                            <td data-col="afh4m" class="num">${(() => {
+                                const perValue = r["Away_From_High_4_Month"];
+                                const col =
+                                    perValue >= -7 && perValue <= 7
+                                        ? "var(--success)"
+                                        : perValue < -7
+                                          ? "var(--accent3)"
+                                          : "var(--muted)";
+                                return `<span style="color:${col}">${fNum(perValue)}</span>`;
+                            })()}</td>
+                            <td data-col="afh5m" class="num">${(() => {
+                                const perValue = r["Away_From_High_5_Month"];
+                                const col =
+                                    perValue >= -7 && perValue <= 7
+                                        ? "var(--success)"
+                                        : perValue < -7
+                                          ? "var(--accent3)"
+                                          : "var(--muted)";
+                                return `<span style="color:${col}">${fNum(perValue)}</span>`;
+                            })()}</td>
+                            <td data-col="afh6m" class="num">${(() => {
+                                const perValue = r["Away_From_High_6_Month"];
+                                const col =
+                                    perValue >= -7 && perValue <= 7
+                                        ? "var(--success)"
+                                        : perValue < -7
+                                          ? "var(--accent3)"
+                                          : "var(--muted)";
+                                return `<span style="color:${col}">${fNum(perValue)}</span>`;
+                            })()}</td>
+                            <td data-col="afh9m" class="num">${(() => {
+                                const perValue = r["Away_From_High_9_Month"];
+                                const col =
+                                    perValue >= -7 && perValue <= 7
+                                        ? "var(--success)"
+                                        : perValue < -7
+                                          ? "var(--accent3)"
+                                          : "var(--muted)";
+                                return `<span style="color:${col}">${fNum(perValue)}</span>`;
+                            })()}</td>
+                            <td data-col="chg5d" class="${chngClass(r["5 Days Chng%"])} num">${chngStr(r["5 Days Chng%"])}</td>
+                            <td data-col="chg1m" class="${chngClass(r["1 Month Chng%"])} num">${chngStr(r["1 Month Chng%"])}</td>
+                            <td data-col="chg2m" class="${chngClass(r["2 Months Chng%"])} num">${chngStr(r["2 Months Chng%"])}</td>
+                            <td data-col="chg3m" class="${chngClass(r["3 Months Chng%"])} num">${chngStr(r["3 Months Chng%"])}</td>
+                            <td data-col="chg4m" class="${chngClass(r["4 Months Chng%"])} num">${chngStr(r["4 Months Chng%"])}</td>
+                            <td data-col="chg6m" class="${chngClass(r["6 Months Chng%"])} num">${chngStr(r["6 Months Chng%"])}</td>
+                            <td data-col="dcr1" class="num">${fNum(r["DCR_1"], 2)}</td>
+                            <td data-col="dcr5" class="num">${fNum(r["DCR_5"], 2)}</td>
+                            <td data-col="dcr10" class="num">${fNum(r["DCR_10"], 2)}</td>
+                            <td data-col="dcr15" class="num">${fNum(r["DCR_15"], 2)}</td>
+                            <td data-col="mcap" class="num">${fCr(r["Market Cap"])}</td>
+                            <td data-col="pe" class="num">${fNum(r.PE, 1)}</td>
+                            <td data-col="roe" class="num">${fNum(r.ROE, 1)}</td>
+                            <td data-col="debt" class="num">${fNum(r.Debt, 0)}</td>
+                            <td data-col="cashflow" class="num">${fNum(r["Cash Flow"], 0)}</td>
+                            <td data-col="bookval" class="num">${fNum(r["Book Val"], 1)}</td>
+                            <td data-col="macro"><span class="sector-pill">${r["Macro Economic Sector"] || "—"}</span></td>
+                            <td data-col="sector" style="color:var(--muted);font-size:11px">${r["Sector"] || "—"}</td>
+                            <td data-col="industry" style="color:var(--muted);font-size:11px">${r["Industry"] || "—"}</td>
+                            <td data-col="basic-ind" style="color:var(--muted);font-size:11px">${r["Basic Industry"] || "—"}</td>
+                            <td data-col="volume" class="num">${fVol(r.Volume)}</td>
+                            <td data-col="turnover" class="num">${fTurnover(r["Net Turnover"])}</td>
+                            <td data-col="delivery" class="num">${fNum(r["Delivery %"], 1)}</td>
+                            <td data-col="vol-up">${abvIcon(r["Volume Above Avg"])}</td>
+                            <td data-col="del-up">${abvIcon(r["Delivery Above Avg"])}</td>
+                            <td data-col="fno">${fnoIcon(r["F&O"])}</td>
+                            <td data-col="band" class="num">${r["Price Band %"] || "—"}</td>
+                            <td data-col="holdings" class="holdings-cell">
+                            <span class="hold-prom">P:${fNum(r["Prom Hold %"], 1)}%</span><br>
+                            <span class="hold-emp">E:${fNum(r["Emp Trust %"], 1)}%</span><br>
+                            <span class="hold-pub">D:${fNum(r["Public Hold %"], 1)}%</span>
+                            </td>
+                            <td data-col="eps1" class="${chngClass(r["EPS Latest Qtr %"])} num">${chngStr(r["EPS Latest Qtr %"], 0)}</td>
+                            <td data-col="eps2" class="${chngClass(r["EPS Prev Qtr %"])} num">${chngStr(r["EPS Prev Qtr %"], 0)}</td>
+                            <td data-col="sales1" class="${chngClass(r["Sales Latest Qtr %"])} num">${chngStr(r["Sales Latest Qtr %"], 0)}</td>
+                            <td data-col="sales2" class="${chngClass(r["Sales Prev Qtr %"])} num">${chngStr(r["Sales Prev Qtr %"], 0)}</td>
+                            <td data-col="allindex" class="all-index-cell col-allindex">${formatAllIndex(r["All Index"])}</td>
+                        </tr>
+                        ${chartTr}
+                        `;
                     })
                     .join("");
+
+                //calling thumnail chart function
+                if (chartSettings.enabled == true) {
+                    generateThumbnailChart();
+                }
             }
 
             // ============ STATS ============
@@ -13777,6 +14476,8 @@
                     closeHelpModal();
                     closeAuthorModal();
                     closeSettingsModal();
+                    closeColumnModal();
+                    closeChartSettingsModal();
                 }
             });
 
@@ -15104,8 +15805,7 @@
                     id: "good_base",
                     label: "Good Base",
                     color: "#00ffff",
-                    description:
-                        "Base forming near highs",
+                    description: "Base forming near highs",
                     simpleFilters: {
                         f_mcap_min: 500,
                         f_to_min: 5,
@@ -15113,16 +15813,17 @@
                         f_bi_rank_pct: 30,
                         f_afh9m_min: -26,
                         f_chg5d_min: -3,
-                        f_chg1m_max:15,
-                        f_dcr5_min:50,
-                        f_dcr10_min:50,
-                        f_dcr15_min:50
+                        f_chg1m_max: 15,
+                        f_dcr5_min: 50,
+                        f_dcr10_min: 50,
+                        f_dcr15_min: 50,
                     },
                     multiSelectFilters: {
-                        f_adv_decl: ["1","0"],
-                        f_priceband:["0","5","10","20"]
+                        f_adv_decl: ["1", "0"],
+                        f_priceband: ["0", "5", "10", "20"],
                     },
-                    advQuery: '( ( AFH_2M >= -5 AND AFH_2M <= 6 ) OR ( AFH_3M >= -5 AND AFH_3M <= 6 ) OR ( AFH_4M >= -5 AND AFH_4M <= 6 ) OR ( AFH_5M >= -5 AND AFH_5M <= 6 ) OR ( AFH_6M >= -5 AND AFH_6M <= 6 ) OR ( AFH_9M >= -5 AND AFH_9M <= 6 )) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
+                    advQuery:
+                        '( ( AFH_2M >= -5 AND AFH_2M <= 6 ) OR ( AFH_3M >= -5 AND AFH_3M <= 6 ) OR ( AFH_4M >= -5 AND AFH_4M <= 6 ) OR ( AFH_5M >= -5 AND AFH_5M <= 6 ) OR ( AFH_6M >= -5 AND AFH_6M <= 6 ) OR ( AFH_9M >= -5 AND AFH_9M <= 6 )) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
                 },
                 {
                     id: "reversal",
@@ -15139,15 +15840,15 @@
                         f_afh_0_5m_min: -5,
                         f_afh_0_5m_max: 6,
                         f_chg1m_min: 0,
-                        f_chg1m_max:15,
+                        f_chg1m_max: 15,
                         f_chg2m_min: 0,
                         f_chg6m_max: 10,
                         f_afh9m_min: -26,
                         f_rvol_avg_3m_min: 0.9,
                         f_chg5d_min: -3,
-                        f_dcr5_min:50,
-                        f_dcr10_min:50,
-                        f_dcr15_min:50
+                        f_dcr5_min: 50,
+                        f_dcr10_min: 50,
+                        f_dcr15_min: 50,
                     },
                     /*
                     checkFilters: {
@@ -15155,10 +15856,11 @@
                     },
                      */
                     multiSelectFilters: {
-                        f_adv_decl: ["1","0"],
-                        f_priceband:["0","5","10","20"]
+                        f_adv_decl: ["1", "0"],
+                        f_priceband: ["0", "5", "10", "20"],
                     },
-                    advQuery: '( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
+                    advQuery:
+                        '( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
                 },
                 {
                     id: "industry",
@@ -15178,16 +15880,17 @@
                         f_afh9m_min: -26,
                         f_rvol_avg_3m_min: 0.9,
                         f_chg5d_min: -3,
-                        f_chg1m_max:15,
-                        f_dcr5_min:50,
-                        f_dcr10_min:50,
-                        f_dcr15_min:50
+                        f_chg1m_max: 15,
+                        f_dcr5_min: 50,
+                        f_dcr10_min: 50,
+                        f_dcr15_min: 50,
                     },
                     multiSelectFilters: {
-                        f_adv_decl: ["1","0"],
-                        f_priceband:["0","5","10","20"]
+                        f_adv_decl: ["1", "0"],
+                        f_priceband: ["0", "5", "10", "20"],
                     },
-                    advQuery: '( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 ) AND ( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
+                    advQuery:
+                        '( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 ) AND ( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
                 },
             ];
 
@@ -16056,40 +16759,19 @@
                         return false;
                     if (gbool("f_rs_trend_10") && r["RS_Trend_10"] != 1)
                         return false;
-                    if (
-                        gbool("f_aai_1d") &&
-                        r["Above All Indices (1D)"] != 1
-                    )
+                    if (gbool("f_aai_1d") && r["Above All Indices (1D)"] != 1)
                         return false;
-                    if (
-                        gbool("f_aai_5d") &&
-                        r["Above All Indices (5D)"] != 1
-                    )
+                    if (gbool("f_aai_5d") && r["Above All Indices (5D)"] != 1)
                         return false;
-                    if (
-                        gbool("f_aai_1m") &&
-                        r["Above All Indices (1M)"] != 1
-                    )
+                    if (gbool("f_aai_1m") && r["Above All Indices (1M)"] != 1)
                         return false;
-                    if (
-                        gbool("f_aai_2m") &&
-                        r["Above All Indices (2M)"] != 1
-                    )
+                    if (gbool("f_aai_2m") && r["Above All Indices (2M)"] != 1)
                         return false;
-                    if (
-                        gbool("f_aai_3m") &&
-                        r["Above All Indices (3M)"] != 1
-                    )
+                    if (gbool("f_aai_3m") && r["Above All Indices (3M)"] != 1)
                         return false;
-                    if (
-                        gbool("f_aai_4m") &&
-                        r["Above All Indices (4M)"] != 1
-                    )
+                    if (gbool("f_aai_4m") && r["Above All Indices (4M)"] != 1)
                         return false;
-                    if (
-                        gbool("f_aai_6m") &&
-                        r["Above All Indices (6M)"] != 1
-                    )
+                    if (gbool("f_aai_6m") && r["Above All Indices (6M)"] != 1)
                         return false;
                     if (
                         gbool("f_hl_structure") &&
@@ -17048,6 +17730,7 @@
                         localStorage.getItem(WL_KEY) || "[]",
                     ),
                     column_visibility: loadColumnVisibility(),
+                    chart_settings: loadChartSettings(),
                 };
                 const json = JSON.stringify(payload, null, 2);
                 const blob = new Blob([json], { type: "application/json" });
@@ -17094,6 +17777,13 @@
                             localStorage.setItem(
                                 CV_KEY,
                                 JSON.stringify(payload.column_visibility),
+                            );
+                        }
+                        // Restore chart settings if present
+                        if (payload.chart_settings) {
+                            localStorage.setItem(
+                                CHART_KEY,
+                                JSON.stringify(payload.chart_settings),
                             );
                         }
                         showSettingsStatus(
@@ -17515,6 +18205,345 @@
 
                 URL.revokeObjectURL(url);
             }
+
+            // ============ THUMBNAIL CHART ============
+            function getSourceValue(candle, source = "close") {
+                switch (source) {
+                    case "open":
+                        return candle.open;
+
+                    case "high":
+                        return candle.high;
+
+                    case "low":
+                        return candle.low;
+
+                    case "close":
+                        return candle.close;
+
+                    case "hl2":
+                        return (candle.high + candle.low) / 2;
+
+                    case "hlc3":
+                        return (candle.high + candle.low + candle.close) / 3;
+
+                    case "ohlc4":
+                        return (candle.open + candle.high + candle.low + candle.close) / 4;
+
+                    default:
+                        return candle.close;
+                }
+            }
+
+            function calculateSMA(data, period, source = "close") {
+                const result = [];
+                let sum = 0;
+
+                for (let i = 0; i < data.length; i++) {
+                    const value = getSourceValue(data[i], source);
+
+                    sum += value;
+
+                    if (i >= period) {
+                        sum -= getSourceValue(data[i - period], source);
+                    }
+
+                    if (i >= period - 1) {
+                        result.push({
+                            time: data[i].time,
+                            value: sum / period
+                        });
+                    }
+                }
+
+                return result;
+            }
+
+            function calculateEMA(data, period, source = "close") {
+                const result = [];
+
+                if (data.length < period) {
+                    return result;
+                }
+
+                // Initial SMA
+                let sum = 0;
+
+                for (let i = 0; i < period; i++) {
+                    sum += getSourceValue(data[i],source);
+                }
+
+                let ema = sum / period;
+
+                result.push({
+                    time: data[period - 1].time,
+                    value: ema,
+                });
+
+                const multiplier = 2 / (period + 1);
+
+                for (let i = period; i < data.length; i++) {
+                    ema = (getSourceValue(data[i],source) - ema) * multiplier + ema;
+
+                    result.push({
+                        time: data[i].time,
+                        value: ema,
+                    });
+                }
+
+                return result;
+            }
+
+            var thumbCharts = [];
+
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+
+            function calculateChartHeight(){
+                const header=document.querySelector('.site-header').getBoundingClientRect().height;
+                const statusbar=document.querySelector('#statsBar').getBoundingClientRect().height;
+                const thead=document.querySelector('#mainTable > thead').getBoundingClientRect().height;
+                const pagebar=document.querySelector('#pagBar').getBoundingClientRect().height;
+                const footer=document.querySelector('footer').getBoundingClientRect().height;
+                return header+statusbar+thead+pagebar+footer+10;//10px extra
+            }
+
+            function generateThumbnailChart() {
+                //remove the existing charts from the memory.
+                for (const key in thumbCharts) {
+                    thumbCharts[key].remove();
+                    delete thumbCharts[key];
+                }
+
+                const chartSettings=getChartSettings();
+                console.log(chartSettings);
+
+                document
+                    .querySelectorAll(".thumb-chart")
+                    .forEach(async (chartDiv, index) => {
+                        const isin = chartDiv.dataset.isin;
+
+                        const currentTr = chartDiv.closest("tr");
+                        const previousTr = currentTr
+                            ? currentTr.previousElementSibling
+                            : null;
+                        const previousTrHeight=previousTr.getBoundingClientRect().height;
+
+                        let scriptCode = "";
+                        let scriptName = "";
+
+                        if (previousTr) {
+                            // Get the cells array/collection from the previous row
+                            const cells = previousTr.cells;
+
+                            // Extract the text from the first two cells (index 0 and 1)
+                            scriptCode = cells[0]
+                                ? cells[0].textContent.trim().slice(0, -1)
+                                : "";
+                            scriptName = cells[1]
+                                ? cells[1].textContent.trim()
+                                : "";
+                        }
+
+                        try {
+                            const response = await fetch(
+                                `data/chart/${isin}.json`,
+                            );
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}`);
+                            }
+
+                            const data = await response.json();
+
+                            let chartWidth =
+                                Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
+                            let otherHeight=calculateChartHeight();
+                            /*
+                            let chartHeight = Math.round(
+                                Math.min(chartWidth / 1.8, screenHeight - (otherHeight + previousTrHeight)),
+                            );
+                            */
+                            let chartHeight = Math.round(screenHeight - (otherHeight + previousTrHeight));
+
+                            // Create your chart here
+                            thumbCharts[isin] = LightweightCharts.createChart(
+                                chartDiv,
+                                {
+                                    handleScroll: false,
+                                    handleScale: false,
+                                    crosshair: {
+                                        mode: LightweightCharts.CrosshairMode
+                                            .Hidden,
+                                    },
+                                    timeScale: {
+                                        visible: false,
+                                        borderVisible: false,
+                                    },
+                                    rightPriceScale: {
+                                        visible: false,
+                                        minimumWidth: 0,
+                                    },
+                                    leftPriceScale: {
+                                        visible: false,
+                                        minimumWidth: 0,
+                                    },
+                                    width: chartWidth,
+                                    height: chartHeight,
+                                    layout: {
+                                        background: {
+                                            type: LightweightCharts.ColorType
+                                                .Solid,
+                                            color: "transparent",
+                                        },
+                                        textColor: "#ffffff",
+                                        attributionLogo: false,
+                                    },
+                                    grid: {
+                                        vertLines: {
+                                            visible: false,
+                                        },
+                                        horzLines: {
+                                            visible: false,
+                                        },
+                                    },
+                                },
+                            );
+
+                            LightweightCharts.createTextWatermark(
+                                thumbCharts[isin].panes()[0],
+                                {
+                                    horzAlign: "left",
+                                    vertAlign: "top",
+                                    lines: [
+                                        {
+                                            text: scriptCode,
+                                            color: "rgba(100,100,100, 0.5)",
+                                            fontSize: 18,
+                                        },
+                                        {
+                                            text: scriptName,
+                                            color: "rgba(100,100,100, 0.5)",
+                                            fontSize: 14,
+                                        },
+                                    ],
+                                },
+                            );
+
+                            let chartSeries = thumbCharts[isin].addSeries(
+                                LightweightCharts.CandlestickSeries,
+                                {
+                                    title2: "Price",
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                    upColor: "#26a69a",
+                                    downColor: "#ef5350",
+                                    borderVisible: false,
+                                    wickUpColor: "#26a69a",
+                                    wickDownColor: "#ef5350",
+                                },
+                            );
+                            chartSeries.setData(data.slice(-180));
+
+                            let chartSeriesVolume = thumbCharts[isin].addSeries(
+                                LightweightCharts.HistogramSeries,
+                                {
+                                    title2: "Volume",
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                    priceFormat: { type: "volume" },
+                                    priceScaleId: "volume",
+                                    scaleMargins: {
+                                        top: 0.8,
+                                        bottom: 0,
+                                    },
+                                },
+                            );
+                            const volumeData = data.map((item) => ({
+                                time: item.time,
+                                value: item.v,
+                                color:
+                                    item.close >= item.open
+                                        ? "rgba(38, 166, 154, 0.6)"
+                                        : "rgba(239, 83, 80, 0.6)",
+                            }));
+                            chartSeriesVolume.setData(volumeData.slice(-180));
+
+                            chartSeriesVolume.priceScale().applyOptions({
+                                scaleMargins: {
+                                    top: 0.8,
+                                    bottom: 0,
+                                },
+                            });
+
+                            thumbCharts[isin]
+                                .priceScale("volume")
+                                .applyOptions({
+                                    scaleMargins: { top: 0.8, bottom: 0 },
+                                    visible: false,
+                                });
+
+                            let maSeries=[];
+                            chartSettings.ma.forEach((ma,index)=>{
+                                if(ma.enabled==true){
+                                    maSeries[index] = thumbCharts[isin].addSeries(
+                                        LightweightCharts.LineSeries,
+                                        {
+                                            titile:(ma.type+ma.length.toString()).toUpperCase(),
+                                            title2:(ma.type+ma.length.toString()).toUpperCase(),
+                                            color: ma.color,
+                                            lineWidth: 1,
+                                            crosshairMarkerVisible: false,
+                                            lastValueVisible: false,
+                                            priceLineVisible: false,
+                                        },
+                                    );
+                                    if(ma.type=="ema"){
+                                        maSeries[index].setData(calculateEMA(data, ma.length,ma.source).slice(-180));
+                                    }else{
+                                        maSeries[index].setData(calculateSMA(data, ma.length,ma.source).slice(-180));
+                                    }
+                                }
+                            });
+
+                            thumbCharts[isin].timeScale().fitContent();
+                        } catch (error) {
+                            console.error(
+                                `Failed to load chart data for ${isin}:`,
+                                error,
+                            );
+                        }
+                    });
+            }
+
+            window.addEventListener("resize", (event) => {
+                let screenWidth = window.innerWidth;
+                let screenHeight = window.innerHeight;
+
+                for (const key in thumbCharts) {
+                    const chartDiv=document.querySelector(`[data-isin="${key}"]`);
+                    const currentTr = chartDiv.closest("tr");
+                    const previousTr = currentTr
+                        ? currentTr.previousElementSibling
+                        : null;
+                    const previousTrHeight=previousTr.getBoundingClientRect().height;
+
+                    let chartWidth =
+                        Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
+                    let otherHeight=calculateChartHeight();
+                    /*
+                    let chartHeight = Math.round(
+                        Math.min(chartWidth / 1.8, screenHeight - (otherHeight + previousTrHeight)),
+                    );
+                    */
+                    let chartHeight = Math.round(screenHeight - (otherHeight + previousTrHeight));
+
+                    thumbCharts[key].resize(chartWidth, chartHeight, true);
+                    thumbCharts[key].timeScale().fitContent();
+                }
+            });
 
             // ============ INIT ============
             document

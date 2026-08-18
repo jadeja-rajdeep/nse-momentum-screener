@@ -1,0 +1,167 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>fast-chart.js — demo</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f4f6f8;margin:0;padding:24px;color:#222}
+  h1{font-size:16px;margin:0 0 4px}
+  .sub{font-size:12.5px;color:#8a929c;margin:0 0 16px}
+  .card{max-width:900px;margin:0 auto 16px;background:#fff;border:1px solid #eee;border-radius:10px;padding:10px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .toolbar{max-width:900px;margin:0 auto 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  button{font:12.5px -apple-system,sans-serif;padding:6px 12px;border-radius:6px;border:1px solid #d7dbe0;background:#fff;cursor:pointer}
+  .hint{font-size:11.5px;color:#8a929c;padding:4px 2px 0}
+  .row{max-width:900px;margin:0 auto;display:flex;gap:16px;flex-wrap:wrap}
+  .thumb{flex:1 1 260px;background:#fff;border:1px solid #eee;border-radius:10px;padding:8px}
+  .thumb h3{font-size:12px;margin:0 0 6px;color:#5b6470}
+</style>
+</head>
+<body>
+  <h1>fast-chart.js</h1>
+  <p class="sub">Modular canvas chart library — main pane + synced RSI pane, code-driven lines/boxes/markers, theme switch, and a fast non-interactive thumbnail mode.</p>
+
+  <div class="toolbar">
+    <button id="themeLight">Light theme</button>
+    <button id="themeDark">Dark theme</button>
+  </div>
+
+  <div class="card">
+    <div id="mainChart"></div>
+  </div>
+  <div class="card">
+    <div id="rsiPane"></div>
+  </div>
+  <p class="hint" style="max-width:900px;margin:0 auto">
+    Scroll to zoom · drag to pan · move mouse for synced crosshair across both panes.
+    All lines/boxes/markers on this chart were added via code (chart.addLine / chart.addMarkers /
+    chart.addOverlay) — there's no mouse-driven drawing tool, by design.
+  </p>
+
+  <h1 style="max-width:900px;margin:28px auto 4px">Compact / thumbnail mode</h1>
+  <p class="sub" style="max-width:900px;margin:0 auto 12px">
+    No axes, no crosshair, no pointer listeners at all (<code>interactive:false</code>) — used in cards/lists
+    where you show many small charts and want the fastest possible render.
+  </p>
+  <div class="row" id="thumbRow"></div>
+
+<!-- library, included as a plain script tag: everything is exposed on window.FastChart -->
+<script src="fast-chart.js"></script>
+
+<!-- app code, in a SEPARATE script tag, using the FastChart global -->
+<script>
+  // ---- synth OHLCV data (swap this for your real feed) ----
+  function genBars(n) {
+    const bars = []; let price = 500, d = new Date("2024-01-01");
+    for (let i = 0; i < n; i++) {
+      const drift = (Math.random() - 0.48) * 6;
+      const o = price;
+      const c = Math.max(5, o + drift);
+      const h = Math.max(o, c) + Math.random() * 4;
+      const l = Math.min(o, c) - Math.random() * 4;
+      const v = Math.round(50000 + Math.random() * 200000);
+      bars.push({ d: d.toISOString().slice(0, 10), o: +o.toFixed(1), h: +h.toFixed(1), l: +l.toFixed(1), c: +c.toFixed(1), v });
+      price = c; d.setDate(d.getDate() + 1);
+    }
+    return bars;
+  }
+  function rsi(closes, period) {
+    const out = new Array(closes.length).fill(null);
+    let gain = 0, loss = 0;
+    for (let i = 1; i < closes.length; i++) {
+      const diff = closes[i] - closes[i - 1];
+      const g = Math.max(diff, 0), l = Math.max(-diff, 0);
+      if (i <= period) { gain += g; loss += l; if (i === period) out[i] = 100 - 100 / (1 + (gain / period) / ((loss / period) || 1e-9)); continue; }
+      gain = (gain * (period - 1) + g) / period;
+      loss = (loss * (period - 1) + l) / period;
+      out[i] = 100 - 100 / (1 + gain / (loss || 1e-9));
+    }
+    return out;
+  }
+
+  const bars = genBars(260);
+  const closes = bars.map(b => b.c);
+  const rsiValues = rsi(closes, 14);
+
+  // ---- main candlestick chart ----
+  const chart = new FastChart.Chart(document.getElementById("mainChart"), {
+    bars,
+    height: 360,
+    ma: [
+      { period: 20, type: "sma", color: "#2563eb", label: "SMA20" },
+      { period: 50, type: "ema", color: "#ea8a2f", label: "EMA50" }
+    ]
+  });
+
+  // markers above/below candles — code only
+  chart.addMarkers([
+    { date: bars[60].d, position: "below", shape: "arrow", color: "#1a8a4a" },   // buy
+    { date: bars[140].d, position: "above", shape: "arrow", color: "#d2392f" },  // sell
+    { date: bars[200].d, position: "above", text: "!", color: "#b8860b" }
+  ]);
+
+  // horizontal + extended trendline — code only, via addLine()
+  chart.addLine({ type: "horizontal", y: bars[bars.length - 1].c * 1.08, color: "#1a8a4a", label: "pivot" });
+  chart.addLine({
+    type: "trendline",
+    p1: { i: 30, price: bars[30].l },
+    p2: { i: 90, price: bars[90].l },
+    extendRight: true,
+    color: "#d2392f", width: 1.6
+  });
+
+  // consolidation/base box overlay — code only
+  chart.addOverlay(FastChart.overlayHelpers.boxes([
+    {
+      fromDate: bars[100].d, toDate: bars[140].d,
+      high: Math.max(...bars.slice(100, 140).map(b => b.h)),
+      low: Math.min(...bars.slice(100, 140).map(b => b.l)),
+      label: "base · 6 wks", color: "#1a8a4a"
+    }
+  ]));
+
+  // a plain code-only box drawing (rectangle) via addLine, alongside the boxes overlay
+  chart.addLine({
+    type: "box",
+    p1: { i: 180, price: Math.max(...bars.slice(180, 210).map(b => b.h)) },
+    p2: { i: 210, price: Math.min(...bars.slice(180, 210).map(b => b.l)) },
+    color: "#7c3aed", label: "range"
+  });
+
+  // ---- synced RSI indicator pane ----
+  const rsiPane = new FastChart.IndicatorPane(document.getElementById("rsiPane"), {
+    bars,
+    height: 130,
+    series: [{ name: "RSI 14", color: "#7c3aed", values: rsiValues }],
+    bands: [{ y: 70, color: "#94a3b8" }, { y: 30, color: "#94a3b8" }]
+  });
+
+  // link crosshair + zoom/pan between the two panes
+  FastChart.Group.link([chart, rsiPane]);
+
+  themeLight.onclick = () => { chart.setTheme(FastChart.themes.light); rsiPane.setTheme(FastChart.themes.light); };
+  themeDark.onclick = () => { chart.setTheme(FastChart.themes.dark); rsiPane.setTheme(FastChart.themes.dark); };
+
+  // ---- fast, non-interactive thumbnail charts (cards/lists use-case) ----
+  const thumbRow = document.getElementById("thumbRow");
+  const thumbNames = ["RELIANCE", "TCS", "INFY", "HDFCBANK"];
+  thumbNames.forEach(name => {
+    const box = document.createElement("div");
+    box.className = "thumb";
+    box.innerHTML = `<h3>${name}</h3><div class="chartHost"></div>`;
+    thumbRow.appendChild(box);
+    new FastChart.Chart(box.querySelector(".chartHost"), {
+      bars: genBars(90),
+      compact: true,
+      interactive: false,   // no crosshair, no pointer listeners at all — pure static render
+      legend: false,
+      showDateAxis: false,
+      height: 150,
+      ma: [
+        { period: 20, type: "sma", color: "#2563eb", label: "SMA20" },
+        { period: 50, type: "ema", color: "#ea8a2f", label: "EMA50" }
+      ]
+    });
+  });
+</script>
+</body>
+</html>
