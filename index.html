@@ -758,19 +758,19 @@
 
             /* ---- TABLE ---- */
             /* 1. The Scroll Container */
-            #tableWrapper.table-wrapper{
+            #tableWrapper.table-wrapper {
                 scroll-snap-type: y mandatory; /* Forces snapping vertically */
                 /* FIX: Adjust this value to match your sticky table header's height */
                 scroll-padding-top: 32px;
             }
             /* 2. The Snapping Section (Every 2 Rows Wrapped together) */
             tr.snap-section {
-              scroll-snap-align: start; /* Snaps the top of these 2 rows to the container top */
-              scroll-snap-stop: always; /* Prevents users from accidentally skipping sections */
+                scroll-snap-align: start; /* Snaps the top of these 2 rows to the container top */
+                scroll-snap-stop: always; /* Prevents users from accidentally skipping sections */
             }
             /* FIX: Prevents visible outline when clicked, while keeping arrows working */
             #tableWrapper.table-wrapper:focus {
-              outline: none;
+                outline: none;
             }
 
             .table-wrapper {
@@ -3461,31 +3461,75 @@
 
             /*chart css start*/
             #mainTable tbody tr.chart-row td.chart-cell {
-                ...
-                padding: 0 !important;   /* new — so the sticky div sits flush at the cell's left edge */
+                padding: 0 !important; /* new — so the sticky div sits flush at the cell's left edge */
             }
             #mainTable tbody tr.chart-row td.chart-cell .thumb-chart {
                 position: sticky;
                 left: 0;
-                display: inline-block;   /* so sticky has a real box to stick, not the full row width */
+                display: inline-block; /* so sticky has a real box to stick, not the full row width */
+            }
+            .thumb-chart .fullscreen-btn {
+                position: absolute;
+                top: 5px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 10;
+
+                /* Text/Emoji styling */
+                font-size: 16px;
+                line-height: 1;
+                padding: 6px 8px;
+
+                /* Button appearance */
+                color: #f5f5f5;
+                background: rgba(0, 0, 0, 0.8);
+                border: 0;
+                border-radius: 6px;
+                outline: none;
+                cursor: pointer;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                transition: all 0.2s ease;
+            }
+
+            .thumb-chart .fullscreen-btn:hover {
+                font-size: 20px;
             }
 
             .thumb-chart .tv-lightweight-charts td:nth-child(1) {
-              position: inherit !important;
-              left: initial !important;
-              z-index: initial !important;
-              background:inherit !important;
-              min-width:inherit !important;
-              width: 0  !important;
-              visibility: hidden !important;
+                position: inherit !important;
+                left: initial !important;
+                z-index: initial !important;
+                background: inherit !important;
+                min-width: inherit !important;
+                width: 0 !important;
+                visibility: hidden !important;
             }
-            .thumb-chart .tv-lightweight-charts td:nth-child(2){
+            .thumb-chart .tv-lightweight-charts td:nth-child(2) {
                 position: relative !important;
                 left: initial !important;
                 z-index: initial !important;
                 background: transparent !important;
                 min-width: 180px;
-                border-right:0 !important;
+                border-right: 0 !important;
+            }
+
+            #chartModal .tv-lightweight-charts table tr th:nth-child(1),
+            #chartModal .tv-lightweight-charts table tr td:nth-child(1) {
+                position: initial !important;
+                left: initial !important;
+                z-index: initial !important;
+                background: initial !important;
+                min-width: initial !important;
+            }
+
+            #chartModal .tv-lightweight-charts table tr th:nth-child(2),
+            #chartModal .tv-lightweight-charts table tr td:nth-child(2) {
+                position: relative !important;
+                left: initial !important;
+                z-index: initial !important;
+                background: initial !important;
+                min-width: initial !important;
+                border: initial !important;
             }
         </style>
 
@@ -11306,6 +11350,45 @@
             </div>
         </div>
 
+        <!-- CHART MODAL -->
+        <div
+            class="settings-modal-overlay p-0"
+            id="chartModal"
+            onclick="closeChartModalOnOverlay(event)"
+        >
+            <div
+                class="settings-modal"
+                onclick="event.stopPropagation()"
+                style="min-width: 100%; max-width: 100%; min-height: 100vh"
+            >
+                <div class="settings-modal-header">
+                    <div>
+                        <div class="settings-modal-title">
+                            Script Code Goes Here
+                        </div>
+                        <div class="tv-modal-meta">
+                            Script Full Name Goes Here
+                        </div>
+                    </div>
+
+                    <button
+                        class="peer-modal-close text-success border-success bg-success ms-auto"
+                        style="--bs-bg-opacity: 0.1"
+                        id="resetChart"
+                    >
+                        ↺
+                    </button>
+                    <button
+                        class="peer-modal-close text-green"
+                        onclick="closeChartModal()"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div class="settings-modal-body">Main Chart Goes Here...</div>
+            </div>
+        </div>
+
         <!-- AUTHOR / ABOUT MODAL -->
         <div
             class="author-modal-overlay"
@@ -12990,12 +13073,16 @@
 
                 if (document.readyState === "loading") {
                     // Page is not loaded yet — wait until DOM is ready
-                    document.addEventListener("DOMContentLoaded", ()=>{
-                        renderPage();
-                        renderPagination();
-                        const cv = loadColumnVisibility();
-                        applyColumnVisibility(cv);
-                    }, { once: true });
+                    document.addEventListener(
+                        "DOMContentLoaded",
+                        () => {
+                            renderPage();
+                            renderPagination();
+                            const cv = loadColumnVisibility();
+                            applyColumnVisibility(cv);
+                        },
+                        { once: true },
+                    );
                     return;
                 }
 
@@ -13930,14 +14017,14 @@
                         if (isCompareAdded)
                             rowClasses.push("compare-added-row");
 
-                        let chartTr='';
+                        let chartTr = "";
                         if (chartSettings.enabled == true) {
                             rowClasses.push("snap-section");
                             //chart blank tr and td code start
                             chartTr = `
                                 <tr class="chart-row">
                                     <td colspan="82" class="chart-cell">
-                                        <div class="thumb-chart" data-isin="${r["ISIN"]}"></div>
+                                        <div class="thumb-chart" data-isin="${r["ISIN"]}"><button class="fullscreen-btn" title="Full Screen" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">⛶</button></div>
                                     </td>
                                 </tr>
                             `;
@@ -14212,15 +14299,32 @@
                     })
                     .join("");
 
-                    //calling thumnail chart function
-                    //DELAY the calculation until the DOM is actually injected and ready
-                    requestAnimationFrame(() => {
-                        // This runs AFTER the browser accepts the new HTML layout
-                        if (chartSettings.enabled == true) {
-                            generateThumbnailChart();
-                        }
-                    });
+                //calling thumnail chart function
+                if (document.readyState === "loading") {
+                    // Page is not loaded yet — wait until DOM is ready
+                    document.addEventListener(
+                        "DOMContentLoaded",
+                        () => {
+                            //DELAY the calculation until the DOM is actually injected and ready
+                            requestAnimationFrame(() => {
+                                // This runs AFTER the browser accepts the new HTML layout
+                                if (chartSettings.enabled == true) {
+                                    generateThumbnailChart();
+                                }
+                            });
+                        },
+                        { once: true },
+                    );
+                    return;
+                }
 
+                //DELAY the calculation until the DOM is actually injected and ready
+                requestAnimationFrame(() => {
+                    // This runs AFTER the browser accepts the new HTML layout
+                    if (chartSettings.enabled == true) {
+                        generateThumbnailChart();
+                    }
+                });
             }
 
             // ============ STATS ============
@@ -14503,6 +14607,7 @@
                     closeSettingsModal();
                     closeColumnModal();
                     closeChartSettingsModal();
+                    closeChartModal();
                 }
             });
 
@@ -14613,12 +14718,14 @@
                     const lists = loadWatchlists();
                     const wl = lists.find((w) => w.id === id);
                     if (!wl) return;
-                    const span = document.querySelector(`span[data-wl-code="${wlPopoverActiveCode}"]`);
+                    const span = document.querySelector(
+                        `span[data-wl-code="${wlPopoverActiveCode}"]`,
+                    );
                     if (cb.checked) {
-                        if (!wl.codes.includes(wlPopoverActiveCode)){
+                        if (!wl.codes.includes(wlPopoverActiveCode)) {
                             wl.codes.push(wlPopoverActiveCode);
                             if (span) {
-                                span.textContent="★";
+                                span.textContent = "★";
                                 span.classList.add("in-watchlist");
                             }
                         }
@@ -14631,9 +14738,9 @@
                     refreshWatchlistUI();
 
                     //if its not in any watchlist then update the star and remove the in-watchlist class
-                    if(!isInAnyWatchlist(wlPopoverActiveCode)){
+                    if (!isInAnyWatchlist(wlPopoverActiveCode)) {
                         if (span) {
-                            span.textContent="☆";
+                            span.textContent = "☆";
                             span.classList.remove("in-watchlist");
                         }
                     }
@@ -14752,15 +14859,17 @@
                 refreshWatchlistUI();
 
                 //remove watchlist star selection from the current table records in ui.
-                document.querySelectorAll("span.wl-star").forEach((el,index)=>{
-                    const code=el.dataset.wlCode;
-                    if(!isInAnyWatchlist(code)){
-                        if (el) {
-                            el.textContent="☆";
-                            el.classList.remove("in-watchlist");
+                document
+                    .querySelectorAll("span.wl-star")
+                    .forEach((el, index) => {
+                        const code = el.dataset.wlCode;
+                        if (!isInAnyWatchlist(code)) {
+                            if (el) {
+                                el.textContent = "☆";
+                                el.classList.remove("in-watchlist");
+                            }
                         }
-                    }
-                });
+                    });
             }
 
             function createWatchlistPrompt() {
@@ -14818,15 +14927,17 @@
                 refreshWatchlistUI();
 
                 //remove watchlist star selection from the current table records in ui.
-                document.querySelectorAll("span.wl-star").forEach((el,index)=>{
-                    const code=el.dataset.wlCode;
-                    if(!isInAnyWatchlist(code)){
-                        if (el) {
-                            el.textContent="☆";
-                            el.classList.remove("in-watchlist");
+                document
+                    .querySelectorAll("span.wl-star")
+                    .forEach((el, index) => {
+                        const code = el.dataset.wlCode;
+                        if (!isInAnyWatchlist(code)) {
+                            if (el) {
+                                el.textContent = "☆";
+                                el.classList.remove("in-watchlist");
+                            }
                         }
-                    }
-                });
+                    });
             }
 
             // Run this single watchlist as the active table filter (sets the
@@ -14885,13 +14996,15 @@
                 saveWatchlists(lists);
                 refreshWatchlistUI();
                 //update all the current records watchlist star.
-                document.querySelectorAll("span.wl-star").forEach((el,index)=>{
-                    const code=el.dataset.wlCode;
-                    if (el) {
-                        el.textContent="★";
-                        el.classList.add("in-watchlist");
-                    }
-                });
+                document
+                    .querySelectorAll("span.wl-star")
+                    .forEach((el, index) => {
+                        const code = el.dataset.wlCode;
+                        if (el) {
+                            el.textContent = "★";
+                            el.classList.add("in-watchlist");
+                        }
+                    });
                 alert(
                     `Added ${added} new stock${added !== 1 ? "s" : ""} to "${target.name}" (${target.codes.length} total).`,
                 );
@@ -18297,10 +18410,19 @@
                         return (candle.high + candle.low + candle.close) / 3;
 
                     case "ohlc4":
-                        return (candle.open + candle.high + candle.low + candle.close) / 4;
+                        return (
+                            (candle.open +
+                                candle.high +
+                                candle.low +
+                                candle.close) /
+                            4
+                        );
 
                     case "volume":
                         return candle.v;
+
+                    case "value":
+                        return candle.value;
 
                     default:
                         return candle.close;
@@ -18323,7 +18445,7 @@
                     if (i >= period - 1) {
                         result.push({
                             time: data[i].time,
-                            value: sum / period
+                            value: sum / period,
                         });
                     }
                 }
@@ -18342,7 +18464,7 @@
                 let sum = 0;
 
                 for (let i = 0; i < period; i++) {
-                    sum += getSourceValue(data[i],source);
+                    sum += getSourceValue(data[i], source);
                 }
 
                 let ema = sum / period;
@@ -18355,7 +18477,9 @@
                 const multiplier = 2 / (period + 1);
 
                 for (let i = period; i < data.length; i++) {
-                    ema = (getSourceValue(data[i],source) - ema) * multiplier + ema;
+                    ema =
+                        (getSourceValue(data[i], source) - ema) * multiplier +
+                        ema;
 
                     result.push({
                         time: data[i].time,
@@ -18366,21 +18490,122 @@
                 return result;
             }
 
+            function calculateMACD(data, options = {}) {
+                // Fixed: Use '=' for default values in destructuring
+                const {
+                    fastLength = 12,
+                    histNegativeColor = "#ef4444",
+                    histPositiveColor = "#22c55e",
+                    macdLineColor = "#3b82f6",
+                    oscMaType = "ema",
+                    signalLength = 9,
+                    signalLineColor = "#f59e0b",
+                    signalMaType = "ema",
+                    slowLength = 26,
+                    source = "close"
+                } = options;
+
+                if (!data || data.length === 0) {
+                    return { macdLine: [], signalLine: [], histogram: [] };
+                }
+
+                // 1. Extract the selected source series into [{ time, value }]
+                const sourceSeries = data.map((item) => ({
+                    time: item.time,
+                    value: Number(getSourceValue(item, source)),
+                }));
+
+                // 2. Calculate Fast and Slow MAs using destructured variables
+                const fastMA = oscMaType === "ema"
+                    ? calculateEMA(sourceSeries, fastLength, "value")
+                    : calculateSMA(sourceSeries, fastLength, "value");
+
+                const slowMA = oscMaType === "ema"
+                    ? calculateEMA(sourceSeries, slowLength, "value")
+                    : calculateSMA(sourceSeries, slowLength, "value");
+
+                // Map Fast MA for O(1) alignment
+                const fastMap = new Map(
+                    fastMA.map((item) => [item.time, item.value])
+                );
+
+                // 3. Compute MACD Line (Fast MA - Slow MA)
+                const macdLine = [];
+                for (const slowItem of slowMA) {
+                    const fastVal = fastMap.get(slowItem.time);
+                    if (fastVal !== undefined) {
+                        macdLine.push({
+                            time: slowItem.time,
+                            value: fastVal - slowItem.value,
+                        });
+                    }
+                }
+
+                // 4. Compute Signal Line from MACD Line
+                const signalLine = signalMaType === "ema"
+                    ? calculateEMA(macdLine, signalLength, "value")
+                    : calculateSMA(macdLine, signalLength, "value");
+
+                // Map MACD Line for histogram calculation
+                const macdMap = new Map(
+                    macdLine.map((item) => [item.time, item.value])
+                );
+
+                // 5. Compute Histogram (MACD Line - Signal Line)
+                const histogram = [];
+                for (const sigItem of signalLine) {
+                    const macdVal = macdMap.get(sigItem.time);
+                    if (macdVal !== undefined) {
+                        const diff = macdVal - sigItem.value;
+                        histogram.push({
+                            time: sigItem.time,
+                            value: diff,
+                            // Fixed: Use histNegativeColor for negative values
+                            color: diff >= 0 ? histPositiveColor : histNegativeColor,
+                        });
+                    }
+                }
+
+                return { macdLine, signalLine, histogram };
+            }
+
             var thumbCharts = [];
+            var mainCharts = [];
+            var mainChartsSeries=[];
 
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
 
-            function calculateChartHeight(){
-                const header=document.querySelector('.site-header').getBoundingClientRect().height;
-                const multibanner=document.querySelector('#multiBanner').getBoundingClientRect().height;
-                const statusbar=document.querySelector('#statsBar').getBoundingClientRect().height;
-                const thead=document.querySelector('#mainTable > thead').getBoundingClientRect().height;
-                const pagebar=document.querySelector('#pagBar').getBoundingClientRect().height;
-                const footer=document.querySelector('footer').getBoundingClientRect().height;
-                let extra=25;
-                if(screenWidth<=768) extra=15;
-                return header+multibanner+statusbar+thead+pagebar+footer+extra;
+            function calculateChartHeight() {
+                const header = document
+                    .querySelector(".site-header")
+                    .getBoundingClientRect().height;
+                const multibanner = document
+                    .querySelector("#multiBanner")
+                    .getBoundingClientRect().height;
+                const statusbar = document
+                    .querySelector("#statsBar")
+                    .getBoundingClientRect().height;
+                const thead = document
+                    .querySelector("#mainTable > thead")
+                    .getBoundingClientRect().height;
+                const pagebar = document
+                    .querySelector("#pagBar")
+                    .getBoundingClientRect().height;
+                const footer = document
+                    .querySelector("footer")
+                    .getBoundingClientRect().height;
+                let extra = 25;
+                if (screenWidth <= 768) extra = 15;
+                return (
+                    header +
+                    multibanner +
+                    statusbar +
+                    thead +
+                    pagebar +
+                    footer +
+                    extra
+                );
             }
 
             function generateThumbnailChart() {
@@ -18390,7 +18615,7 @@
                     delete thumbCharts[key];
                 }
 
-                const chartSettings=getChartSettings();
+                const chartSettings = getChartSettings();
 
                 document
                     .querySelectorAll(".thumb-chart")
@@ -18401,7 +18626,8 @@
                         const previousTr = currentTr
                             ? currentTr.previousElementSibling
                             : null;
-                        const previousTrHeight=previousTr.getBoundingClientRect().height;
+                        const previousTrHeight =
+                            previousTr.getBoundingClientRect().height;
 
                         let scriptCode = "";
                         let scriptName = "";
@@ -18432,13 +18658,15 @@
 
                             let chartWidth =
                                 Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
-                            let otherHeight=calculateChartHeight();
+                            let otherHeight = calculateChartHeight();
                             /*
                             let chartHeight = Math.round(
                                 Math.min(chartWidth / 1.8, screenHeight - (otherHeight + previousTrHeight)),
                             );
                             */
-                            let chartHeight = Math.round(screenHeight - (otherHeight + previousTrHeight));
+                            let chartHeight = Math.round(
+                                screenHeight - (otherHeight + previousTrHeight),
+                            );
 
                             // Create your chart here
                             thumbCharts[isin] = LightweightCharts.createChart(
@@ -18520,23 +18748,22 @@
                             );
                             chartSeries.setData(data.slice(-180));
 
-                            if(chartSettings.volume.enabled==true){
-                                let chartSeriesVolume = thumbCharts[isin].addSeries(
-                                    LightweightCharts.HistogramSeries,
-                                    {
-                                        title: "Volume",
-                                        title2: "Volume",
-                                        crosshairMarkerVisible: false,
-                                        lastValueVisible: false,
-                                        priceLineVisible: false,
-                                        priceFormat: { type: "volume" },
-                                        priceScaleId: "volume",
-                                        scaleMargins: {
-                                            top: 0.8,
-                                            bottom: 0,
-                                        },
+                            if (chartSettings.volume.enabled == true) {
+                                let chartSeriesVolume = thumbCharts[
+                                    isin
+                                ].addSeries(LightweightCharts.HistogramSeries, {
+                                    title: "Volume",
+                                    title2: "Volume",
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                    priceFormat: { type: "volume" },
+                                    priceScaleId: "volume",
+                                    scaleMargins: {
+                                        top: 0.8,
+                                        bottom: 0,
                                     },
-                                );
+                                });
 
                                 const volumeData = data.map((item) => ({
                                     time: item.time,
@@ -18546,7 +18773,9 @@
                                             ? "rgba(38, 166, 154, 0.6)"
                                             : "rgba(239, 83, 80, 0.6)",
                                 }));
-                                chartSeriesVolume.setData(volumeData.slice(-180));
+                                chartSeriesVolume.setData(
+                                    volumeData.slice(-180),
+                                );
 
                                 chartSeriesVolume.priceScale().applyOptions({
                                     scaleMargins: {
@@ -18562,10 +18791,16 @@
                                         visible: false,
                                     });
 
-                                if(chartSettings.volume.maLength>0){
-                                    let chartSeriesVolumeSma = thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
-                                        title2: 'SMA'+chartSettings.volume.maLength.toString(),
-                                        title2: 'SMA'+chartSettings.volume.maLength.toString(),
+                                if (chartSettings.volume.maLength > 0) {
+                                    let chartSeriesVolumeSma = thumbCharts[
+                                        isin
+                                    ].addSeries(LightweightCharts.LineSeries, {
+                                        title2:
+                                            "SMA" +
+                                            chartSettings.volume.maLength.toString(),
+                                        title2:
+                                            "SMA" +
+                                            chartSettings.volume.maLength.toString(),
                                         color: chartSettings.volume.maColor,
                                         lineWidth: 1,
                                         crosshairMarkerVisible: false,
@@ -18578,29 +18813,50 @@
                                             bottom: 0,
                                         },
                                     });
-                                    chartSeriesVolumeSma.setData(calculateSMA(data, chartSettings.volume.maLength,"volume").slice(-180));
+                                    chartSeriesVolumeSma.setData(
+                                        calculateSMA(
+                                            data,
+                                            chartSettings.volume.maLength,
+                                            "volume",
+                                        ).slice(-180),
+                                    );
                                 }
                             }
 
-                            let maSeries=[];
-                            chartSettings.ma.forEach((ma,index)=>{
-                                if(ma.enabled==true){
-                                    maSeries[index] = thumbCharts[isin].addSeries(
-                                        LightweightCharts.LineSeries,
-                                        {
-                                            titile:(ma.type+ma.length.toString()).toUpperCase(),
-                                            title2:(ma.type+ma.length.toString()).toUpperCase(),
-                                            color: ma.color,
-                                            lineWidth: 1,
-                                            crosshairMarkerVisible: false,
-                                            lastValueVisible: false,
-                                            priceLineVisible: false,
-                                        },
-                                    );
-                                    if(ma.type=="ema"){
-                                        maSeries[index].setData(calculateEMA(data, ma.length,ma.source).slice(-180));
-                                    }else{
-                                        maSeries[index].setData(calculateSMA(data, ma.length,ma.source).slice(-180));
+                            let maSeries = [];
+                            chartSettings.ma.forEach((ma, index) => {
+                                if (ma.enabled == true) {
+                                    maSeries[index] = thumbCharts[
+                                        isin
+                                    ].addSeries(LightweightCharts.LineSeries, {
+                                        titile: (
+                                            ma.type + ma.length.toString()
+                                        ).toUpperCase(),
+                                        title2: (
+                                            ma.type + ma.length.toString()
+                                        ).toUpperCase(),
+                                        color: ma.color,
+                                        lineWidth: 1,
+                                        crosshairMarkerVisible: false,
+                                        lastValueVisible: false,
+                                        priceLineVisible: false,
+                                    });
+                                    if (ma.type == "ema") {
+                                        maSeries[index].setData(
+                                            calculateEMA(
+                                                data,
+                                                ma.length,
+                                                ma.source,
+                                            ).slice(-180),
+                                        );
+                                    } else {
+                                        maSeries[index].setData(
+                                            calculateSMA(
+                                                data,
+                                                ma.length,
+                                                ma.source,
+                                            ).slice(-180),
+                                        );
                                     }
                                 }
                             });
@@ -18615,29 +18871,34 @@
                     });
             }
 
-            function resizeThumbnailChart(){
-                const chartSettings=getChartSettings();
-                if(chartSettings.enabled==true){
+            function resizeThumbnailChart() {
+                const chartSettings = getChartSettings();
+                if (chartSettings.enabled == true) {
                     let screenWidth = window.innerWidth;
                     let screenHeight = window.innerHeight;
 
                     for (const key in thumbCharts) {
-                        const chartDiv=document.querySelector(`[data-isin="${key}"]`);
+                        const chartDiv = document.querySelector(
+                            `[data-isin="${key}"]`,
+                        );
                         const currentTr = chartDiv.closest("tr");
                         const previousTr = currentTr
                             ? currentTr.previousElementSibling
                             : null;
-                        const previousTrHeight=previousTr.getBoundingClientRect().height;
+                        const previousTrHeight =
+                            previousTr.getBoundingClientRect().height;
 
                         let chartWidth =
                             Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
-                        let otherHeight=calculateChartHeight();
+                        let otherHeight = calculateChartHeight();
                         /*
                         let chartHeight = Math.round(
                             Math.min(chartWidth / 1.8, screenHeight - (otherHeight + previousTrHeight)),
                         );
                         */
-                        let chartHeight = Math.round(screenHeight - (otherHeight + previousTrHeight));
+                        let chartHeight = Math.round(
+                            screenHeight - (otherHeight + previousTrHeight),
+                        );
 
                         thumbCharts[key].resize(chartWidth, chartHeight, true);
                         thumbCharts[key].timeScale().fitContent();
@@ -18651,6 +18912,398 @@
                     resizeThumbnailChart();
                 });
             });
+
+            function openChartModal(Caller) {
+                const chartSettings = getChartSettings();
+                const chartModal = document.getElementById("chartModal");
+                chartModal.querySelector(".settings-modal-body").innerHTML = "";
+
+                const chartMain = document.createElement("div");
+                chartMain.id = "chart-main";
+                chartModal
+                    .querySelector(".settings-modal-body")
+                    .appendChild(chartMain);
+
+                let otherChartHeight = 0;
+                let chartRsi=null;
+                if (chartSettings.rsi.enabled) {
+                    chartRsi = document.createElement("div");
+                    chartRsi.id = "chart-rsi";
+                    chartModal
+                        .querySelector(".settings-modal-body")
+                        .appendChild(chartRsi);
+                    otherChartHeight = otherChartHeight + (screenHeight*0.15);
+                }
+
+                let chartMacd=null;
+                if (chartSettings.macd.enabled) {
+                    chartMacd = document.createElement("div");
+                    chartMacd.id = "chart-macd";
+                    chartModal
+                        .querySelector(".settings-modal-body")
+                        .appendChild(chartMacd);
+                    otherChartHeight = otherChartHeight + (screenHeight*0.15);
+                }
+
+                const isin = Caller.dataset.isin;
+                const code = Caller.dataset.code;
+                const name = Caller.dataset.name;
+
+                document.querySelector(
+                    "#chartModal .settings-modal-title",
+                ).textContent = code;
+                document.querySelector(
+                    "#chartModal .tv-modal-meta",
+                ).textContent = name;
+
+                chartModal.classList.add("open");
+
+                (async () => {
+                    try {
+                        const response = await fetch(`data/chart/${isin}.json`);
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        let chartWidth = screenWidth - 40;
+                        let chartHeight = screenHeight - (otherChartHeight + 112);
+
+                        // Create your chart here
+                        mainCharts["main"] = LightweightCharts.createChart(
+                            chartMain,
+                            {
+                                width: chartWidth,
+                                height: chartHeight,
+                                layout: {
+                                    background: {
+                                        type: LightweightCharts.ColorType.Solid,
+                                        color: "transparent",
+                                    },
+                                    textColor: "#6B7280",
+                                    attributionLogo: false,
+                                },
+                                grid: {
+                                    vertLines: {
+                                        visible: false,
+                                    },
+                                    horzLines: {
+                                        visible: false,
+                                    },
+                                },
+                                crosshair: {
+                                    mode: LightweightCharts.CrosshairMode
+                                        .Normal,
+                                    vertLine: {
+                                        color: "#8a98b4",
+                                        labelBackgroundColor: "#44506a",
+                                    },
+                                    horzLine: {
+                                        color: "#8a98b4",
+                                        labelBackgroundColor: "#44506a",
+                                    },
+                                },
+                                rightPriceScale: { borderColor: "#3b4862" },
+                                timeScale: {
+                                    borderColor: "#3b4862",
+                                    timeVisible: false,
+                                    secondsVisible: false,
+                                    rightOffset: 5,
+                                    fixLeftEdge: true,
+                                    fixRightEdge: false,
+                                    barSpacing: 8,
+                                },
+                            },
+                        );
+
+                        LightweightCharts.createTextWatermark(
+                            mainCharts["main"].panes()[0],
+                            {
+                                horzAlign: "left",
+                                vertAlign: "top",
+                                lines: [
+                                    {
+                                        text: code,
+                                        color: "rgba(100,100,100, 0.5)",
+                                        fontSize: 18,
+                                    },
+                                    {
+                                        text: name,
+                                        color: "rgba(100,100,100, 0.5)",
+                                        fontSize: 14,
+                                    },
+                                ],
+                            },
+                        );
+
+                        mainChartsSeries["main"]=[];
+                        mainChartsSeries["main"]["price"] = mainCharts["main"].addSeries(
+                            LightweightCharts.CandlestickSeries,
+                            {
+                                title2: "Price",
+                                crosshairMarkerVisible: false,
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                                upColor: "#26a69a",
+                                downColor: "#ef5350",
+                                borderVisible: false,
+                                wickUpColor: "#26a69a",
+                                wickDownColor: "#ef5350",
+                            },
+                        );
+                        mainChartsSeries["main"]["price"].setData(data);
+
+                        if (chartSettings.volume.enabled == true) {
+                            mainChartsSeries["main"]["volume"]=[];
+                            mainChartsSeries["main"]["volume"]["volume"] = mainCharts["main"].addSeries(LightweightCharts.HistogramSeries, {
+                                title2: "Volume",
+                                crosshairMarkerVisible: false,
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                                priceFormat: { type: "volume" },
+                                priceScaleId: "volume",
+                                scaleMargins: {
+                                    top: 0.8,
+                                    bottom: 0,
+                                },
+                            });
+
+                            const volumeData = data.map((item) => ({
+                                time: item.time,
+                                value: item.v,
+                                color:
+                                    item.close >= item.open
+                                        ? "rgba(38, 166, 154, 0.6)"
+                                        : "rgba(239, 83, 80, 0.6)",
+                            }));
+                            mainChartsSeries["main"]["volume"]["volume"].setData(volumeData);
+
+                            mainChartsSeries["main"]["volume"]["volume"].priceScale().applyOptions({
+                                scaleMargins: {
+                                    top: 0.8,
+                                    bottom: 0,
+                                },
+                            });
+
+                            mainCharts["main"]
+                                .priceScale("volume")
+                                .applyOptions({
+                                    scaleMargins: { top: 0.8, bottom: 0 },
+                                    visible: false,
+                                });
+
+                            if (chartSettings.volume.maLength > 0) {
+                                mainChartsSeries["main"]["volume"]["sma"] = mainCharts[
+                                    "main"
+                                ].addSeries(LightweightCharts.LineSeries, {
+                                    title2:
+                                        "SMA" +
+                                        chartSettings.volume.maLength.toString(),
+                                    color: chartSettings.volume.maColor,
+                                    lineWidth: 1,
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                    priceFormat: { type: "volume" },
+                                    priceScaleId: "volume",
+                                    scaleMargins: {
+                                        top: 0.8,
+                                        bottom: 0,
+                                    },
+                                });
+                                mainChartsSeries["main"]["volume"]["sma"].setData(
+                                    calculateSMA(
+                                        data,
+                                        chartSettings.volume.maLength,
+                                        "volume",
+                                    ),
+                                );
+                            }
+                        }
+
+                        mainChartsSeries["main"]["ma"]=[];
+                        chartSettings.ma.forEach((ma, index) => {
+                            if (ma.enabled == true) {
+                                 mainChartsSeries["main"]["ma"][(ma.type + ma.length.toString()).toUpperCase()] = mainCharts["main"].addSeries(
+                                    LightweightCharts.LineSeries,
+                                    {
+                                        title2: (
+                                            ma.type + ma.length.toString()
+                                        ).toUpperCase(),
+                                        color: ma.color,
+                                        lineWidth: 1,
+                                        crosshairMarkerVisible: false,
+                                        lastValueVisible: false,
+                                        priceLineVisible: false,
+                                    },
+                                );
+                                if (ma.type == "ema") {
+                                    mainChartsSeries["main"]["ma"][(ma.type + ma.length.toString()).toUpperCase()].setData(
+                                        calculateEMA(
+                                            data,
+                                            ma.length,
+                                            ma.source,
+                                        ),
+                                    );
+                                } else {
+                                    mainChartsSeries["main"]["ma"][(ma.type + ma.length.toString()).toUpperCase()].setData(
+                                        calculateSMA(
+                                            data,
+                                            ma.length,
+                                            ma.source,
+                                        ),
+                                    );
+                                }
+                            }
+                        });
+
+                        //macd chart code start
+                        if(chartSettings.macd.enabled){
+                            chartWidth = screenWidth - 40;
+                            chartHeight = screenHeight * 0.15;
+
+                            // Create your chart here
+                            mainCharts["macd"] = LightweightCharts.createChart(
+                                chartMacd,
+                                {
+                                    width: chartWidth,
+                                    height: chartHeight,
+                                    layout: {
+                                        background: {
+                                            type: LightweightCharts.ColorType.Solid,
+                                            color: "transparent",
+                                        },
+                                        textColor: "#6B7280",
+                                        attributionLogo: false,
+                                    },
+                                    grid: {
+                                        vertLines: {
+                                            visible: false,
+                                        },
+                                        horzLines: {
+                                            visible: false,
+                                        },
+                                    },
+                                    crosshair: {
+                                        mode: LightweightCharts.CrosshairMode
+                                            .Normal,
+                                        vertLine: {
+                                            color: "#8a98b4",
+                                            labelBackgroundColor: "#44506a",
+                                        },
+                                        horzLine: {
+                                            color: "#8a98b4",
+                                            labelBackgroundColor: "#44506a",
+                                        },
+                                    },
+                                    rightPriceScale: { borderColor: "#3b4862" },
+                                    timeScale: {
+                                        borderColor: "#3b4862",
+                                        timeVisible: false,
+                                        secondsVisible: false,
+                                        rightOffset: 5,
+                                        fixLeftEdge: true,
+                                        fixRightEdge: false,
+                                        barSpacing: 8,
+                                    },
+                                },
+                            );
+
+                            const macdChartData=calculateMACD(data,chartSettings.macd);
+
+                            mainChartsSeries["macd"]=[];
+                            mainChartsSeries["macd"]["histogram"] = mainCharts["macd"].addSeries(
+                               LightweightCharts.HistogramSeries,
+                               {
+                                   title2:'Histrogram',
+                                   crosshairMarkerVisible: false,
+                                   lastValueVisible: false,
+                                   priceLineVisible: false,
+                               },
+                           );
+                           mainChartsSeries["macd"]["histogram"].setData(macdChartData.histogram);
+                        }
+
+                        //mainCharts["main"].timeScale().fitContent();
+
+                        // 1. Get the latest bar from your dataset
+                        const lastItem = data[data.length - 1];
+
+                        // 2. Calculate 6 months prior to the latest date
+                        const endDate = new Date(lastItem.time);
+                        const startDate = new Date(endDate);
+                        startDate.setMonth(startDate.getMonth() - 6);
+
+                        // Format as 'YYYY-MM-DD'
+                        const fromDate = startDate.toISOString().split("T")[0];
+                        const toDate = lastItem.time;
+
+                        // 3. Zoom the view to the 6-month window
+                        mainCharts["main"].timeScale().setVisibleRange({
+                            from: fromDate,
+                            to: toDate,
+                        });
+
+                        let resetChart = document.querySelector("#resetChart");
+                        if (resetChart) {
+                            resetChart.addEventListener("click", function (e) {
+                                e.stopPropagation(); // Prevents chart interaction
+
+                                // 1. Get the latest bar from your dataset
+                                const lastItem = data[data.length - 1];
+
+                                // 2. Calculate 6 months prior to the latest date
+                                const endDate = new Date(lastItem.time);
+                                const startDate = new Date(endDate);
+                                startDate.setMonth(startDate.getMonth() - 6);
+
+                                // Format as 'YYYY-MM-DD'
+                                const fromDate = startDate
+                                    .toISOString()
+                                    .split("T")[0];
+                                const toDate = lastItem.time;
+
+                                // 3. Zoom the view to the 6-month window
+                                mainCharts["main"].timeScale().setVisibleRange({
+                                    from: fromDate,
+                                    to: toDate,
+                                });
+
+                                mainCharts["main"].priceScale().applyOptions({
+                                    autoScale: true,
+                                    mode: 0,
+                                });
+
+                                chartSeries.priceScale().applyOptions({
+                                    autoScale: true, // enable autoscale
+                                    mode: 0, // normal autoscale mode
+                                });
+                            });
+                        }
+                    } catch (error) {
+                        console.error(
+                            `Failed to load chart data for ${isin}:`,
+                            error,
+                        );
+                    }
+                })();
+            }
+
+            function closeChartModal() {
+                //remove the existing charts from the memory.
+                for (const key in mainCharts) {
+                    mainCharts[key].remove();
+                    delete mainCharts[key];
+                }
+                document.getElementById("chartModal").classList.remove("open");
+            }
+
+            function closeChartModalOnOverlay(e) {
+                if (e.target === document.getElementById("chartModal"))
+                    closeChartModal();
+            }
 
             // ============ INIT ============
             document
@@ -18673,6 +19326,13 @@
                     if (tvCell) {
                         const url = `https://www.tradingview.com/chart/?symbol=NSE:${encodeURIComponent(tvCell.dataset.code)}`;
                         window.open(url, "_blank", "noopener");
+                    }
+
+                    const thumbChartFullScreenBtn =
+                        e.target.closest(".fullscreen-btn");
+                    if (thumbChartFullScreenBtn) {
+                        //open the full chart modal here.
+                        openChartModal(thumbChartFullScreenBtn);
                     }
                 });
 
