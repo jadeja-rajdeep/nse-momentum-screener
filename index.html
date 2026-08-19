@@ -13088,8 +13088,8 @@
 
                 renderPage();
                 renderPagination();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
+                // const cv = loadColumnVisibility();
+                // applyColumnVisibility(cv);
             }
 
             // ---- Collapsible filter groups ----
@@ -13435,6 +13435,10 @@
                 closeColumnModal();
                 //renderPage();
                 applyColumnVisibility(visibility);
+                requestAnimationFrame(() => {
+                    // This runs AFTER the browser accepts the new HTML layout
+                    resizeThumbnailChart();
+                });
             }
 
             function applyColumnVisibility(visibility) {
@@ -13846,8 +13850,8 @@
                     );
                 sortData();
                 renderPage();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
+                // const cv = loadColumnVisibility();
+                // applyColumnVisibility(cv);
             }
 
             function sortData() {
@@ -14299,6 +14303,9 @@
                     })
                     .join("");
 
+                    const cv = loadColumnVisibility();
+                    applyColumnVisibility(cv);
+
                 //calling thumnail chart function
                 if (document.readyState === "loading") {
                     // Page is not loaded yet — wait until DOM is ready
@@ -14424,8 +14431,8 @@
                     currentPage--;
                     renderPage();
                     renderPagination();
-                    const cv = loadColumnVisibility();
-                    applyColumnVisibility(cv);
+                    // const cv = loadColumnVisibility();
+                    // applyColumnVisibility(cv);
                     scrollTop();
                 }
             }
@@ -14435,8 +14442,8 @@
                     currentPage++;
                     renderPage();
                     renderPagination();
-                    const cv = loadColumnVisibility();
-                    applyColumnVisibility(cv);
+                    // const cv = loadColumnVisibility();
+                    // applyColumnVisibility(cv);
                     scrollTop();
                 }
             }
@@ -14444,8 +14451,8 @@
                 currentPage = p;
                 renderPage();
                 renderPagination();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
+                // const cv = loadColumnVisibility();
+                // applyColumnVisibility(cv);
                 scrollTop();
             }
             function changeRowsPerPage() {
@@ -14455,8 +14462,8 @@
                 currentPage = 1;
                 renderPage();
                 renderPagination();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
+                // const cv = loadColumnVisibility();
+                // applyColumnVisibility(cv);
             }
             function scrollTop() {
                 document.getElementById("tableWrapper").scrollTop = 0;
@@ -17471,8 +17478,8 @@
                 updateStats();
                 renderPage();
                 renderPagination();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
+                // const cv = loadColumnVisibility();
+                // applyColumnVisibility(cv);
 
                 // Show banner
                 multiSearchActive = true;
@@ -18595,8 +18602,13 @@
                 const footer = document
                     .querySelector("footer")
                     .getBoundingClientRect().height;
-                let extra = 25;
-                if (screenWidth <= 768) extra = 15;
+
+                const container = document.querySelector('#tableWrapper');
+                const horizontalScrollbarHeight =
+                    container.offsetHeight - container.clientHeight;
+                let extra = horizontalScrollbarHeight+5;
+                if (screenWidth <= 768) extra = horizontalScrollbarHeight+5;
+
                 return (
                     header +
                     multibanner +
@@ -18905,6 +18917,7 @@
                     }
                 }
             }
+
 
             window.addEventListener("resize", (event) => {
                 requestAnimationFrame(() => {
