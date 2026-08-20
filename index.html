@@ -14303,8 +14303,8 @@
                     })
                     .join("");
 
-                    const cv = loadColumnVisibility();
-                    applyColumnVisibility(cv);
+                const cv = loadColumnVisibility();
+                applyColumnVisibility(cv);
 
                 //calling thumnail chart function
                 if (document.readyState === "loading") {
@@ -18498,7 +18498,6 @@
             }
 
             function calculateMACD(data, options = {}) {
-                // Fixed: Use '=' for default values in destructuring
                 const {
                     fastLength = 12,
                     histNegativeColor = "#ef4444",
@@ -18509,7 +18508,7 @@
                     signalLineColor = "#f59e0b",
                     signalMaType = "ema",
                     slowLength = 26,
-                    source = "close"
+                    source = "close",
                 } = options;
 
                 if (!data || data.length === 0) {
@@ -18522,63 +18521,78 @@
                     value: Number(getSourceValue(item, source)),
                 }));
 
-                // 2. Calculate Fast and Slow MAs using destructured variables
-                const fastMA = oscMaType === "ema"
-                    ? calculateEMA(sourceSeries, fastLength, "value")
-                    : calculateSMA(sourceSeries, fastLength, "value");
+                // 2. Calculate Fast and Slow MAs
+                const fastMA =
+                    oscMaType === "ema"
+                        ? calculateEMA(sourceSeries, fastLength, "value")
+                        : calculateSMA(sourceSeries, fastLength, "value");
+                const slowMA =
+                    oscMaType === "ema"
+                        ? calculateEMA(sourceSeries, slowLength, "value")
+                        : calculateSMA(sourceSeries, slowLength, "value");
 
-                const slowMA = oscMaType === "ema"
-                    ? calculateEMA(sourceSeries, slowLength, "value")
-                    : calculateSMA(sourceSeries, slowLength, "value");
+                const fastMap = new Map(fastMA.map((item) => [item.time, item.value]));
+                const slowMap = new Map(slowMA.map((item) => [item.time, item.value]));
 
-                // Map Fast MA for O(1) alignment
-                const fastMap = new Map(
-                    fastMA.map((item) => [item.time, item.value])
-                );
-
-                // 3. Compute MACD Line (Fast MA - Slow MA)
+                // 3. Compute MACD Line (Fast MA - Slow MA) over the FULL date range,
+                //    inserting whitespace points where either MA isn't ready yet
                 const macdLine = [];
-                for (const slowItem of slowMA) {
-                    const fastVal = fastMap.get(slowItem.time);
-                    if (fastVal !== undefined) {
-                        macdLine.push({
-                            time: slowItem.time,
-                            value: fastVal - slowItem.value,
-                        });
+                const macdValueMap = new Map(); // only real values, for signal calc
+
+                for (const item of data) {
+                    const fastVal = fastMap.get(item.time);
+                    const slowVal = slowMap.get(item.time);
+
+                    if (fastVal !== undefined && slowVal !== undefined) {
+                        const value = fastVal - slowVal;
+                        macdLine.push({ time: item.time, value });
+                        macdValueMap.set(item.time, value);
+                    } else {
+                        // whitespace point: keeps the time axis aligned, plots nothing
+                        macdLine.push({ time: item.time });
                     }
                 }
 
-                // 4. Compute Signal Line from MACD Line
-                const signalLine = signalMaType === "ema"
-                    ? calculateEMA(macdLine, signalLength, "value")
-                    : calculateSMA(macdLine, signalLength, "value");
+                // 4. Compute Signal Line from the MACD line's real values only
+                const macdRealSeries = macdLine
+                    .filter((d) => d.value !== undefined)
+                    .map((d) => ({ time: d.time, value: d.value }));
 
-                // Map MACD Line for histogram calculation
-                const macdMap = new Map(
-                    macdLine.map((item) => [item.time, item.value])
-                );
+                const signalReal =
+                    signalMaType === "ema"
+                        ? calculateEMA(macdRealSeries, signalLength, "value")
+                        : calculateSMA(macdRealSeries, signalLength, "value");
 
-                // 5. Compute Histogram (MACD Line - Signal Line)
-                const histogram = [];
-                for (const sigItem of signalLine) {
-                    const macdVal = macdMap.get(sigItem.time);
-                    if (macdVal !== undefined) {
-                        const diff = macdVal - sigItem.value;
-                        histogram.push({
-                            time: sigItem.time,
+                const signalMap = new Map(signalReal.map((item) => [item.time, item.value]));
+
+                // Build signalLine over the FULL date range too
+                const signalLine = data.map((item) => {
+                    const val = signalMap.get(item.time);
+                    return val !== undefined ? { time: item.time, value: val } : { time: item.time };
+                });
+
+                // 5. Compute Histogram over the FULL date range
+                const histogram = data.map((item) => {
+                    const macdVal = macdValueMap.get(item.time);
+                    const sigVal = signalMap.get(item.time);
+
+                    if (macdVal !== undefined && sigVal !== undefined) {
+                        const diff = macdVal - sigVal;
+                        return {
+                            time: item.time,
                             value: diff,
-                            // Fixed: Use histNegativeColor for negative values
                             color: diff >= 0 ? histPositiveColor : histNegativeColor,
-                        });
+                        };
                     }
-                }
+                    return { time: item.time }; // whitespace
+                });
 
                 return { macdLine, signalLine, histogram };
             }
 
             var thumbCharts = [];
-            var mainCharts = [];
-            var mainChartsSeries=[];
+            var charts = {};
+            var chartSeries = {};
 
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
@@ -18603,11 +18617,11 @@
                     .querySelector("footer")
                     .getBoundingClientRect().height;
 
-                const container = document.querySelector('#tableWrapper');
+                const container = document.querySelector("#tableWrapper");
                 const horizontalScrollbarHeight =
                     container.offsetHeight - container.clientHeight;
-                let extra = horizontalScrollbarHeight+5;
-                if (screenWidth <= 768) extra = horizontalScrollbarHeight+5;
+                let extra = horizontalScrollbarHeight + 5;
+                if (screenWidth <= 768) extra = horizontalScrollbarHeight + 5;
 
                 return (
                     header +
@@ -18625,6 +18639,9 @@
                 for (const key in thumbCharts) {
                     thumbCharts[key].remove();
                     delete thumbCharts[key];
+                }
+                if (window.gc) {
+                    window.gc();
                 }
 
                 const chartSettings = getChartSettings();
@@ -18874,6 +18891,7 @@
                             });
 
                             thumbCharts[isin].timeScale().fitContent();
+
                         } catch (error) {
                             console.error(
                                 `Failed to load chart data for ${isin}:`,
@@ -18918,7 +18936,6 @@
                 }
             }
 
-
             window.addEventListener("resize", (event) => {
                 requestAnimationFrame(() => {
                     // This runs AFTER the browser accepts the new HTML layout
@@ -18933,41 +18950,54 @@
 
                 const chartMain = document.createElement("div");
                 chartMain.id = "chart-main";
-                chartModal
-                    .querySelector(".settings-modal-body")
-                    .appendChild(chartMain);
+                chartMain.style.width = "100%";
+                chartMain.style.position = "relative";
+
+                const toolTipDiv = document.createElement("div");
+                toolTipDiv.className = "chart-tooltip";
+                chartMain.appendChild(toolTipDiv);
+
+                chartModal.querySelector(".settings-modal-body").appendChild(chartMain);
 
                 let otherChartHeight = 0;
-                let chartRsi=null;
+                const chartContainers = {
+                    main: { element: chartMain, height: 0 }
+                };
+
+                // Add RSI container if enabled
                 if (chartSettings.rsi.enabled) {
-                    chartRsi = document.createElement("div");
+                    const chartRsi = document.createElement("div");
                     chartRsi.id = "chart-rsi";
-                    chartModal
-                        .querySelector(".settings-modal-body")
-                        .appendChild(chartRsi);
-                    otherChartHeight = otherChartHeight + (screenHeight*0.15);
+                    chartRsi.style.width = "100%";
+                    chartRsi.style.position = "relative";
+                    const toolTipDiv = document.createElement("div");
+                    toolTipDiv.className = "chart-tooltip";
+                    chartRsi.appendChild(toolTipDiv);
+                    chartModal.querySelector(".settings-modal-body").appendChild(chartRsi);
+                    chartContainers.rsi = { element: chartRsi, height: screenHeight * 0.15 };
+                    otherChartHeight += screenHeight * 0.15;
                 }
 
-                let chartMacd=null;
+                // Add MACD container if enabled
                 if (chartSettings.macd.enabled) {
-                    chartMacd = document.createElement("div");
+                    const chartMacd = document.createElement("div");
                     chartMacd.id = "chart-macd";
-                    chartModal
-                        .querySelector(".settings-modal-body")
-                        .appendChild(chartMacd);
-                    otherChartHeight = otherChartHeight + (screenHeight*0.15);
+                    chartMacd.style.width = "100%";
+                    chartMacd.style.position = "relative";
+                    const toolTipDiv = document.createElement("div");
+                    toolTipDiv.className = "chart-tooltip";
+                    chartMacd.appendChild(toolTipDiv);
+                    chartModal.querySelector(".settings-modal-body").appendChild(chartMacd);
+                    chartContainers.macd = { element: chartMacd, height: screenHeight * 0.15 };
+                    otherChartHeight += screenHeight * 0.15;
                 }
 
                 const isin = Caller.dataset.isin;
                 const code = Caller.dataset.code;
                 const name = Caller.dataset.name;
 
-                document.querySelector(
-                    "#chartModal .settings-modal-title",
-                ).textContent = code;
-                document.querySelector(
-                    "#chartModal .tv-modal-meta",
-                ).textContent = name;
+                document.querySelector("#chartModal .settings-modal-title").textContent = code;
+                document.querySelector("#chartModal .tv-modal-meta").textContent = name;
 
                 chartModal.classList.add("open");
 
@@ -18981,15 +19011,14 @@
 
                         const data = await response.json();
 
-                        let chartWidth = screenWidth - 40;
-                        let chartHeight = screenHeight - (otherChartHeight + 112);
+                        const chartWidth = screenWidth - 40;
+                        const mainChartHeight = screenHeight - (otherChartHeight + 112);
 
-                        // Create your chart here
-                        mainCharts["main"] = LightweightCharts.createChart(
-                            chartMain,
-                            {
+                        // Helper function to create chart with common options
+                        const createChart = (container, height, options = {}) => {
+                            return LightweightCharts.createChart(container, {
                                 width: chartWidth,
-                                height: chartHeight,
+                                height: height,
                                 layout: {
                                     background: {
                                         type: LightweightCharts.ColorType.Solid,
@@ -18999,16 +19028,11 @@
                                     attributionLogo: false,
                                 },
                                 grid: {
-                                    vertLines: {
-                                        visible: false,
-                                    },
-                                    horzLines: {
-                                        visible: false,
-                                    },
+                                    vertLines: { visible: false },
+                                    horzLines: { visible: false },
                                 },
                                 crosshair: {
-                                    mode: LightweightCharts.CrosshairMode
-                                        .Normal,
+                                    mode: LightweightCharts.CrosshairMode.Normal,
                                     vertLine: {
                                         color: "#8a98b4",
                                         labelBackgroundColor: "#44506a",
@@ -19023,36 +19047,42 @@
                                     borderColor: "#3b4862",
                                     timeVisible: false,
                                     secondsVisible: false,
-                                    rightOffset: 5,
+                                    rightOffset: 0,
                                     fixLeftEdge: true,
-                                    fixRightEdge: false,
+                                    fixRightEdge: true,
                                     barSpacing: 8,
                                 },
-                            },
-                        );
+                                ...options,
+                            });
+                        };
 
+                        // Store all chart instances
+                        charts = {};
+
+                        // Create main chart
+                        charts.main = createChart(chartContainers.main.element, mainChartHeight);
+
+                        // Add watermark
                         LightweightCharts.createTextWatermark(
-                            mainCharts["main"].panes()[0],
+                            charts.main.panes()[0],
                             {
-                                horzAlign: "left",
-                                vertAlign: "top",
+                                horzAlign: "center",
+                                vertAlign: "center",
                                 lines: [
-                                    {
-                                        text: code,
-                                        color: "rgba(100,100,100, 0.5)",
-                                        fontSize: 18,
-                                    },
-                                    {
-                                        text: name,
-                                        color: "rgba(100,100,100, 0.5)",
-                                        fontSize: 14,
-                                    },
+                                    { text: code, color: "rgba(100,100,100, 0.5)", fontSize: 18 },
+                                    { text: name, color: "rgba(100,100,100, 0.5)", fontSize: 14 },
                                 ],
-                            },
+                            }
                         );
 
-                        mainChartsSeries["main"]=[];
-                        mainChartsSeries["main"]["price"] = mainCharts["main"].addSeries(
+                        // Initialize series storage
+                        chartSeries = {};
+                        chartSeriesDataMap={};
+
+                        // Add price series to main chart
+                        chartSeries.main = {};
+                        chartSeriesDataMap.main = {};
+                        chartSeries.main.price = charts.main.addSeries(
                             LightweightCharts.CandlestickSeries,
                             {
                                 title2: "Price",
@@ -19064,252 +19094,393 @@
                                 borderVisible: false,
                                 wickUpColor: "#26a69a",
                                 wickDownColor: "#ef5350",
-                            },
+                            }
                         );
-                        mainChartsSeries["main"]["price"].setData(data);
-
-                        if (chartSettings.volume.enabled == true) {
-                            mainChartsSeries["main"]["volume"]=[];
-                            mainChartsSeries["main"]["volume"]["volume"] = mainCharts["main"].addSeries(LightweightCharts.HistogramSeries, {
-                                title2: "Volume",
-                                crosshairMarkerVisible: false,
-                                lastValueVisible: false,
-                                priceLineVisible: false,
-                                priceFormat: { type: "volume" },
-                                priceScaleId: "volume",
-                                scaleMargins: {
-                                    top: 0.8,
-                                    bottom: 0,
+                        chartSeries.main.price.setData(data);
+                        chartSeriesDataMap.main.price = Object.fromEntries(
+                            data.map((bar, index) => [
+                                bar.time,
+                                {
+                                    bar,
+                                    previous: data[index - 1]
                                 },
-                            });
+                            ]),
+                        );
 
-                            const volumeData = data.map((item) => ({
-                                time: item.time,
-                                value: item.v,
-                                color:
-                                    item.close >= item.open
-                                        ? "rgba(38, 166, 154, 0.6)"
-                                        : "rgba(239, 83, 80, 0.6)",
-                            }));
-                            mainChartsSeries["main"]["volume"]["volume"].setData(volumeData);
-
-                            mainChartsSeries["main"]["volume"]["volume"].priceScale().applyOptions({
-                                scaleMargins: {
-                                    top: 0.8,
-                                    bottom: 0,
-                                },
-                            });
-
-                            mainCharts["main"]
-                                .priceScale("volume")
-                                .applyOptions({
-                                    scaleMargins: { top: 0.8, bottom: 0 },
-                                    visible: false,
-                                });
-
-                            if (chartSettings.volume.maLength > 0) {
-                                mainChartsSeries["main"]["volume"]["sma"] = mainCharts[
-                                    "main"
-                                ].addSeries(LightweightCharts.LineSeries, {
-                                    title2:
-                                        "SMA" +
-                                        chartSettings.volume.maLength.toString(),
-                                    color: chartSettings.volume.maColor,
-                                    lineWidth: 1,
+                        // Add volume to main chart if enabled
+                        if (chartSettings.volume.enabled) {
+                            chartSeries.main.volume = {};
+                            chartSeriesDataMap.main.volume = {};
+                            chartSeries.main.volume.volume = charts.main.addSeries(
+                                LightweightCharts.HistogramSeries,
+                                {
+                                    title2: "Volume",
                                     crosshairMarkerVisible: false,
                                     lastValueVisible: false,
                                     priceLineVisible: false,
                                     priceFormat: { type: "volume" },
                                     priceScaleId: "volume",
-                                    scaleMargins: {
-                                        top: 0.8,
-                                        bottom: 0,
-                                    },
-                                });
-                                mainChartsSeries["main"]["volume"]["sma"].setData(
-                                    calculateSMA(
-                                        data,
-                                        chartSettings.volume.maLength,
-                                        "volume",
-                                    ),
+                                    scaleMargins: { top: 0.8, bottom: 0 },
+                                }
+                            );
+
+                            const volumeData = data.map((item) => ({
+                                time: item.time,
+                                value: item.v,
+                                color: item.close >= item.open
+                                    ? "rgba(38, 166, 154, 0.6)"
+                                    : "rgba(239, 83, 80, 0.6)",
+                            }));
+                            chartSeries.main.volume.volume.setData(volumeData);
+                            chartSeriesDataMap.main.volume.volume = Object.fromEntries(
+                                volumeData.map((bar, index) => [
+                                    bar.time,bar
+                                ]),
+                            );
+
+                            chartSeries.main.volume.volume.priceScale().applyOptions({
+                                scaleMargins: { top: 0.8, bottom: 0 },
+                            });
+
+                            charts.main.priceScale("volume").applyOptions({
+                                scaleMargins: { top: 0.8, bottom: 0 },
+                                visible: false,
+                            });
+
+                            if (chartSettings.volume.maLength > 0) {
+                                chartSeries.main.volume.sma = charts.main.addSeries(
+                                    LightweightCharts.LineSeries,
+                                    {
+                                        title2: `SMA${chartSettings.volume.maLength}`,
+                                        color: chartSettings.volume.maColor,
+                                        lineWidth: 1,
+                                        crosshairMarkerVisible: false,
+                                        lastValueVisible: false,
+                                        priceLineVisible: false,
+                                        priceFormat: { type: "volume" },
+                                        priceScaleId: "volume",
+                                        scaleMargins: { top: 0.8, bottom: 0 },
+                                    }
+                                );
+                                const volumeMaData=calculateSMA(data, chartSettings.volume.maLength, "volume");
+                                chartSeries.main.volume.sma.setData(volumeMaData);
+                                chartSeriesDataMap.main.volume.sma = Object.fromEntries(
+                                    volumeMaData.map((bar, index) => [
+                                        bar.time,bar
+                                    ]),
                                 );
                             }
                         }
 
-                        mainChartsSeries["main"]["ma"]=[];
-                        chartSettings.ma.forEach((ma, index) => {
-                            if (ma.enabled == true) {
-                                 mainChartsSeries["main"]["ma"][(ma.type + ma.length.toString()).toUpperCase()] = mainCharts["main"].addSeries(
+                        // Add MAs to main chart
+                        chartSeries.main.ma = {};
+                        chartSeriesDataMap.main.ma={}
+                        chartSettings.ma.forEach((ma) => {
+                            if (ma.enabled) {
+                                const key = (ma.type + ma.length).toUpperCase();
+                                chartSeries.main.ma[key] = charts.main.addSeries(
                                     LightweightCharts.LineSeries,
                                     {
-                                        title2: (
-                                            ma.type + ma.length.toString()
-                                        ).toUpperCase(),
+                                        title2: key,
                                         color: ma.color,
                                         lineWidth: 1,
                                         crosshairMarkerVisible: false,
                                         lastValueVisible: false,
                                         priceLineVisible: false,
-                                    },
+                                    }
                                 );
-                                if (ma.type == "ema") {
-                                    mainChartsSeries["main"]["ma"][(ma.type + ma.length.toString()).toUpperCase()].setData(
-                                        calculateEMA(
-                                            data,
-                                            ma.length,
-                                            ma.source,
-                                        ),
-                                    );
-                                } else {
-                                    mainChartsSeries["main"]["ma"][(ma.type + ma.length.toString()).toUpperCase()].setData(
-                                        calculateSMA(
-                                            data,
-                                            ma.length,
-                                            ma.source,
-                                        ),
-                                    );
-                                }
+
+                                const calculation = ma.type === "ema"
+                                    ? calculateEMA(data, ma.length, ma.source)
+                                    : calculateSMA(data, ma.length, ma.source);
+                                chartSeries.main.ma[key].setData(calculation);
+                                chartSeriesDataMap.main.ma[key] = Object.fromEntries(
+                                    calculation.map((bar, index) => [
+                                        bar.time,bar
+                                    ]),
+                                );
                             }
                         });
 
-                        //macd chart code start
-                        if(chartSettings.macd.enabled){
-                            chartWidth = screenWidth - 40;
-                            chartHeight = screenHeight * 0.15;
-
-                            // Create your chart here
-                            mainCharts["macd"] = LightweightCharts.createChart(
-                                chartMacd,
-                                {
-                                    width: chartWidth,
-                                    height: chartHeight,
-                                    layout: {
-                                        background: {
-                                            type: LightweightCharts.ColorType.Solid,
-                                            color: "transparent",
-                                        },
-                                        textColor: "#6B7280",
-                                        attributionLogo: false,
-                                    },
-                                    grid: {
-                                        vertLines: {
-                                            visible: false,
-                                        },
-                                        horzLines: {
-                                            visible: false,
-                                        },
-                                    },
-                                    crosshair: {
-                                        mode: LightweightCharts.CrosshairMode
-                                            .Normal,
-                                        vertLine: {
-                                            color: "#8a98b4",
-                                            labelBackgroundColor: "#44506a",
-                                        },
-                                        horzLine: {
-                                            color: "#8a98b4",
-                                            labelBackgroundColor: "#44506a",
-                                        },
-                                    },
-                                    rightPriceScale: { borderColor: "#3b4862" },
-                                    timeScale: {
-                                        borderColor: "#3b4862",
-                                        timeVisible: false,
-                                        secondsVisible: false,
-                                        rightOffset: 5,
-                                        fixLeftEdge: true,
-                                        fixRightEdge: false,
-                                        barSpacing: 8,
-                                    },
-                                },
+                        // Create MACD chart if enabled
+                        if (chartSettings.macd.enabled) {
+                            charts.macd = createChart(
+                                chartContainers.macd.element,
+                                chartContainers.macd.height
                             );
 
-                            const macdChartData=calculateMACD(data,chartSettings.macd);
+                            const macdChartData = calculateMACD(data, chartSettings.macd);
 
-                            mainChartsSeries["macd"]=[];
-                            mainChartsSeries["macd"]["histogram"] = mainCharts["macd"].addSeries(
-                               LightweightCharts.HistogramSeries,
-                               {
-                                   title2:'Histrogram',
-                                   crosshairMarkerVisible: false,
-                                   lastValueVisible: false,
-                                   priceLineVisible: false,
-                               },
-                           );
-                           mainChartsSeries["macd"]["histogram"].setData(macdChartData.histogram);
+                            chartSeries.macd = {};
+                            chartSeriesDataMap.macd={};
+                            chartSeries.macd.histogram = charts.macd.addSeries(
+                                LightweightCharts.HistogramSeries,
+                                {
+                                    title2: "Histogram",
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                }
+                            );
+                            chartSeries.macd.histogram.setData(macdChartData.histogram);
+                            chartSeriesDataMap.macd.histogram = Object.fromEntries(
+                                macdChartData.histogram.map((bar, index) => [
+                                    bar.time,bar
+                                ]),
+                            );
+
+                            chartSeries.macd.macd = charts.macd.addSeries(
+                                LightweightCharts.LineSeries,
+                                {
+                                    title2: 'MACD',
+                                    color: chartSettings.macd.macdLineColor,
+                                    lineWidth: 1,
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                }
+                            );
+                            chartSeries.macd.macd.setData(macdChartData.macdLine);
+                            chartSeriesDataMap.macd.macd = Object.fromEntries(
+                                macdChartData.macdLine.map((bar, index) => [
+                                    bar.time,bar
+                                ]),
+                            );
+
+                            chartSeries.macd.signal = charts.macd.addSeries(
+                                LightweightCharts.LineSeries,
+                                {
+                                    title2: 'Signal',
+                                    color: chartSettings.macd.signalLineColor,
+                                    lineWidth: 1,
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                }
+                            );
+                            chartSeries.macd.signal.setData(macdChartData.signalLine);
+                            chartSeriesDataMap.macd.signal = Object.fromEntries(
+                                macdChartData.signalLine.map((bar, index) => [
+                                    bar.time,bar
+                                ]),
+                            );
                         }
 
-                        //mainCharts["main"].timeScale().fitContent();
+                        // Create RSI chart if enabled (placeholder for future implementation)
+                        if (chartSettings.rsi.enabled) {
+                            charts.rsi = createChart(
+                                chartContainers.rsi.element,
+                                chartContainers.rsi.height
+                            );
+                            // RSI implementation here
+                            chartSeries.rsi = {};
+                            // ... add RSI series
+                        }
 
-                        // 1. Get the latest bar from your dataset
+                        // Get all chart instances as array for synchronization
+                        const chartArray = Object.values(charts);
+                        const chartSeriesArray=Object.values(chartSeries);
+                        const chartArrayKey = Object.keys(charts);
+                        const chartSeriesArrayKey=Object.keys(chartSeries);
+
+                        let syncingRange = false;
+                        let syncingCrosshair = false;
+                        let zoomEndTimer = null;
+
+                        if(chartArray.length>=1){
+                            chartArray.forEach((source,index) => {
+                                // Sync only the logical range to handle zoom and scroll together safely
+                                if(chartArray.length>1){
+                                    source.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+                                        setTimeout(() => {
+                                            requestAnimationFrame(() => {
+                                                if (!range || syncingRange) return;
+
+                                                syncingRange = true;
+                                                const visibleRnage=source.timeScale().getVisibleRange();
+
+                                                chartArray.forEach((target,indexTarget) => {
+                                                    if (source !== target) {
+                                                        target.timeScale().setVisibleLogicalRange(range);
+                                                        target.timeScale().setVisibleRange(visibleRnage);
+                                                    }
+                                                });
+
+                                                // Use setTimeout to let the chart cycles finish before releasing the lock
+                                                setTimeout(() => {
+                                                    requestAnimationFrame(() => {
+                                                        syncingRange = false;
+                                                    });
+                                                }, 15);
+
+                                                //debounce: once scrolling/zooming settles, force a clean resync
+                                                clearTimeout(zoomEndTimer);
+                                                zoomEndTimer = setTimeout(() => {
+                                                    const finalRange = source.timeScale().getVisibleRange();
+                                                    chartArray.forEach((target) => {
+                                                        if (source !== target) target.timeScale().setVisibleRange(finalRange);
+                                                    });
+                                                }, 150); // fires once wheel events stop coming in
+
+                                            });
+                                        }, 15);
+                                    });
+                                }
+
+                                // Sync corshair together safely
+                                source.subscribeCrosshairMove((param) => {
+                                    if (!param || syncingCrosshair) return;
+
+                                    syncingCrosshair = true;
+                                    let maxSeries=null;
+                                    maxDataLength=-1;
+                                    for(key in chartSeries[chartArrayKey[index]]){
+                                        if(typeof chartSeries[chartArrayKey[index]][key].data==="function"){
+                                            //this is first level chart series which you can access.
+                                            if(chartSeries[chartArrayKey[index]][key].data().length>maxDataLength){
+                                                maxSeries=chartSeries[chartArrayKey[index]][key];
+                                                maxDataLength=chartSeries[chartArrayKey[index]][key].data().length;
+                                            }
+                                        }
+                                    }
+                                    const dataPoint = param.seriesData.get(maxSeries);
+
+                                    chartArray.forEach((target,indexTarget) => {
+                                        if (source !== target) {
+                                            if (dataPoint) {
+                                                let maxSeries=null;
+                                                maxDataLength=-1;
+                                                for(key in chartSeries[chartArrayKey[indexTarget]]){
+                                                    if(typeof chartSeries[chartArrayKey[indexTarget]][key].data==="function"){
+                                                        //this is first level chart series which you can access.
+                                                        if(chartSeries[chartArrayKey[indexTarget]][key].data().length>maxDataLength){
+                                                            maxSeries=chartSeries[chartArrayKey[indexTarget]][key];
+                                                            maxDataLength=chartSeries[chartArrayKey[indexTarget]][key].data().length;
+                                                        }
+                                                    }
+                                                }
+                                                target.setCrosshairPosition(dataPoint.value, dataPoint.time, maxSeries);
+                                            }else{
+                                                target.clearCrosshairPosition();
+                                            }
+                                        }
+
+                                        //write tooltip code here.
+                                    });
+
+                                    // Use setTimeout to let the chart cycles finish before releasing the lock
+                                    setTimeout(() => {
+                                        requestAnimationFrame(() => {
+                                            syncingCrosshair = false;
+                                        });
+                                    }, 15);
+                                });
+
+                            });
+                        }
+
+
+                        // Store the full date range for later use
+                        const firstItem = data[0];
                         const lastItem = data[data.length - 1];
+                        const fullFromDate = firstItem.time;
+                        const fullToDate = lastItem.time;
 
-                        // 2. Calculate 6 months prior to the latest date
+                        // Calculate 6-month range
                         const endDate = new Date(lastItem.time);
                         const startDate = new Date(endDate);
                         startDate.setMonth(startDate.getMonth() - 6);
-
-                        // Format as 'YYYY-MM-DD'
                         const fromDate = startDate.toISOString().split("T")[0];
                         const toDate = lastItem.time;
 
-                        // 3. Zoom the view to the 6-month window
-                        mainCharts["main"].timeScale().setVisibleRange({
-                            from: fromDate,
-                            to: toDate,
+                        // FIRST: Set the full range to show all data
+                        // chartArray.forEach(chart => {
+                        //     chart.timeScale().fitContent();
+                        // });
+
+                        // SECOND: Apply the 6-month zoom
+                        chartArray.forEach(chart => {
+                            chart.timeScale().setVisibleRange({
+                                from: fromDate,
+                                to: toDate
+                            });
                         });
 
-                        let resetChart = document.querySelector("#resetChart");
+                        // After setting initial ranges, ensure logical ranges are aligned
+                        // This is crucial for crosshair synchronization
+                        setTimeout(() => {
+                            if (chartArray.length > 1) {
+                                if (syncingRange) return;
+                                syncingRange = true;
+                                const referenceRange = chartArray[0].timeScale().getVisibleLogicalRange();
+                                if (referenceRange) {
+                                    chartArray.forEach(chart => {
+                                        if (chart !== chartArray[0]) {
+                                            chart.timeScale().setVisibleLogicalRange(referenceRange);
+                                        }
+                                    });
+                                }
+                                setTimeout(() => {
+                                    requestAnimationFrame(() => {
+                                        syncingRange = false;
+                                    });
+                                }, 15);
+                            }
+                        }, 100); // Give charts time to process the initial range
+
+                        // Reset button handler
+                        const resetChart = document.querySelector("#resetChart");
                         if (resetChart) {
                             resetChart.addEventListener("click", function (e) {
-                                e.stopPropagation(); // Prevents chart interaction
+                                e.stopPropagation();
 
-                                // 1. Get the latest bar from your dataset
-                                const lastItem = data[data.length - 1];
+                                if (syncingRange) return;
+                                syncingRange = true;
 
-                                // 2. Calculate 6 months prior to the latest date
-                                const endDate = new Date(lastItem.time);
-                                const startDate = new Date(endDate);
-                                startDate.setMonth(startDate.getMonth() - 6);
-
-                                // Format as 'YYYY-MM-DD'
-                                const fromDate = startDate
-                                    .toISOString()
-                                    .split("T")[0];
-                                const toDate = lastItem.time;
-
-                                // 3. Zoom the view to the 6-month window
-                                mainCharts["main"].timeScale().setVisibleRange({
-                                    from: fromDate,
-                                    to: toDate,
+                                // Reset to 6-month view
+                                chartArray.forEach(chart => {
+                                    chart.timeScale().resetTimeScale();
+                                    chart.timeScale().setVisibleRange({
+                                        from: fromDate,
+                                        to: toDate
+                                    });
+                                    chart.priceScale('right').applyOptions({
+                                        autoScale: true
+                                    });
                                 });
 
-                                mainCharts["main"].priceScale().applyOptions({
-                                    autoScale: true,
-                                    mode: 0,
-                                });
+                                setTimeout(() => {
+                                    requestAnimationFrame(() => {
+                                        syncingRange = false;
+                                    });
+                                }, 100);
 
-                                chartSeries.priceScale().applyOptions({
-                                    autoScale: true, // enable autoscale
-                                    mode: 0, // normal autoscale mode
-                                });
                             });
                         }
+
                     } catch (error) {
-                        console.error(
-                            `Failed to load chart data for ${isin}:`,
-                            error,
-                        );
+                        console.error(`Failed to load chart data for ${isin}:`, error);
                     }
                 })();
             }
 
             function closeChartModal() {
+                // const chartArray = Object.values(charts);
+                // const chartSeriesArray=Object.values(chartSeries);
+
                 //remove the existing charts from the memory.
-                for (const key in mainCharts) {
-                    mainCharts[key].remove();
-                    delete mainCharts[key];
+                for (const key in charts) {
+                    charts[key].remove();
+                    delete charts[key];
                 }
+
+                delete charts;
+                delete chartSeries;
+
+                if(window.gc){
+                    gc();
+                }
+
                 document.getElementById("chartModal").classList.remove("open");
             }
 
