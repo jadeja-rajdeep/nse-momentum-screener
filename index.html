@@ -4076,6 +4076,47 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">All Index</div>
+                                <div
+                                    class="msel"
+                                    data-field="f_allindex"
+                                    id="msel_f_allindex"
+                                >
+                                    <div class="msel-trigger">
+                                        <span
+                                            class="msel-trigger-label placeholder"
+                                            >All</span
+                                        >
+                                        <span class="msel-caret">▼</span>
+                                    </div>
+                                    <div class="msel-panel">
+                                        <input
+                                            class="msel-search"
+                                            placeholder="Search…"
+                                            type="text"
+                                        />
+                                        <div class="msel-actions">
+                                            <button
+                                                class="msel-action-btn"
+                                                data-act="all"
+                                                type="button"
+                                            >
+                                                Select All
+                                            </button>
+                                            <button
+                                                class="msel-action-btn"
+                                                data-act="none"
+                                                type="button"
+                                            >
+                                                Clear
+                                            </button>
+                                        </div>
+                                        <div class="msel-options"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -11686,6 +11727,7 @@
                 f_priceband: [],
                 f_watchlist: [],
                 f_adv_decl: [],
+                f_allindex: [],
             };
 
             // Cascade-aware option lists per field (set externally when rebuilding cascade)
@@ -11697,6 +11739,7 @@
                 f_priceband: ["0", "2", "5", "10", "20"],
                 f_watchlist: [],
                 f_adv_decl: ["1", "0", "-1"],
+                f_allindex: [],
             };
             const mselOptionLabels = {
                 0: "0% (No Limit)",
@@ -11710,6 +11753,18 @@
                 0: "● Neutral",
                 "-1": "▼ Declining",
             };
+
+            // "All Index" is stored per-row as a newline-separated string of
+            // index names (same format rendered as pills by formatAllIndex).
+            // This splits it into a clean array of individual index names.
+            function getAllIndexValues(row) {
+                const v = row && row["All Index"];
+                if (!v) return [];
+                return String(v)
+                    .split("\n")
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+            }
 
             function mselSetOptions(field, options) {
                 mselOptions[field] = options;
@@ -12310,6 +12365,16 @@
                     rebuildIndustryDropdown([], []);
                     rebuildBasicDropdown([], [], []);
 
+                    // Populate "All Index" dropdown — gather every distinct
+                    // index name across all rows' newline-separated values
+                    const allIndexSet = new Set();
+                    rows.forEach((r) => {
+                        getAllIndexValues(r).forEach((v) =>
+                            allIndexSet.add(v),
+                        );
+                    });
+                    mselSetOptions("f_allindex", [...allIndexSet].sort());
+
                     // Date badge
                     const dates = rows.map((r) => r.Date).filter(Boolean);
                     if (dates.length) {
@@ -12496,6 +12561,7 @@
                 const basics = mselGetSelected("f_basic");
                 const bands = mselGetSelected("f_priceband");
                 const advDecl = mselGetSelected("f_adv_decl");
+                const allIndexSel = mselGetSelected("f_allindex");
                 const wlNames = mselGetSelected("f_watchlist");
                 const wlCodesUnion = wlNames.length
                     ? new Set(
@@ -12652,6 +12718,13 @@
                         advDecl.length &&
                         !advDecl.includes(
                             String(r["Advancing_Neutral_Declining"]),
+                        )
+                    )
+                        return false;
+                    if (
+                        allIndexSel.length &&
+                        !getAllIndexValues(r).some((v) =>
+                            allIndexSel.includes(v),
                         )
                     )
                         return false;
@@ -13301,7 +13374,12 @@
                     const el = document.getElementById(id);
                     if (el) el.value = "";
                 });
-                ["f_priceband", "f_watchlist", "f_adv_decl"].forEach((id) => {
+                [
+                    "f_priceband",
+                    "f_watchlist",
+                    "f_adv_decl",
+                    "f_allindex",
+                ].forEach((id) => {
                     mselClear(id);
                 });
                 // Reset cascading dropdowns + clear all selections
@@ -15268,6 +15346,7 @@
                 { id: "f_priceband", type: "mselect" },
                 { id: "f_watchlist", type: "mselect" },
                 { id: "f_adv_decl", type: "mselect" },
+                { id: "f_allindex", type: "mselect" },
                 { id: "f_rs_min", type: "num" },
                 { id: "f_rs_max", type: "num" },
                 { id: "f_rs1m_min", type: "num" },
@@ -15397,6 +15476,7 @@
                 f_priceband: "Price Band",
                 f_watchlist: "Watchlist",
                 f_adv_decl: "Adv/Decl",
+                f_allindex: "All Index",
                 f_rs_min: "RS Total Min",
                 f_rs_max: "RS Total Max",
                 f_rs1m_min: "RS 1M Min",
@@ -15998,6 +16078,12 @@
                     get: (r) => String(r["Price Band %"]),
                 },
                 {
+                    name: "ALL_INDEX",
+                    label: "All Index",
+                    type: "text",
+                    get: (r) => getAllIndexValues(r),
+                },
+                {
                     name: "CODE",
                     label: "Code",
                     type: "text",
@@ -16293,8 +16379,13 @@
                     (typeof allData !== "undefined" ? allData : []).forEach(
                         (r) => {
                             const v = field.get(r);
-                            if (v !== undefined && v !== null && v !== "")
+                            if (Array.isArray(v)) {
+                                v.forEach(
+                                    (item) => item && vals.add(String(item)),
+                                );
+                            } else if (v !== undefined && v !== null && v !== "") {
                                 vals.add(String(v));
+                            }
                         },
                     );
                     dl.innerHTML = [...vals]
@@ -16434,6 +16525,16 @@
                     const targetBool = ["yes", "true", "1"].includes(targetStr);
                     if (normOp === "=") return boolVal === targetBool;
                     if (normOp === "!=") return boolVal !== targetBool;
+                    return false;
+                } else if (Array.isArray(rawVal)) {
+                    // Multi-value text field (e.g. "All Index") — treat "="
+                    // as membership and "!=" as non-membership.
+                    const targetStr = String(value).toLowerCase();
+                    const has = rawVal.some(
+                        (v) => String(v).toLowerCase() === targetStr,
+                    );
+                    if (normOp === "=") return has;
+                    if (normOp === "!=") return !has;
                     return false;
                 } else {
                     const strVal = (rawVal ?? "").toString().toLowerCase();
@@ -16721,6 +16822,7 @@
                 const basics = state.f_basic || [];
                 const bands = state.f_priceband || [];
                 const advDecl = state.f_adv_decl || [];
+                const allIndexVals = state.f_allindex || [];
                 const watchlists = state.f_watchlist || [];
 
                 if (macros.length) {
@@ -16749,6 +16851,9 @@
                 }
                 if (advDecl.length) {
                     mselSetSelected("f_adv_decl", advDecl);
+                }
+                if (allIndexVals.length) {
+                    mselSetSelected("f_allindex", allIndexVals);
                 }
                 if (watchlists.length) {
                     // Watchlist names aren't part of the data cascade — make
@@ -16792,6 +16897,7 @@
                 const basics = getArr("f_basic");
                 const bands = getArr("f_priceband");
                 const advDecl = getArr("f_adv_decl");
+                const allIndexSel = getArr("f_allindex");
                 const wlNames = getArr("f_watchlist");
                 const wlCodesUnion = wlNames.length
                     ? new Set(
@@ -16832,6 +16938,13 @@
                         advDecl.length &&
                         !advDecl.includes(
                             String(r["Advancing_Neutral_Declining"]),
+                        )
+                    )
+                        return false;
+                    if (
+                        allIndexSel.length &&
+                        !getAllIndexValues(r).some((v) =>
+                            allIndexSel.includes(v),
                         )
                     )
                         return false;

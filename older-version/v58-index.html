@@ -2,10 +2,7 @@
 <html lang="en-IN" data-theme="dark">
     <head>
         <!-- Google tag (gtag.js) -->
-        <script
-            async
-            src="https://www.googletagmanager.com/gtag/js?id=G-98EDPVMLG7"
-        ></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-98EDPVMLG7"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
             function gtag() {
@@ -758,19 +755,19 @@
 
             /* ---- TABLE ---- */
             /* 1. The Scroll Container */
-            #tableWrapper.table-wrapper{
+            #tableWrapper.table-wrapper {
                 scroll-snap-type: y mandatory; /* Forces snapping vertically */
                 /* FIX: Adjust this value to match your sticky table header's height */
                 scroll-padding-top: 32px;
             }
             /* 2. The Snapping Section (Every 2 Rows Wrapped together) */
             tr.snap-section {
-              scroll-snap-align: start; /* Snaps the top of these 2 rows to the container top */
-              scroll-snap-stop: always; /* Prevents users from accidentally skipping sections */
+                scroll-snap-align: start; /* Snaps the top of these 2 rows to the container top */
+                scroll-snap-stop: always; /* Prevents users from accidentally skipping sections */
             }
             /* FIX: Prevents visible outline when clicked, while keeping arrows working */
             #tableWrapper.table-wrapper:focus {
-              outline: none;
+                outline: none;
             }
 
             .table-wrapper {
@@ -3461,329 +3458,104 @@
 
             /*chart css start*/
             #mainTable tbody tr.chart-row td.chart-cell {
-                ...
-                padding: 0 !important;   /* new — so the sticky div sits flush at the cell's left edge */
+                padding: 0 !important; /* new — so the sticky div sits flush at the cell's left edge */
             }
             #mainTable tbody tr.chart-row td.chart-cell .thumb-chart {
                 position: sticky;
                 left: 0;
-                display: inline-block;   /* so sticky has a real box to stick, not the full row width */
+                display: inline-block; /* so sticky has a real box to stick, not the full row width */
+            }
+            .thumb-chart .fullscreen-btn {
+                position: absolute;
+                top: 5px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 10;
+
+                /* Text/Emoji styling */
+                font-size: 16px;
+                line-height: 1;
+                padding: 6px 8px;
+
+                /* Button appearance */
+                color: #f5f5f5;
+                background: rgba(0, 0, 0, 0.8);
+                border: 0;
+                border-radius: 6px;
+                outline: none;
+                cursor: pointer;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                transition: all 0.2s ease;
+            }
+
+            .thumb-chart .fullscreen-btn:hover {
+                font-size: 20px;
             }
 
             .thumb-chart .tv-lightweight-charts td:nth-child(1) {
-              position: inherit !important;
-              left: initial !important;
-              z-index: initial !important;
-              background:inherit !important;
-              min-width:inherit !important;
-              width: 0  !important;
-              visibility: hidden !important;
+                position: inherit !important;
+                left: initial !important;
+                z-index: initial !important;
+                background: inherit !important;
+                min-width: inherit !important;
+                width: 0 !important;
+                visibility: hidden !important;
             }
-            .thumb-chart .tv-lightweight-charts td:nth-child(2){
+            .thumb-chart .tv-lightweight-charts td:nth-child(2) {
                 position: relative !important;
                 left: initial !important;
                 z-index: initial !important;
                 background: transparent !important;
                 min-width: 180px;
-                border-right:0 !important;
+                border-right: 0 !important;
             }
 
-            /* Pin these bars to their natural size — only #tableWrapper
-               (flex:1; min-height:0) should ever shrink. Without this,
-               all flex children of <body> (which is a fixed-height
-               100vh flex column) share shrinkage by default, so a tall
-               open filter panel was squeezing the header itself,
-               making it look like it vanished behind the panel. */
-            .site-header,
-            .filter-panel,
-            .stats-bar,
-            .pag-bar {
-                flex-shrink: 0;
+            #chartModal .tv-lightweight-charts table tr th:nth-child(1),
+            #chartModal .tv-lightweight-charts table tr td:nth-child(1) {
+                position: initial !important;
+                left: initial !important;
+                z-index: initial !important;
+                background: initial !important;
+                min-width: initial !important;
             }
 
-            /* ============================================================
-               HEADER + STATUS BAR REDESIGN
-               Goal: never let either bar wrap to multiple rows. Instead of
-               wrapping, the action buttons scroll horizontally as one
-               clean strip. This keeps a predictable, compact height on
-               every screen size so the table always gets the remaining
-               space. Note: several rules need !important because
-               Bootstrap's d-flex / flex-wrap / gap-2 / ms-auto utility
-               classes are applied inline in the HTML and are themselves
-               !important.
-               ============================================================ */
-
-            /* ---- HEADER: base (desktop / large screens) ---- */
-            /* Use CSS Grid instead of flex math for the header: a flex
-            /* Plain flexbox, done carefully this time:
-               - title gets a hard max-width cap, so it can never crowd
-                 out the button strip (this is what "max-content" sizing
-                 failed to do — max-content never truncates by definition)
-               - button strip uses flex-grow/shrink with a normal
-                 (non-zero) basis, so when space is tight it shrinks
-                 gracefully via min-width:0 + overflow-x, instead of the
-                 flex-basis:0 collapse-to-zero bug from before */
-            .site-header {
-                display: flex !important;
-                align-items: center !important;
-                justify-content: space-between !important;
-                flex-wrap: nowrap !important;
-                gap: 18px !important;
-                padding: 11px 24px;
-                min-height: 56px;
-            }
-            .site-header > div:first-child {
-                flex: 0 1 auto;
-                min-width: 0;
-                max-width: 300px;
-                overflow: hidden;
-            }
-            .site-header h1 {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .site-header .subtitle {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            /* action button strip: grows to fill remaining space, shrinks
-               gracefully (not to zero) when tight, scrolls internally */
-            .site-header > div:last-child {
-                display: flex !important;
-                align-items: center !important;
-                flex-wrap: nowrap !important;
-                gap: 8px !important;
-                flex: 1 1 auto;
-                min-width: 0;
-                justify-content: flex-end !important;
-                overflow-x: auto;
-                overflow-y: hidden;
-                -webkit-overflow-scrolling: touch;
-                padding: 4px 2px 8px;
-                -webkit-mask-image: linear-gradient(
-                    to right,
-                    transparent 0,
-                    #000 16px,
-                    #000 calc(100% - 4px),
-                    transparent 100%
-                );
-                mask-image: linear-gradient(
-                    to right,
-                    transparent 0,
-                    #000 16px,
-                    #000 calc(100% - 4px),
-                    transparent 100%
-                );
-            }
-            /* visible thin scrollbar — a clear signal there's more to
-               scroll, rather than hiding it */
-            .site-header > div:last-child::-webkit-scrollbar { height: 4px; }
-            .site-header > div:last-child::-webkit-scrollbar-track { background: transparent; }
-            .site-header > div:last-child::-webkit-scrollbar-thumb {
-                background: var(--border);
-                border-radius: 4px;
-            }
-            .site-header > div:last-child {
-                scrollbar-width: thin;
-                scrollbar-color: var(--border) transparent;
+            #chartModal .tv-lightweight-charts table tr th:nth-child(2),
+            #chartModal .tv-lightweight-charts table tr td:nth-child(2) {
+                position: relative !important;
+                left: initial !important;
+                z-index: initial !important;
+                background: initial !important;
+                min-width: initial !important;
+                border: initial !important;
             }
 
-            .data-date-badge,
-            .site-header .btn-toggle-filters,
-            .site-header .btn-icon-only,
-            .site-header .btn-theme-toggle {
-                flex-shrink: 0;
-                white-space: nowrap;
+            #chartModal .chart-tooltip {
+                position: absolute;
+                z-index: 9999;
+                left: 0;
+                top: 0;
+                max-width: 80%;
             }
-            /* visually group the icon-only utility buttons off from the
-               labelled nav buttons */
-            #toggleFiltersBtn { margin-left: 4px; }
-            .site-header .btn-icon-only:first-of-type {
-                margin-left: 4px;
-                padding-left: 10px;
-                border-left: 1px solid var(--border);
-                border-radius: 0 6px 6px 0;
-            }
-
-            /* ---- STATUS BAR: base (desktop / large screens) ---- */
-            .stats-bar {
-                display: flex !important;
-                align-items: center !important;
-                flex-wrap: nowrap !important;
-                gap: 20px;
-                overflow-x: auto;
-                overflow-y: hidden;
-                -webkit-overflow-scrolling: touch;
-                white-space: nowrap;
-                min-height: 44px;
-                padding-bottom: 10px;
-                scrollbar-width: thin;
-                scrollbar-color: var(--border) transparent;
-            }
-            .stats-bar::-webkit-scrollbar { height: 4px; }
-            .stats-bar::-webkit-scrollbar-track { background: transparent; }
-            .stats-bar::-webkit-scrollbar-thumb {
-                background: var(--border);
-                border-radius: 4px;
-            }
-            .stats-bar .stat-item,
-            .stats-bar .btn-tv-watchlist,
-            .stats-bar .btn-add-watchlist,
-            .stats-bar .compare-chip {
-                flex-shrink: 0;
-            }
-            /* right-hand cluster (Charts / Columns / Rows-per-page) */
-            .stats-bar > .ms-auto {
-                margin-left: auto !important;
-                flex-shrink: 0;
-                display: flex !important;
-                align-items: center !important;
-                padding-left: 16px;
-                border-left: 1px solid var(--border);
-            }
-
-            /* ---- SCROLL HINT ----
-               Native scrollbars are unreliable as an affordance (many
-               touch OSes only show overlay scrollbars while actively
-               scrolling, or hide them entirely). This is a small chevron
-               that stays pinned to the visible right edge of each
-               scrollable strip via its own position:sticky — so it's
-               always visible whenever there's more content to scroll to,
-               independent of platform scrollbar behavior. */
-            .scroll-hint {
-                position: sticky;
-                right: 0;
-                flex-shrink: 0;
+            #chartModal .chart-tooltip .line {
+                font-size: 12px;
+                line-height: normal;
+                margin-bottom: 5px;
+                padding: 0;
+                color: var(--text);
                 display: flex;
+                justify-content: flex-start;
                 align-items: center;
-                justify-content: center;
-                width: 22px;
-                align-self: stretch;
-                pointer-events: none;
+                gap: 10px;
+            }
+            #chartModal .chart-tooltip .line > span {
+            }
+            #chartModal .chart-tooltip .line span.name {
                 color: var(--muted);
-                font-size: 16px;
-                font-weight: 700;
-            }
-            .header-scroll-hint {
-                background: linear-gradient(to right, transparent, var(--surface) 55%);
-            }
-            .stats-scroll-hint {
-                background: linear-gradient(to right, transparent, var(--surface) 55%);
-            }
-
-            /* =============== LARGE TABLET / SMALL LAPTOP =============== */
-            @media screen and (max-width: 1180px) {
-                .site-header { padding: 10px 18px; gap: 14px !important; }
-                .site-header > div:first-child { max-width: 170px; }
-                .site-header .subtitle { display: none; }
-                .site-header h1 { font-size: 1rem; }
-                .stats-bar { padding: 7px 16px; gap: 16px; }
-            }
-
-            /* =============== TABLET / MOBILE LANDSCAPE =============== */
-            @media screen and (max-width: 768px) {
-                .site-header {
-                    display: flex !important;
-                    flex-direction: column !important;
-                    align-items: stretch !important;
-                    justify-content: flex-start !important;
-                    gap: 6px !important;
-                    padding: 9px 14px 7px;
-                    min-height: 0;
-                }
-                .site-header > div:first-child {
-                    display: flex;
-                    align-items: baseline;
-                    gap: 8px;
-                }
-                .site-header .subtitle { display: none; }
-                .site-header h1 { font-size: 0.95rem; }
-                .site-header > div:last-child {
-                    width: 100%;
-                    justify-content: flex-start !important;
-                    padding: 2px 0 3px;
-                }
-                .btn-toggle-filters {
-                    padding: 0;
-                    width: 30px;
-                    height: 30px;
-                    justify-content: center;
-                    font-size: 14px;
-                }
-                .btn-icon-only,
-                .btn-theme-toggle {
-                    width: 30px;
-                    height: 30px;
-                }
-                /* consistent icon-only nav buttons on mobile/tablet — the
-                   button and its click handler stay, only the text label
-                   hides, applied uniformly across Saved / Industry /
-                   Filters / Watchlists / Help */
-                .site-header .btn-label { display: none; }
-
-                .stats-bar {
-                    padding: 7px 14px;
-                    gap: 14px;
-                    min-height: 38px;
-                }
-                .stat-label { font-size: 9.5px; }
-                .stat-val { font-size: 12px; }
-                .btn-tv-watchlist,
-                .btn-add-watchlist,
-                .compare-chip {
-                    padding: 4px 10px;
-                    font-size: 10.5px;
-                }
-                .stats-bar > .ms-auto { padding-left: 12px; gap: 6px !important; }
-                .btn-page { padding: 4px 10px; font-size: 10.5px; }
-                .rows-select { padding: 3px 5px; font-size: 10.5px; }
-            }
-
-            /* =============== MOBILE PORTRAIT =============== */
-            @media screen and (max-width: 480px) {
-                .site-header { padding: 8px 12px 6px; }
-                .site-header h1 { font-size: 0.85rem; letter-spacing: 0.04em; }
-                .data-date-badge { font-size: 10px; padding: 2px 8px; }
-
-                .btn-toggle-filters {
-                    width: 28px;
-                    height: 28px;
-                    font-size: 13px;
-                }
-                .btn-icon-only,
-                .btn-theme-toggle {
-                    width: 28px;
-                    height: 28px;
-                    font-size: 13px;
-                }
-
-                .stats-bar {
-                    padding: 6px 12px;
-                    gap: 12px;
-                    min-height: 34px;
-                }
-                .stat-label { font-size: 9px; letter-spacing: 0.05em; }
-                .stat-val { font-size: 11.5px; }
-                .btn-tv-watchlist,
-                .btn-add-watchlist,
-                .compare-chip {
-                    padding: 4px 8px;
-                    font-size: 10px;
-                    gap: 4px;
-                }
-                .stats-bar > .ms-auto { padding-left: 10px; gap: 5px !important; }
-                .btn-page { padding: 3px 8px; font-size: 10px; }
-                .rows-select { padding: 2px 4px; font-size: 10px; }
-                .stats-bar > .ms-auto span[style*="font-size: 10px"] {
-                    display: none; /* hide "Rows/page" text label, select is self-explanatory */
-                }
             }
         </style>
 
         <!-- Latest production standalone build at the time of this demo (5.2.1). -->
-        <script src="https://unpkg.com/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js"></script>
+        <script src="https://unpkg.com/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js" defer></script>
     </head>
     <body>
         <!-- HEADER -->
@@ -3807,7 +3579,7 @@
                         color: var(--accent3);
                     "
                 >
-                    <span>📌</span> <span id="savedBtnLabel" class="btn-label">Saved</span>
+                    <span>📌</span> <span id="savedBtnLabel">Saved</span>
                 </button>
                 <button
                     class="btn-toggle-filters"
@@ -3817,14 +3589,14 @@
                         color: #a78bfa;
                     "
                 >
-                    <span>📊</span> <span class="btn-label">Industry</span>
+                    <span>📊</span> Industry
                 </button>
                 <button
                     class="btn-toggle-filters"
                     id="toggleFiltersBtn"
                     onclick="toggleFilters()"
                 >
-                    <span>⚙</span> <span class="btn-label">Filters</span>
+                    <span>⚙</span> Filters
                 </button>
                 <button
                     class="btn-toggle-filters"
@@ -3836,7 +3608,7 @@
                     "
                 >
                     <span>⭐</span>
-                    <span id="watchlistBtnLabel" class="btn-label">Watchlists</span>
+                    <span id="watchlistBtnLabel">Watchlists</span>
                 </button>
                 <button
                     class="btn-toggle-filters"
@@ -3847,7 +3619,7 @@
                     "
                     title="How to use this screener"
                 >
-                    <span>❓</span> <span class="btn-label">Help</span>
+                    <span>❓</span> Help
                 </button>
                 <button
                     class="btn-icon-only"
@@ -3875,7 +3647,6 @@
                 >
                     <span id="themeToggleIcon">☀️</span>
                 </button>
-                <span class="scroll-hint header-scroll-hint" aria-hidden="true">›</span>
             </div>
         </div>
 
@@ -6404,7 +6175,6 @@
                     <option value="200">200</option>
                 </select>
             </div>
-            <span class="scroll-hint stats-scroll-hint" aria-hidden="true">›</span>
         </div>
 
         <!-- ERROR -->
@@ -11601,6 +11371,45 @@
             </div>
         </div>
 
+        <!-- CHART MODAL -->
+        <div
+            class="settings-modal-overlay p-0"
+            id="chartModal"
+            onclick="closeChartModalOnOverlay(event)"
+        >
+            <div
+                class="settings-modal"
+                onclick="event.stopPropagation()"
+                style="min-width: 100%; max-width: 100%; min-height: 100vh"
+            >
+                <div class="settings-modal-header">
+                    <div>
+                        <div class="settings-modal-title">
+                            Script Code Goes Here
+                        </div>
+                        <div class="tv-modal-meta">
+                            Script Full Name Goes Here
+                        </div>
+                    </div>
+
+                    <button
+                        class="peer-modal-close text-success border-success bg-success ms-auto"
+                        style="--bs-bg-opacity: 0.1"
+                        id="resetChart"
+                    >
+                        ↺
+                    </button>
+                    <button
+                        class="peer-modal-close text-green"
+                        onclick="closeChartModal()"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div class="settings-modal-body" style="padding:5px 10px;gap: 0;">Main Chart Goes Here...</div>
+            </div>
+        </div>
+
         <!-- AUTHOR / ABOUT MODAL -->
         <div
             class="author-modal-overlay"
@@ -12679,7 +12488,7 @@
                 return isNaN(v) ? null : v;
             }
 
-            function applyFilters() {
+            function applyFilters(callRenderPage = true) {
                 const search = gv("f_search").toLowerCase();
                 const macros = mselGetSelected("f_macro");
                 const sectors = mselGetSelected("f_sector");
@@ -13279,25 +13088,31 @@
                     }
                 }
 
-                sortData();
-                currentPage = 1;
-                updateStats();
+                if (callRenderPage) {
+                    sortData();
+                    currentPage = 1;
+                    updateStats();
 
-                if (document.readyState === "loading") {
-                    // Page is not loaded yet — wait until DOM is ready
-                    document.addEventListener("DOMContentLoaded", ()=>{
-                        renderPage();
-                        renderPagination();
-                        const cv = loadColumnVisibility();
-                        applyColumnVisibility(cv);
-                    }, { once: true });
-                    return;
+                    if (document.readyState === "loading") {
+                        // Page is not loaded yet — wait until DOM is ready
+                        document.addEventListener(
+                            "DOMContentLoaded",
+                            () => {
+                                renderPage();
+                                renderPagination();
+                                // const cv = loadColumnVisibility();
+                                // applyColumnVisibility(cv);
+                            },
+                            { once: true },
+                        );
+                        return;
+                    }
+
+                    renderPage();
+                    renderPagination();
+                    // const cv = loadColumnVisibility();
+                    // applyColumnVisibility(cv);
                 }
-
-                renderPage();
-                renderPagination();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
             }
 
             // ---- Collapsible filter groups ----
@@ -13380,7 +13195,7 @@
                     });
             }
 
-            function clearFilters() {
+            function clearFilters(callApplyFilter = true) {
                 [
                     "f_search",
                     "f_rs_min",
@@ -13521,7 +13336,9 @@
                 const advTa = document.getElementById("f_adv_query");
                 if (advTa) advTa.value = "";
                 advValidateQuery();
-                applyFilters();
+                if (callApplyFilter) {
+                    applyFilters();
+                }
 
                 // Manual "Clear All" should also drop any active setup preset badge state.
                 if (
@@ -13643,6 +13460,10 @@
                 closeColumnModal();
                 //renderPage();
                 applyColumnVisibility(visibility);
+                requestAnimationFrame(() => {
+                    // This runs AFTER the browser accepts the new HTML layout
+                    resizeThumbnailChart();
+                });
             }
 
             function applyColumnVisibility(visibility) {
@@ -14054,8 +13875,8 @@
                     );
                 sortData();
                 renderPage();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
+                // const cv = loadColumnVisibility();
+                // applyColumnVisibility(cv);
             }
 
             function sortData() {
@@ -14207,6 +14028,7 @@
             }
 
             function renderPage() {
+                console.trace("coming in renderpage");
                 const tbody = document.getElementById("tableBody");
                 const start = (currentPage - 1) * rowsPerPage;
                 const end = Math.min(start + rowsPerPage, filteredData.length);
@@ -14225,14 +14047,14 @@
                         if (isCompareAdded)
                             rowClasses.push("compare-added-row");
 
-                        let chartTr='';
+                        let chartTr = "";
                         if (chartSettings.enabled == true) {
                             rowClasses.push("snap-section");
                             //chart blank tr and td code start
                             chartTr = `
                                 <tr class="chart-row">
                                     <td colspan="82" class="chart-cell">
-                                        <div class="thumb-chart" data-isin="${r["ISIN"]}"></div>
+                                        <div class="thumb-chart" data-isin="${r["ISIN"]}"><button class="fullscreen-btn" title="Full Screen" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">⛶</button></div>
                                     </td>
                                 </tr>
                             `;
@@ -14507,15 +14329,38 @@
                     })
                     .join("");
 
-                    //calling thumnail chart function
-                    //DELAY the calculation until the DOM is actually injected and ready
-                    requestAnimationFrame(() => {
-                        // This runs AFTER the browser accepts the new HTML layout
-                        if (chartSettings.enabled == true) {
-                            generateThumbnailChart();
+                const cv = loadColumnVisibility();
+                applyColumnVisibility(cv);
+
+                //calling thumnail chart function
+                if (document.readyState !== "complete") {
+                    // Page is not loaded yet — wait until DOM is ready
+                    document.addEventListener("readystatechange", () => {
+                        if (document.readyState === "complete") {
+                            //DELAY the calculation until the DOM is actually injected and ready
+                            // This runs AFTER the browser accepts the new HTML layout
+                            requestAnimationFrame(() => {
+                                if (chartSettings.enabled == true) {
+                                    setTimeout(() => {
+                                        generateThumbnailChart();
+                                    }, 100);
+                                }
+                            });
                         }
                     });
+                } else {
+                    //DELAY the calculation until the DOM is actually injected and ready
+                    // This runs AFTER the browser accepts the new HTML layout
+                    requestAnimationFrame(() => {
+                        if (chartSettings.enabled == true) {
+                            setTimeout(() => {
+                                generateThumbnailChart();
+                            }, 100);
+                        }
+                    });
+                }
 
+                scrollTop();
             }
 
             // ============ STATS ============
@@ -14615,8 +14460,8 @@
                     currentPage--;
                     renderPage();
                     renderPagination();
-                    const cv = loadColumnVisibility();
-                    applyColumnVisibility(cv);
+                    // const cv = loadColumnVisibility();
+                    // applyColumnVisibility(cv);
                     scrollTop();
                 }
             }
@@ -14626,8 +14471,8 @@
                     currentPage++;
                     renderPage();
                     renderPagination();
-                    const cv = loadColumnVisibility();
-                    applyColumnVisibility(cv);
+                    // const cv = loadColumnVisibility();
+                    // applyColumnVisibility(cv);
                     scrollTop();
                 }
             }
@@ -14635,8 +14480,8 @@
                 currentPage = p;
                 renderPage();
                 renderPagination();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
+                // const cv = loadColumnVisibility();
+                // applyColumnVisibility(cv);
                 scrollTop();
             }
             function changeRowsPerPage() {
@@ -14646,8 +14491,8 @@
                 currentPage = 1;
                 renderPage();
                 renderPagination();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
+                // const cv = loadColumnVisibility();
+                // applyColumnVisibility(cv);
             }
             function scrollTop() {
                 document.getElementById("tableWrapper").scrollTop = 0;
@@ -14798,6 +14643,7 @@
                     closeSettingsModal();
                     closeColumnModal();
                     closeChartSettingsModal();
+                    closeChartModal();
                 }
             });
 
@@ -14908,12 +14754,14 @@
                     const lists = loadWatchlists();
                     const wl = lists.find((w) => w.id === id);
                     if (!wl) return;
-                    const span = document.querySelector(`span[data-wl-code="${wlPopoverActiveCode}"]`);
+                    const span = document.querySelector(
+                        `span[data-wl-code="${wlPopoverActiveCode}"]`,
+                    );
                     if (cb.checked) {
-                        if (!wl.codes.includes(wlPopoverActiveCode)){
+                        if (!wl.codes.includes(wlPopoverActiveCode)) {
                             wl.codes.push(wlPopoverActiveCode);
                             if (span) {
-                                span.textContent="★";
+                                span.textContent = "★";
                                 span.classList.add("in-watchlist");
                             }
                         }
@@ -14926,9 +14774,9 @@
                     refreshWatchlistUI();
 
                     //if its not in any watchlist then update the star and remove the in-watchlist class
-                    if(!isInAnyWatchlist(wlPopoverActiveCode)){
+                    if (!isInAnyWatchlist(wlPopoverActiveCode)) {
                         if (span) {
-                            span.textContent="☆";
+                            span.textContent = "☆";
                             span.classList.remove("in-watchlist");
                         }
                     }
@@ -15047,15 +14895,17 @@
                 refreshWatchlistUI();
 
                 //remove watchlist star selection from the current table records in ui.
-                document.querySelectorAll("span.wl-star").forEach((el,index)=>{
-                    const code=el.dataset.wlCode;
-                    if(!isInAnyWatchlist(code)){
-                        if (el) {
-                            el.textContent="☆";
-                            el.classList.remove("in-watchlist");
+                document
+                    .querySelectorAll("span.wl-star")
+                    .forEach((el, index) => {
+                        const code = el.dataset.wlCode;
+                        if (!isInAnyWatchlist(code)) {
+                            if (el) {
+                                el.textContent = "☆";
+                                el.classList.remove("in-watchlist");
+                            }
                         }
-                    }
-                });
+                    });
             }
 
             function createWatchlistPrompt() {
@@ -15113,15 +14963,17 @@
                 refreshWatchlistUI();
 
                 //remove watchlist star selection from the current table records in ui.
-                document.querySelectorAll("span.wl-star").forEach((el,index)=>{
-                    const code=el.dataset.wlCode;
-                    if(!isInAnyWatchlist(code)){
-                        if (el) {
-                            el.textContent="☆";
-                            el.classList.remove("in-watchlist");
+                document
+                    .querySelectorAll("span.wl-star")
+                    .forEach((el, index) => {
+                        const code = el.dataset.wlCode;
+                        if (!isInAnyWatchlist(code)) {
+                            if (el) {
+                                el.textContent = "☆";
+                                el.classList.remove("in-watchlist");
+                            }
                         }
-                    }
-                });
+                    });
             }
 
             // Run this single watchlist as the active table filter (sets the
@@ -15180,13 +15032,15 @@
                 saveWatchlists(lists);
                 refreshWatchlistUI();
                 //update all the current records watchlist star.
-                document.querySelectorAll("span.wl-star").forEach((el,index)=>{
-                    const code=el.dataset.wlCode;
-                    if (el) {
-                        el.textContent="★";
-                        el.classList.add("in-watchlist");
-                    }
-                });
+                document
+                    .querySelectorAll("span.wl-star")
+                    .forEach((el, index) => {
+                        const code = el.dataset.wlCode;
+                        if (el) {
+                            el.textContent = "★";
+                            el.classList.add("in-watchlist");
+                        }
+                    });
                 alert(
                     `Added ${added} new stock${added !== 1 ? "s" : ""} to "${target.name}" (${target.codes.length} total).`,
                 );
@@ -16338,7 +16192,7 @@
                     return;
                 }
 
-                clearFilters(); // reset everything before applying a fresh preset
+                clearFilters(false); // reset everything before applying a fresh preset
                 activeSetupPresetId = id;
 
                 Object.entries(preset.simpleFilters || {}).forEach(
@@ -16367,9 +16221,11 @@
                     if (advTa) advTa.value = preset.advQuery;
                     if (advEnabled) advEnabled.checked = true;
                     advOnQueryInput();
+                } else {
+                    //because advOnQueryInput is already calling applyFilters
+                    applyFilters();
                 }
-
-                applyFilters();
+                toggleFilters();
                 renderSetupPresetPills();
                 updateSetupPresetButtonLabel();
                 closeSetupPresetPanel();
@@ -16714,7 +16570,8 @@
                 clearTimeout(advValidateTimer);
                 advValidateTimer = setTimeout(() => {
                     advValidateQuery();
-                    applyFilters();
+                    const advEnabled = gc("f_adv_enabled");
+                    applyFilters(advEnabled);
                 }, 300);
             }
 
@@ -17653,8 +17510,8 @@
                 updateStats();
                 renderPage();
                 renderPagination();
-                const cv = loadColumnVisibility();
-                applyColumnVisibility(cv);
+                // const cv = loadColumnVisibility();
+                // applyColumnVisibility(cv);
 
                 // Show banner
                 multiSearchActive = true;
@@ -18572,6 +18429,10 @@
 
             // ============ THUMBNAIL CHART ============
             function getSourceValue(candle, source = "close") {
+                if (!candle) {
+                    return undefined;
+                }
+
                 switch (source) {
                     case "open":
                         return candle.open;
@@ -18586,16 +18447,30 @@
                         return candle.close;
 
                     case "hl2":
-                        return (candle.high + candle.low) / 2;
+                        return (
+                            (candle.high + candle.low) / 2
+                        );
 
                     case "hlc3":
-                        return (candle.high + candle.low + candle.close) / 3;
+                        return (
+                            (candle.high +
+                                candle.low +
+                                candle.close) / 3
+                        );
 
                     case "ohlc4":
-                        return (candle.open + candle.high + candle.low + candle.close) / 4;
+                        return (
+                            (candle.open +
+                                candle.high +
+                                candle.low +
+                                candle.close) / 4
+                        );
 
                     case "volume":
                         return candle.v;
+
+                    case "value":
+                        return candle.value;
 
                     default:
                         return candle.close;
@@ -18603,22 +18478,66 @@
             }
 
             function calculateSMA(data, period, source = "close") {
+                if (!Array.isArray(data) || data.length === 0 || period <= 0) {
+                    return [];
+                }
+
                 const result = [];
+
+                // Keep track of valid values only.
+                const validData = [];
+
+                for (const item of data) {
+                    const value = Number(getSourceValue(item, source));
+
+                    if (Number.isFinite(value)) {
+                        validData.push({
+                            time: item.time,
+                            value,
+                        });
+                    }
+                }
+
+                // Not enough valid values to calculate SMA.
+                if (validData.length < period) {
+                    return data.map((item) => ({
+                        time: item.time,
+                    }));
+                }
+
+                // Map calculated values by time.
+                const smaMap = new Map();
+
                 let sum = 0;
 
-                for (let i = 0; i < data.length; i++) {
-                    const value = getSourceValue(data[i], source);
-
-                    sum += value;
+                for (let i = 0; i < validData.length; i++) {
+                    sum += validData[i].value;
 
                     if (i >= period) {
-                        sum -= getSourceValue(data[i - period], source);
+                        sum -= validData[i - period].value;
                     }
 
                     if (i >= period - 1) {
+                        smaMap.set(
+                            validData[i].time,
+                            sum / period,
+                        );
+                    }
+                }
+
+                // Restore the complete original timeline.
+                for (const item of data) {
+                    const value = smaMap.get(item.time);
+
+                    if (value !== undefined) {
                         result.push({
-                            time: data[i].time,
-                            value: sum / period
+                            time: item.time,
+                            value,
+                        });
+                    } else {
+                        // Lightweight Charts whitespace
+                        result.push({
+                            time: item.time,
                         });
                     }
                 }
@@ -18627,65 +18546,333 @@
             }
 
             function calculateEMA(data, period, source = "close") {
-                const result = [];
-
-                if (data.length < period) {
-                    return result;
+                if (!Array.isArray(data) || data.length === 0 || period <= 0) {
+                    return [];
                 }
 
-                // Initial SMA
+                // Extract only valid numeric values.
+                const validData = [];
+
+                for (const item of data) {
+                    const value = Number(getSourceValue(item, source));
+
+                    if (Number.isFinite(value)) {
+                        validData.push({
+                            time: item.time,
+                            value,
+                        });
+                    }
+                }
+
+                // Not enough valid values.
+                if (validData.length < period) {
+                    return data.map((item) => ({
+                        time: item.time,
+                    }));
+                }
+
+                const emaMap = new Map();
+
+                // Initial SMA.
                 let sum = 0;
 
                 for (let i = 0; i < period; i++) {
-                    sum += getSourceValue(data[i],source);
+                    sum += validData[i].value;
                 }
 
                 let ema = sum / period;
 
-                result.push({
-                    time: data[period - 1].time,
-                    value: ema,
-                });
+                emaMap.set(
+                    validData[period - 1].time,
+                    ema,
+                );
 
                 const multiplier = 2 / (period + 1);
 
-                for (let i = period; i < data.length; i++) {
-                    ema = (getSourceValue(data[i],source) - ema) * multiplier + ema;
+                // Remaining EMA values.
+                for (let i = period; i < validData.length; i++) {
+                    ema =
+                        (validData[i].value - ema) * multiplier +
+                        ema;
 
-                    result.push({
-                        time: data[i].time,
-                        value: ema,
-                    });
+                    emaMap.set(
+                        validData[i].time,
+                        ema,
+                    );
                 }
+
+                // Restore complete original timeline.
+                const result = data.map((item) => {
+                    const value = emaMap.get(item.time);
+
+                    if (value !== undefined) {
+                        return {
+                            time: item.time,
+                            value,
+                        };
+                    }
+
+                    // Lightweight Charts whitespace.
+                    return {
+                        time: item.time,
+                    };
+                });
 
                 return result;
             }
 
+            function calculateMACD(data, options = {}) {
+                const {
+                    fastLength = 12,
+                    histNegativeColor = "#ef4444",
+                    histPositiveColor = "#22c55e",
+                    macdLineColor = "#3b82f6",
+                    oscMaType = "ema",
+                    signalLength = 9,
+                    signalLineColor = "#f59e0b",
+                    signalMaType = "ema",
+                    slowLength = 26,
+                    source = "close",
+                } = options;
+
+                if (!data || data.length === 0) {
+                    return { macdLine: [], signalLine: [], histogram: [] };
+                }
+
+                // 1. Extract the selected source series into [{ time, value }]
+                const sourceSeries = data.map((item) => ({
+                    time: item.time,
+                    value: Number(getSourceValue(item, source)),
+                }));
+
+                // 2. Calculate Fast and Slow MAs
+                const fastMA =
+                    oscMaType === "ema"
+                        ? calculateEMA(sourceSeries, fastLength, "value")
+                        : calculateSMA(sourceSeries, fastLength, "value");
+                const slowMA =
+                    oscMaType === "ema"
+                        ? calculateEMA(sourceSeries, slowLength, "value")
+                        : calculateSMA(sourceSeries, slowLength, "value");
+
+                const fastMap = new Map(
+                    fastMA.map((item) => [item.time, item.value]),
+                );
+                const slowMap = new Map(
+                    slowMA.map((item) => [item.time, item.value]),
+                );
+
+                // 3. Compute MACD Line (Fast MA - Slow MA) over the FULL date range,
+                //    inserting whitespace points where either MA isn't ready yet
+                const macdLine = [];
+                const macdValueMap = new Map(); // only real values, for signal calc
+
+                for (const item of data) {
+                    const fastVal = fastMap.get(item.time);
+                    const slowVal = slowMap.get(item.time);
+
+                    if (fastVal !== undefined && slowVal !== undefined) {
+                        const value = fastVal - slowVal;
+                        macdLine.push({ time: item.time, value });
+                        macdValueMap.set(item.time, value);
+                    } else {
+                        // whitespace point: keeps the time axis aligned, plots nothing
+                        macdLine.push({ time: item.time });
+                    }
+                }
+
+                // 4. Compute Signal Line from the MACD line's real values only
+                const macdRealSeries = macdLine
+                    .filter((d) => d.value !== undefined)
+                    .map((d) => ({ time: d.time, value: d.value }));
+
+                const signalReal =
+                    signalMaType === "ema"
+                        ? calculateEMA(macdRealSeries, signalLength, "value")
+                        : calculateSMA(macdRealSeries, signalLength, "value");
+
+                const signalMap = new Map(
+                    signalReal.map((item) => [item.time, item.value]),
+                );
+
+                // Build signalLine over the FULL date range too
+                const signalLine = data.map((item) => {
+                    const val = signalMap.get(item.time);
+                    return val !== undefined
+                        ? { time: item.time, value: val }
+                        : { time: item.time };
+                });
+
+                // 5. Compute Histogram over the FULL date range
+                const histogram = data.map((item) => {
+                    const macdVal = macdValueMap.get(item.time);
+                    const sigVal = signalMap.get(item.time);
+
+                    if (macdVal !== undefined && sigVal !== undefined) {
+                        const diff = macdVal - sigVal;
+                        return {
+                            time: item.time,
+                            value: diff,
+                            color:
+                                diff >= 0
+                                    ? histPositiveColor
+                                    : histNegativeColor,
+                        };
+                    }
+                    return { time: item.time }; // whitespace
+                });
+
+                return { macdLine, signalLine, histogram };
+            }
+
+            function calculateRSI(data, settings) {
+                const {
+                    length = 14,
+                    source = "close",
+                    smoothingType = "none",
+                    smoothingLength = 14,
+                } = settings || {};
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    return [];
+                }
+
+                const prices = data.map((d) => getSourceValue(d, source));
+                const totalBars = data.length;
+                const rsiSeries = [];
+
+                // 2. Pad initial bars with null values if dataset is shorter than required length
+                if (totalBars <= length) {
+                    const nullPadded = data.map((bar) => ({
+                        time: bar.time
+                    }));
+                    return nullPadded;
+                }
+
+                // 3. Compute price gains and losses
+                const gains = [];
+                const losses = [];
+                for (let i = 1; i < totalBars; i++) {
+                    const change = prices[i] - prices[i - 1];
+                    gains.push(change > 0 ? change : 0);
+                    losses.push(change < 0 ? -change : 0);
+                }
+
+                // First `length` bars (index 0 to length - 1) have no RSI value
+                for (let i = 0; i < length; i++) {
+                    rsiSeries.push({ time: data[i].time});
+                }
+
+                // 4. Initial SMA for Gains and Losses over first `length` changes
+                let avgGain = 0;
+                let avgLoss = 0;
+                for (let i = 0; i < length; i++) {
+                    avgGain += gains[i];
+                    avgLoss += losses[i];
+                }
+                avgGain /= length;
+                avgLoss /= length;
+
+                const computeRSI = (g, l) => {
+                    if (l === 0) return g === 0 ? 50 : 100;
+                    const rs = g / l;
+                    return Number((100 - 100 / (1 + rs)).toFixed(4));
+                };
+
+                // First valid RSI bar at index `length`
+                rsiSeries.push({
+                    time: data[length].time,
+                    value: computeRSI(avgGain, avgLoss),
+                });
+
+                // 5. Subsequent RSI values using Wilder's Exponential Smoothing (RMA)
+                for (let i = length; i < gains.length; i++) {
+                    avgGain = (avgGain * (length - 1) + gains[i]) / length;
+                    avgLoss = (avgLoss * (length - 1) + losses[i]) / length;
+
+                    rsiSeries.push({
+                        time: data[i + 1].time,
+                        value: computeRSI(avgGain, avgLoss),
+                    });
+                }
+
+                return rsiSeries;
+            }
+
             var thumbCharts = [];
+            var charts = {};
+            var chartSeries = {};
 
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
 
-            function calculateChartHeight(){
-                const header=document.querySelector('.site-header').getBoundingClientRect().height;
-                const multibanner=document.querySelector('#multiBanner').getBoundingClientRect().height;
-                const statusbar=document.querySelector('#statsBar').getBoundingClientRect().height;
-                const thead=document.querySelector('#mainTable > thead').getBoundingClientRect().height;
-                const pagebar=document.querySelector('#pagBar').getBoundingClientRect().height;
-                const footer=document.querySelector('footer').getBoundingClientRect().height;
-                let extra=25;
-                if(screenWidth<=768) extra=15;
-                return header+multibanner+statusbar+thead+pagebar+footer+extra;
+            function calculateChartHeight() {
+                const header = Math.max(
+                    document
+                        .querySelector(".site-header")
+                        .getBoundingClientRect().height,
+                    document.querySelector(".site-header").offsetHeight,
+                );
+                const multibanner = Math.max(
+                    document
+                        .querySelector("#multiBanner")
+                        .getBoundingClientRect().height,
+                    document.querySelector("#multiBanner").offsetHeight,
+                );
+                const statusbar = Math.max(
+                    document.querySelector("#statsBar").getBoundingClientRect()
+                        .height,
+                    document.querySelector("#statsBar").offsetHeight,
+                );
+                const thead = Math.max(
+                    document
+                        .querySelector("#mainTable > thead")
+                        .getBoundingClientRect().height,
+                    document.querySelector("#mainTable > thead").offsetHeight,
+                );
+                const pagebar = Math.max(
+                    document.querySelector("#pagBar").getBoundingClientRect()
+                        .height,
+                    document.querySelector("#pagBar").offsetHeight,
+                );
+                const footer = Math.max(
+                    document.querySelector("footer").getBoundingClientRect()
+                        .height,
+                    document.querySelector("footer").offsetHeight,
+                );
+
+                const container = document.querySelector("#tableWrapper");
+                const horizontalScrollbarHeight =
+                    container.offsetHeight - container.clientHeight;
+                let extra = horizontalScrollbarHeight + 5;
+                if (screenWidth <= 768) extra = horizontalScrollbarHeight + 5;
+
+                return (
+                    header +
+                    multibanner +
+                    statusbar +
+                    thead +
+                    pagebar +
+                    footer +
+                    extra
+                );
             }
 
+            var generatingThumbCharts = false;
             function generateThumbnailChart() {
+                if (generatingThumbCharts) return;
+                generatingThumbCharts = true;
+
                 //remove the existing charts from the memory.
                 for (const key in thumbCharts) {
                     thumbCharts[key].remove();
                     delete thumbCharts[key];
                 }
+                if (window.gc) {
+                    window.gc();
+                }
 
-                const chartSettings=getChartSettings();
+                const chartSettings = getChartSettings();
 
                 document
                     .querySelectorAll(".thumb-chart")
@@ -18696,7 +18883,10 @@
                         const previousTr = currentTr
                             ? currentTr.previousElementSibling
                             : null;
-                        const previousTrHeight=previousTr.getBoundingClientRect().height;
+                        const previousTrHeight = Math.max(
+                            previousTr.offsetHeight,
+                            previousTr.getBoundingClientRect().height,
+                        );
 
                         let scriptCode = "";
                         let scriptName = "";
@@ -18727,13 +18917,10 @@
 
                             let chartWidth =
                                 Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
-                            let otherHeight=calculateChartHeight();
-                            /*
+                            let otherHeight = calculateChartHeight();
                             let chartHeight = Math.round(
-                                Math.min(chartWidth / 1.8, screenHeight - (otherHeight + previousTrHeight)),
+                                screenHeight - (otherHeight + previousTrHeight),
                             );
-                            */
-                            let chartHeight = Math.round(screenHeight - (otherHeight + previousTrHeight));
 
                             // Create your chart here
                             thumbCharts[isin] = LightweightCharts.createChart(
@@ -18815,23 +19002,22 @@
                             );
                             chartSeries.setData(data.slice(-180));
 
-                            if(chartSettings.volume.enabled==true){
-                                let chartSeriesVolume = thumbCharts[isin].addSeries(
-                                    LightweightCharts.HistogramSeries,
-                                    {
-                                        title: "Volume",
-                                        title2: "Volume",
-                                        crosshairMarkerVisible: false,
-                                        lastValueVisible: false,
-                                        priceLineVisible: false,
-                                        priceFormat: { type: "volume" },
-                                        priceScaleId: "volume",
-                                        scaleMargins: {
-                                            top: 0.8,
-                                            bottom: 0,
-                                        },
+                            if (chartSettings.volume.enabled == true) {
+                                let chartSeriesVolume = thumbCharts[
+                                    isin
+                                ].addSeries(LightweightCharts.HistogramSeries, {
+                                    title: "Volume",
+                                    title2: "Volume",
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                    priceFormat: { type: "volume" },
+                                    priceScaleId: "volume",
+                                    scaleMargins: {
+                                        top: 0.8,
+                                        bottom: 0,
                                     },
-                                );
+                                });
 
                                 const volumeData = data.map((item) => ({
                                     time: item.time,
@@ -18841,7 +19027,9 @@
                                             ? "rgba(38, 166, 154, 0.6)"
                                             : "rgba(239, 83, 80, 0.6)",
                                 }));
-                                chartSeriesVolume.setData(volumeData.slice(-180));
+                                chartSeriesVolume.setData(
+                                    volumeData.slice(-180),
+                                );
 
                                 chartSeriesVolume.priceScale().applyOptions({
                                     scaleMargins: {
@@ -18857,10 +19045,16 @@
                                         visible: false,
                                     });
 
-                                if(chartSettings.volume.maLength>0){
-                                    let chartSeriesVolumeSma = thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
-                                        title2: 'SMA'+chartSettings.volume.maLength.toString(),
-                                        title2: 'SMA'+chartSettings.volume.maLength.toString(),
+                                if (chartSettings.volume.maLength > 0) {
+                                    let chartSeriesVolumeSma = thumbCharts[
+                                        isin
+                                    ].addSeries(LightweightCharts.LineSeries, {
+                                        title2:
+                                            "SMA" +
+                                            chartSettings.volume.maLength.toString(),
+                                        title2:
+                                            "SMA" +
+                                            chartSettings.volume.maLength.toString(),
                                         color: chartSettings.volume.maColor,
                                         lineWidth: 1,
                                         crosshairMarkerVisible: false,
@@ -18873,29 +19067,50 @@
                                             bottom: 0,
                                         },
                                     });
-                                    chartSeriesVolumeSma.setData(calculateSMA(data, chartSettings.volume.maLength,"volume").slice(-180));
+                                    chartSeriesVolumeSma.setData(
+                                        calculateSMA(
+                                            data,
+                                            chartSettings.volume.maLength,
+                                            "volume",
+                                        ).slice(-180),
+                                    );
                                 }
                             }
 
-                            let maSeries=[];
-                            chartSettings.ma.forEach((ma,index)=>{
-                                if(ma.enabled==true){
-                                    maSeries[index] = thumbCharts[isin].addSeries(
-                                        LightweightCharts.LineSeries,
-                                        {
-                                            titile:(ma.type+ma.length.toString()).toUpperCase(),
-                                            title2:(ma.type+ma.length.toString()).toUpperCase(),
-                                            color: ma.color,
-                                            lineWidth: 1,
-                                            crosshairMarkerVisible: false,
-                                            lastValueVisible: false,
-                                            priceLineVisible: false,
-                                        },
-                                    );
-                                    if(ma.type=="ema"){
-                                        maSeries[index].setData(calculateEMA(data, ma.length,ma.source).slice(-180));
-                                    }else{
-                                        maSeries[index].setData(calculateSMA(data, ma.length,ma.source).slice(-180));
+                            let maSeries = [];
+                            chartSettings.ma.forEach((ma, index) => {
+                                if (ma.enabled == true) {
+                                    maSeries[index] = thumbCharts[
+                                        isin
+                                    ].addSeries(LightweightCharts.LineSeries, {
+                                        titile: (
+                                            ma.type + ma.length.toString()
+                                        ).toUpperCase(),
+                                        title2: (
+                                            ma.type + ma.length.toString()
+                                        ).toUpperCase(),
+                                        color: ma.color,
+                                        lineWidth: 1,
+                                        crosshairMarkerVisible: false,
+                                        lastValueVisible: false,
+                                        priceLineVisible: false,
+                                    });
+                                    if (ma.type == "ema") {
+                                        maSeries[index].setData(
+                                            calculateEMA(
+                                                data,
+                                                ma.length,
+                                                ma.source,
+                                            ).slice(-180),
+                                        );
+                                    } else {
+                                        maSeries[index].setData(
+                                            calculateSMA(
+                                                data,
+                                                ma.length,
+                                                ma.source,
+                                            ).slice(-180),
+                                        );
                                     }
                                 }
                             });
@@ -18908,31 +19123,40 @@
                             );
                         }
                     });
+
+                setTimeout(() => {
+                    generatingThumbCharts = false;
+                }, 50);
             }
 
-            function resizeThumbnailChart(){
-                const chartSettings=getChartSettings();
-                if(chartSettings.enabled==true){
+            function resizeThumbnailChart() {
+                const chartSettings = getChartSettings();
+                if (chartSettings.enabled == true) {
                     let screenWidth = window.innerWidth;
                     let screenHeight = window.innerHeight;
 
                     for (const key in thumbCharts) {
-                        const chartDiv=document.querySelector(`[data-isin="${key}"]`);
+                        const chartDiv = document.querySelector(
+                            `[data-isin="${key}"]`,
+                        );
                         const currentTr = chartDiv.closest("tr");
                         const previousTr = currentTr
                             ? currentTr.previousElementSibling
                             : null;
-                        const previousTrHeight=previousTr.getBoundingClientRect().height;
+                        const previousTrHeight =
+                            previousTr.getBoundingClientRect().height;
 
                         let chartWidth =
                             Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
-                        let otherHeight=calculateChartHeight();
+                        let otherHeight = calculateChartHeight();
                         /*
                         let chartHeight = Math.round(
                             Math.min(chartWidth / 1.8, screenHeight - (otherHeight + previousTrHeight)),
                         );
                         */
-                        let chartHeight = Math.round(screenHeight - (otherHeight + previousTrHeight));
+                        let chartHeight = Math.round(
+                            screenHeight - (otherHeight + previousTrHeight),
+                        );
 
                         thumbCharts[key].resize(chartWidth, chartHeight, true);
                         thumbCharts[key].timeScale().fitContent();
@@ -18946,6 +19170,853 @@
                     resizeThumbnailChart();
                 });
             });
+
+            function openChartModal(Caller) {
+                const chartSettings = getChartSettings();
+                const chartModal = document.getElementById("chartModal");
+                chartModal.querySelector(".settings-modal-body").innerHTML = "";
+
+                const chartMain = document.createElement("div");
+                chartMain.id = "chart-main";
+                chartMain.style.width = "100%";
+                chartMain.style.position = "relative";
+
+                const toolTipDiv = document.createElement("div");
+                toolTipDiv.className = "chart-tooltip";
+                chartMain.appendChild(toolTipDiv);
+
+                chartModal
+                    .querySelector(".settings-modal-body")
+                    .appendChild(chartMain);
+
+                let otherChartHeight = 0;
+                const chartContainers = {
+                    main: { element: chartMain, height: 0 },
+                };
+
+                // Add RSI container if enabled
+                if (chartSettings.rsi.enabled) {
+                    const chartRsi = document.createElement("div");
+                    chartRsi.id = "chart-rsi";
+                    chartRsi.style.width = "100%";
+                    chartRsi.style.position = "relative";
+                    const toolTipDiv = document.createElement("div");
+                    toolTipDiv.className = "chart-tooltip";
+                    chartRsi.appendChild(toolTipDiv);
+                    chartModal
+                        .querySelector(".settings-modal-body")
+                        .appendChild(chartRsi);
+                    chartContainers.rsi = {
+                        element: chartRsi,
+                        height: screenHeight * 0.15,
+                    };
+                    otherChartHeight += screenHeight * 0.15;
+                }
+
+                // Add MACD container if enabled
+                if (chartSettings.macd.enabled) {
+                    const chartMacd = document.createElement("div");
+                    chartMacd.id = "chart-macd";
+                    chartMacd.style.width = "100%";
+                    chartMacd.style.position = "relative";
+                    const toolTipDiv = document.createElement("div");
+                    toolTipDiv.className = "chart-tooltip";
+                    chartMacd.appendChild(toolTipDiv);
+                    chartModal
+                        .querySelector(".settings-modal-body")
+                        .appendChild(chartMacd);
+                    chartContainers.macd = {
+                        element: chartMacd,
+                        height: screenHeight * 0.15,
+                    };
+                    otherChartHeight += screenHeight * 0.15;
+                }
+
+                const isin = Caller.dataset.isin;
+                const code = Caller.dataset.code;
+                const name = Caller.dataset.name;
+
+                document.querySelector(
+                    "#chartModal .settings-modal-title",
+                ).textContent = code;
+                document.querySelector(
+                    "#chartModal .tv-modal-meta",
+                ).textContent = name;
+
+                chartModal.classList.add("open");
+
+                (async () => {
+                    try {
+                        const response = await fetch(`data/chart/${isin}.json`);
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        const chartWidth = screenWidth - 40;
+                        const mainChartHeight =
+                            screenHeight - (otherChartHeight + 112);
+
+                        // Helper function to create chart with common options
+                        const createChart = (
+                            container,
+                            height,
+                            options = {},
+                        ) => {
+                            return LightweightCharts.createChart(container, {
+                                width: chartWidth,
+                                height: height,
+                                layout: {
+                                    background: {
+                                        type: LightweightCharts.ColorType.Solid,
+                                        color: "transparent",
+                                    },
+                                    textColor: "#6B7280",
+                                    attributionLogo: false,
+                                    padding: {
+                                        top: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                    },
+                                    margin: {
+                                        top: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                    },
+                                },
+                                grid: {
+                                    vertLines: { visible: false },
+                                    horzLines: { visible: false },
+                                },
+                                crosshair: {
+                                    mode: LightweightCharts.CrosshairMode
+                                        .Normal,
+                                    vertLine: {
+                                        color: "#8a98b4",
+                                        labelBackgroundColor: "#44506a",
+                                    },
+                                    horzLine: {
+                                        color: "#8a98b4",
+                                        labelBackgroundColor: "#44506a",
+                                    },
+                                },
+                                rightPriceScale: { borderColor: "#3b4862" },
+                                timeScale: {
+                                    borderColor: "#3b4862",
+                                    timeVisible: false,
+                                    secondsVisible: false,
+                                    rightOffset: 0,
+                                    fixLeftEdge: true,
+                                    fixRightEdge: true,
+                                    barSpacing: 8,
+                                },
+                                ...options,
+                            });
+                        };
+
+                        // Store all chart instances
+                        charts = {};
+
+                        // Create main chart
+                        charts.main = createChart(
+                            chartContainers.main.element,
+                            mainChartHeight,
+                        );
+
+                        // Add watermark
+                        LightweightCharts.createTextWatermark(
+                            charts.main.panes()[0],
+                            {
+                                horzAlign: "center",
+                                vertAlign: "center",
+                                lines: [
+                                    {
+                                        text: code,
+                                        color: "rgba(100,100,100, 0.5)",
+                                        fontSize: 18,
+                                    },
+                                    {
+                                        text: name,
+                                        color: "rgba(100,100,100, 0.5)",
+                                        fontSize: 14,
+                                    },
+                                ],
+                            },
+                        );
+
+                        // Initialize series storage
+                        chartSeries = {};
+                        chartSeriesDataMap = {};
+
+                        // Add price series to main chart
+                        chartSeries.main = {};
+                        chartSeriesDataMap.main = {};
+                        chartSeries.main.price = charts.main.addSeries(
+                            LightweightCharts.CandlestickSeries,
+                            {
+                                title2: "Price",
+                                crosshairMarkerVisible: false,
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                                upColor: "#26a69a",
+                                downColor: "#ef5350",
+                                borderVisible: false,
+                                wickUpColor: "#26a69a",
+                                wickDownColor: "#ef5350",
+                            },
+                        );
+                        chartSeries.main.price.setData(data);
+                        chartSeriesDataMap.main.price = Object.fromEntries(
+                            data.map((bar, index) => [
+                                bar.time,
+                                {
+                                    bar,
+                                    previous: data[index - 1],
+                                },
+                            ]),
+                        );
+
+                        // Add volume to main chart if enabled
+                        if (chartSettings.volume.enabled) {
+                            chartSeries.main.volume = {};
+                            chartSeriesDataMap.main.volume = {};
+                            chartSeries.main.volume.volume =
+                                charts.main.addSeries(
+                                    LightweightCharts.HistogramSeries,
+                                    {
+                                        title2: "Volume",
+                                        crosshairMarkerVisible: false,
+                                        lastValueVisible: false,
+                                        priceLineVisible: false,
+                                        priceFormat: { type: "volume" },
+                                        priceScaleId: "volume",
+                                        scaleMargins: { top: 0.8, bottom: 0 },
+                                    },
+                                );
+
+                            const volumeData = data.map((item) => ({
+                                time: item.time,
+                                value: item.v,
+                                color:
+                                    item.close >= item.open
+                                        ? "rgba(38, 166, 154, 0.6)"
+                                        : "rgba(239, 83, 80, 0.6)",
+                            }));
+                            chartSeries.main.volume.volume.setData(volumeData);
+                            chartSeriesDataMap.main.volume.volume =
+                                Object.fromEntries(
+                                    volumeData.map((bar, index) => [
+                                        bar.time,
+                                        bar,
+                                    ]),
+                                );
+
+                            chartSeries.main.volume.volume
+                                .priceScale()
+                                .applyOptions({
+                                    scaleMargins: { top: 0.8, bottom: 0 },
+                                });
+
+                            charts.main.priceScale("volume").applyOptions({
+                                scaleMargins: { top: 0.8, bottom: 0 },
+                                visible: false,
+                            });
+
+                            if (chartSettings.volume.maLength > 0) {
+                                chartSeries.main.volume.sma =
+                                    charts.main.addSeries(
+                                        LightweightCharts.LineSeries,
+                                        {
+                                            title2: `SMA${chartSettings.volume.maLength}`,
+                                            color: chartSettings.volume.maColor,
+                                            lineWidth: 1,
+                                            crosshairMarkerVisible: false,
+                                            lastValueVisible: false,
+                                            priceLineVisible: false,
+                                            priceFormat: { type: "volume" },
+                                            priceScaleId: "volume",
+                                            scaleMargins: {
+                                                top: 0.8,
+                                                bottom: 0,
+                                            },
+                                        },
+                                    );
+                                const volumeMaData = calculateSMA(
+                                    data,
+                                    chartSettings.volume.maLength,
+                                    "volume",
+                                );
+                                chartSeries.main.volume.sma.setData(
+                                    volumeMaData,
+                                );
+                                chartSeriesDataMap.main.volume.sma =
+                                    Object.fromEntries(
+                                        volumeMaData.map((bar, index) => [
+                                            bar.time,
+                                            {
+                                                ...bar,
+                                                color: chartSettings.volume
+                                                    .maColor,
+                                            },
+                                        ]),
+                                    );
+                            }
+                        }
+
+                        // Add MAs to main chart
+                        chartSeries.main.ma = {};
+                        chartSeriesDataMap.main.ma = {};
+                        chartSettings.ma.forEach((ma) => {
+                            if (ma.enabled) {
+                                const key = (ma.type + ma.length).toUpperCase();
+                                chartSeries.main.ma[key] =
+                                    charts.main.addSeries(
+                                        LightweightCharts.LineSeries,
+                                        {
+                                            title2: key,
+                                            color: ma.color,
+                                            lineWidth: 1,
+                                            crosshairMarkerVisible: false,
+                                            lastValueVisible: false,
+                                            priceLineVisible: false,
+                                        },
+                                    );
+
+                                const calculation =
+                                    ma.type === "ema"
+                                        ? calculateEMA(
+                                              data,
+                                              ma.length,
+                                              ma.source,
+                                          )
+                                        : calculateSMA(
+                                              data,
+                                              ma.length,
+                                              ma.source,
+                                          );
+                                chartSeries.main.ma[key].setData(calculation);
+                                chartSeriesDataMap.main.ma[key] =
+                                    Object.fromEntries(
+                                        calculation.map((bar, index) => [
+                                            bar.time,
+                                            { ...bar, color: ma.color },
+                                        ]),
+                                    );
+                            }
+                        });
+
+                        // Create RSI chart if enabled
+                        if (chartSettings.rsi.enabled) {
+                            charts.rsi = createChart(
+                                chartContainers.rsi.element,
+                                chartContainers.rsi.height,
+                            );
+
+                            const rsiChartData = calculateRSI(
+                                data,
+                                chartSettings.rsi,
+                            );
+
+                            chartSeries.rsi = {};
+                            chartSeriesDataMap.rsi = {};
+
+                            chartSeries.rsi.rsi = charts.rsi.addSeries(
+                                LightweightCharts.LineSeries,
+                                {
+                                    title2: "RSI",
+                                    color: chartSettings.rsi.lineColor,
+                                    lineWidth: 1,
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                },
+                            );
+                            chartSeries.rsi.rsi.setData(rsiChartData);
+                            chartSeriesDataMap.rsi.rsi = Object.fromEntries(
+                                rsiChartData.map((bar, index) => [
+                                    bar.time,
+                                    {
+                                        ...bar,
+                                        color: chartSettings.rsi.lineColor,
+                                    },
+                                ]),
+                            );
+
+                            if (
+                                chartSettings.rsi.smoothingLength > 0 &&
+                                chartSettings.rsi.smoothingType !== "none"
+                            ) {
+                                chartSeries.rsi.ma = charts.rsi.addSeries(
+                                    LightweightCharts.LineSeries,
+                                    {
+                                        title2: "MA",
+                                        color: chartSettings.rsi.smoothingColor,
+                                        lineWidth: 1,
+                                        crosshairMarkerVisible: false,
+                                        lastValueVisible: false,
+                                        priceLineVisible: false,
+                                    },
+                                );
+                                const calculation =
+                                    chartSettings.rsi.smoothingType === "ema"
+                                        ? calculateEMA(
+                                              rsiChartData,
+                                              chartSettings.rsi.smoothingLength,
+                                              "value",
+                                          )
+                                        : calculateSMA(
+                                              rsiChartData,
+                                              chartSettings.rsi.smoothingLength,
+                                              "value",
+                                          );
+                                chartSeries.rsi.ma.setData(calculation);
+                                chartSeriesDataMap.rsi.ma = Object.fromEntries(
+                                    calculation.map((bar, index) => [
+                                        bar.time,
+                                        {
+                                            ...bar,
+                                            color: chartSettings.rsi
+                                                .smoothingColor,
+                                        },
+                                    ]),
+                                );
+                            }
+                        }
+
+                        // Create MACD chart if enabled
+                        if (chartSettings.macd.enabled) {
+                            charts.macd = createChart(
+                                chartContainers.macd.element,
+                                chartContainers.macd.height,
+                            );
+
+                            const macdChartData = calculateMACD(
+                                data,
+                                chartSettings.macd,
+                            );
+
+                            chartSeries.macd = {};
+                            chartSeriesDataMap.macd = {};
+                            chartSeries.macd.histogram = charts.macd.addSeries(
+                                LightweightCharts.HistogramSeries,
+                                {
+                                    title2: "Histogram",
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                },
+                            );
+                            chartSeries.macd.histogram.setData(
+                                macdChartData.histogram,
+                            );
+                            chartSeriesDataMap.macd.histogram =
+                                Object.fromEntries(
+                                    macdChartData.histogram.map(
+                                        (bar, index) => [bar.time, bar],
+                                    ),
+                                );
+
+                            chartSeries.macd.macd = charts.macd.addSeries(
+                                LightweightCharts.LineSeries,
+                                {
+                                    title2: "MACD",
+                                    color: chartSettings.macd.macdLineColor,
+                                    lineWidth: 1,
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                },
+                            );
+                            chartSeries.macd.macd.setData(
+                                macdChartData.macdLine,
+                            );
+                            chartSeriesDataMap.macd.macd = Object.fromEntries(
+                                macdChartData.macdLine.map((bar, index) => [
+                                    bar.time,
+                                    {
+                                        ...bar,
+                                        color: chartSettings.macd.macdLineColor,
+                                    },
+                                ]),
+                            );
+
+                            chartSeries.macd.signal = charts.macd.addSeries(
+                                LightweightCharts.LineSeries,
+                                {
+                                    title2: "Signal",
+                                    color: chartSettings.macd.signalLineColor,
+                                    lineWidth: 1,
+                                    crosshairMarkerVisible: false,
+                                    lastValueVisible: false,
+                                    priceLineVisible: false,
+                                },
+                            );
+                            chartSeries.macd.signal.setData(
+                                macdChartData.signalLine,
+                            );
+                            chartSeriesDataMap.macd.signal = Object.fromEntries(
+                                macdChartData.signalLine.map((bar, index) => [
+                                    bar.time,
+                                    {
+                                        ...bar,
+                                        color: chartSettings.macd
+                                            .signalLineColor,
+                                    },
+                                ]),
+                            );
+                        }
+
+                        // Get all chart instances as array for synchronization
+                        const chartArray = Object.values(charts);
+                        const chartSeriesArray = Object.values(chartSeries);
+                        const chartArrayKey = Object.keys(charts);
+                        const chartSeriesArrayKey = Object.keys(chartSeries);
+
+                        let syncingRange = false;
+                        let syncingCrosshair = false;
+                        let zoomEndTimer = null;
+                        const isLetter = /^[a-zA-Z]/;
+                        const isNumber = /^\d/;
+
+                        if (chartArray.length >= 1) {
+                            chartArray.forEach((source, index) => {
+                                // Sync only the logical range to handle zoom and scroll together safely
+                                if (chartArray.length > 1) {
+                                    source
+                                        .timeScale()
+                                        .subscribeVisibleLogicalRangeChange(
+                                            (range) => {
+                                                setTimeout(() => {
+                                                    requestAnimationFrame(
+                                                        () => {
+                                                            if (
+                                                                !range ||
+                                                                syncingRange
+                                                            )
+                                                                return;
+
+                                                            syncingRange = true;
+                                                            const visibleRnage =
+                                                                source
+                                                                    .timeScale()
+                                                                    .getVisibleRange();
+
+                                                            chartArray.forEach(
+                                                                (
+                                                                    target,
+                                                                    indexTarget,
+                                                                ) => {
+                                                                    if (
+                                                                        source !==
+                                                                        target
+                                                                    ) {
+                                                                        target
+                                                                            .timeScale()
+                                                                            .setVisibleLogicalRange(
+                                                                                range,
+                                                                            );
+                                                                        target
+                                                                            .timeScale()
+                                                                            .setVisibleRange(
+                                                                                visibleRnage,
+                                                                            );
+                                                                    }
+                                                                },
+                                                            );
+
+                                                            // Use setTimeout to let the chart cycles finish before releasing the lock
+                                                            setTimeout(() => {
+                                                                requestAnimationFrame(
+                                                                    () => {
+                                                                        syncingRange = false;
+                                                                    },
+                                                                );
+                                                            }, 15);
+
+                                                            //debounce: once scrolling/zooming settles, force a clean resync
+                                                            clearTimeout(
+                                                                zoomEndTimer,
+                                                            );
+                                                            zoomEndTimer =
+                                                                setTimeout(
+                                                                    () => {
+                                                                        const finalRange =
+                                                                            source
+                                                                                .timeScale()
+                                                                                .getVisibleRange();
+                                                                        chartArray.forEach(
+                                                                            (
+                                                                                target,
+                                                                            ) => {
+                                                                                if (
+                                                                                    source !==
+                                                                                    target
+                                                                                )
+                                                                                    target
+                                                                                        .timeScale()
+                                                                                        .setVisibleRange(
+                                                                                            finalRange,
+                                                                                        );
+                                                                            },
+                                                                        );
+                                                                    },
+                                                                    150,
+                                                                ); // fires once wheel events stop coming in
+                                                        },
+                                                    );
+                                                }, 15);
+                                            },
+                                        );
+                                }
+
+                                // Sync corshair together safely
+                                source.subscribeCrosshairMove((param) => {
+                                    if (!param || syncingCrosshair || !param.time || param.time === "undefined")
+                                        return;
+
+                                    syncingCrosshair = true;
+                                    let maxSeries = null;
+                                    let maxDataLength = -1;
+                                    for (key in chartSeries[chartArrayKey[index]]) {
+                                        if (typeof chartSeries[chartArrayKey[index]][key].data === "function") {
+                                            //this is first level chart series which you can access.
+                                            if (chartSeries[chartArrayKey[index]][key].data().length > maxDataLength) {
+                                                maxSeries =chartSeries[chartArrayKey[index]][key];
+                                                maxDataLength = chartSeries[chartArrayKey[index]][key].data().length;
+                                            }
+                                        }
+                                    }
+
+                                    const dataPoint = param.seriesData.get(maxSeries);
+
+                                    chartArray.forEach((target, indexTarget) => {
+                                        if (source !== target) {
+                                            if (dataPoint) {
+                                                let maxSeries = null;
+                                                let maxDataLength = -1;
+                                                let maxSeriesValue=null;
+                                                for (key in chartSeries[chartArrayKey[indexTarget]]) {
+                                                    if (typeof chartSeries[chartArrayKey[indexTarget]][key].data === "function") {
+                                                        //this is first level chart series which you can access.
+                                                        if (chartSeries[chartArrayKey[indexTarget]][key].data().length > maxDataLength) {
+                                                            maxSeries =chartSeries[chartArrayKey[indexTarget]][key];
+                                                            maxDataLength = chartSeries[chartArrayKey[indexTarget]][key].data().length;
+                                                            maxSeriesValue=chartSeriesDataMap[chartArrayKey[indexTarget]][key][param.time];
+                                                        }
+                                                    }
+                                                }
+
+                                                let crosshairValue=0;
+                                                if(maxSeriesValue!="undefined"){
+                                                    if("value" in maxSeriesValue) crosshairValue=maxSeriesValue['value'];
+                                                    else if("close" in maxSeriesValue) crosshairValue=maxSeriesValue['close'];
+                                                }
+                                                target.setCrosshairPosition(
+                                                    crosshairValue,
+                                                    dataPoint.time,
+                                                    maxSeries,
+                                                );
+                                            } else {
+                                                target.clearCrosshairPosition();
+                                            }
+                                        }
+
+                                        //write tooltip code here.
+                                        Object.keys(chartSeriesDataMap,).forEach((mainKey) => {
+                                            let toolTipText = ``;
+                                            if (mainKey != "main") {
+                                                toolTipText += `<div class="line"><span class="name">${mainKey.toUpperCase()} : </span>`;
+                                            }
+                                            const subObject = chartSeriesDataMap[mainKey];
+                                            Object.keys(subObject).forEach((subKey) => {
+                                                if (mainKey == "main") {
+                                                    toolTipText += `<div class="line"><span class="name">${subKey.toUpperCase()} : </span>`;
+                                                }
+                                                const innerData =subObject[subKey];
+                                                if (isLetter.test(Object.keys(innerData)[0])) {
+                                                    Object.keys(innerData).forEach((lastKey) => {
+                                                        const lastData =innerData[lastKey];
+                                                        const cdata =lastData[param.time];
+                                                        if (cdata && cdata["value"]!="undefined" && cdata["value"]!=null) {
+                                                            if (subKey =="volume" && lastKey =="volume") {
+                                                                const cprice =chartSeriesDataMap.main.price[param.time];
+                                                                toolTipText += `<span style="color:${cprice["bar"]["close"] >= cprice["bar"]["open"] ? "#26a69a" : "#ef5350"}">${fVol(cdata["value"])}</span>`;
+                                                            } else if (subKey =="volume" && lastKey =="sma") {
+                                                                const cprice =chartSeriesDataMap.main.price[param.time];
+                                                                toolTipText += `<span style="color:${cdata["color"]}">${fVol(cdata["value"])}</span>`;
+                                                            } else {
+                                                                toolTipText += `<span style="color:${cdata["color"]}">${cdata["value"].toFixed(2)}</span>`;
+                                                            }
+                                                        }
+                                                    });
+                                                } else if (isNumber.test(Object.keys(innerData)[0])) {
+                                                    const cdata = innerData[param.time];
+                                                    if (cdata) {
+                                                        if (subKey =="price") {
+                                                            let chng = 0;
+                                                            let chng_per = 0;
+                                                            if (cdata["previous"]) {
+                                                                chng =cdata["bar"]["close"] - cdata["previous"]["close"];
+                                                                chng_per =((cdata["bar"]["close"] -cdata["previous"]["close"]) * 100) / cdata["previous"]["close"];
+                                                            }
+                                                            toolTipText += `<span style="color:${cdata["bar"]["close"] >= cdata["bar"]["open"] ? "#26a69a" : "#ef5350"}"><span class="text-secondary">O</span>${cdata["bar"]["open"].toFixed(2)} <span class="text-secondary">H</span>${cdata["bar"]["high"].toFixed(2)} <span class="text-secondary">L</span>${cdata["bar"]["low"].toFixed(2)} <span class="text-secondary">C</span>${cdata["bar"]["close"].toFixed(2)} ${chng.toFixed(2)} (${chng_per.toFixed(2)})</span>`;
+                                                        } else if(cdata["value"]!="undefined" && cdata["value"]!=null){
+                                                            toolTipText += `<span style="color:${cdata["color"]}">${cdata["value"].toFixed(2)}</span>`;
+                                                        }
+                                                    }
+                                                }
+                                                if (mainKey == "main") {
+                                                    toolTipText += `</div>`;
+                                                }
+                                            });
+                                            if (mainKey != "main") {
+                                                toolTipText += `</div>`;
+                                            }
+                                            document.querySelector("#chart-" +mainKey +" .chart-tooltip",).innerHTML = toolTipText;
+                                        });
+                                    },
+                                    );
+
+                                    // Use setTimeout to let the chart cycles finish before releasing the lock
+                                    setTimeout(() => {
+                                        requestAnimationFrame(() => {
+                                            syncingCrosshair = false;
+                                        });
+                                    }, 15);
+                                });
+                            });
+                        }
+
+                        // Store the full date range for later use
+                        const firstItem = data[0];
+                        const lastItem = data[data.length - 1];
+                        const fullFromDate = firstItem.time;
+                        const fullToDate = lastItem.time;
+
+                        // Calculate 6-month range
+                        const endDate = new Date(lastItem.time);
+                        const startDate = new Date(endDate);
+                        startDate.setMonth(startDate.getMonth() - 6);
+                        const fromDate = startDate.toISOString().split("T")[0];
+                        const toDate = lastItem.time;
+
+                        // FIRST: Set the full range to show all data
+                        // chartArray.forEach(chart => {
+                        //     chart.timeScale().fitContent();
+                        // });
+
+                        // SECOND: Apply the 6-month zoom
+                        chartArray.forEach((chart) => {
+                            chart.timeScale().setVisibleRange({
+                                from: fromDate,
+                                to: toDate,
+                            });
+                        });
+
+                        // After setting initial ranges, ensure logical ranges are aligned
+                        // This is crucial for crosshair synchronization
+                        setTimeout(() => {
+                            if (chartArray.length > 1) {
+                                if (syncingRange) return;
+                                syncingRange = true;
+                                const referenceRange = chartArray[0]
+                                    .timeScale()
+                                    .getVisibleLogicalRange();
+                                if (referenceRange) {
+                                    chartArray.forEach((chart) => {
+                                        if (chart !== chartArray[0]) {
+                                            chart
+                                                .timeScale()
+                                                .setVisibleLogicalRange(
+                                                    referenceRange,
+                                                );
+                                        }
+                                    });
+                                }
+                                setTimeout(() => {
+                                    requestAnimationFrame(() => {
+                                        syncingRange = false;
+                                    });
+                                }, 15);
+                            }
+                        }, 100); // Give charts time to process the initial range
+
+                        //if more than 1 chart is there then hide all other chart timescal except the last one.
+                        if (chartArray.length > 1) {
+                            for(let x=0;x<chartArray.length;x++){
+                                if((x+1) < chartArray.length){
+                                    chartArray[x].applyOptions({
+                                        timeScale: {
+                                            visible: false
+                                        },
+                                    });
+                                }
+                            }
+                        }
+
+                        // Reset button handler
+                        const resetChart =
+                            document.querySelector("#resetChart");
+                        if (resetChart) {
+                            resetChart.addEventListener("click", function (e) {
+                                e.stopPropagation();
+
+                                if (syncingRange) return;
+                                syncingRange = true;
+
+                                // Reset to 6-month view
+                                chartArray.forEach((chart) => {
+                                    chart.timeScale().resetTimeScale();
+                                    chart.timeScale().setVisibleRange({
+                                        from: fromDate,
+                                        to: toDate,
+                                    });
+                                    chart.priceScale("right").applyOptions({
+                                        autoScale: true,
+                                    });
+                                });
+
+                                setTimeout(() => {
+                                    requestAnimationFrame(() => {
+                                        syncingRange = false;
+                                    });
+                                }, 100);
+                            });
+                        }
+                    } catch (error) {
+                        console.error(
+                            `Failed to load chart data for ${isin}:`,
+                            error,
+                        );
+                    }
+                })();
+            }
+
+            function closeChartModal() {
+                //remove the existing charts from the memory.
+                for (const key in charts) {
+                    charts[key].remove();
+                    delete charts[key];
+                }
+
+                delete charts;
+                delete chartSeries;
+
+                if (window.gc) {
+                    gc();
+                }
+
+                document.getElementById("chartModal").classList.remove("open");
+            }
+
+            function closeChartModalOnOverlay(e) {
+                if (e.target === document.getElementById("chartModal"))
+                    closeChartModal();
+            }
 
             // ============ INIT ============
             document
@@ -18968,6 +20039,13 @@
                     if (tvCell) {
                         const url = `https://www.tradingview.com/chart/?symbol=NSE:${encodeURIComponent(tvCell.dataset.code)}`;
                         window.open(url, "_blank", "noopener");
+                    }
+
+                    const thumbChartFullScreenBtn =
+                        e.target.closest(".fullscreen-btn");
+                    if (thumbChartFullScreenBtn) {
+                        //open the full chart modal here.
+                        openChartModal(thumbChartFullScreenBtn);
                     }
                 });
 
