@@ -294,14 +294,14 @@
                     #0d1f2d 100%
                 );
                 border-bottom: 1px solid var(--border);
-                padding: 18px 24px 14px;
+                padding: 10px 15px;
                 position: sticky;
                 top: 0;
                 z-index: 100;
             }
             .site-header h1 {
                 font-family: var(--mono);
-                font-size: 1.1rem;
+                font-size: 1rem;
                 font-weight: 700;
                 color: var(--accent);
                 letter-spacing: 0.08em;
@@ -321,6 +321,84 @@
                 font-size: 11px;
                 padding: 3px 10px;
                 border-radius: 20px;
+            }
+
+            /*scrollable no shrink element*/
+            .toolbar-scroll {
+                position: relative;
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin; /* Firefox */
+                scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+            }
+
+            .toolbar-scroll.has-overflow::after {
+                content: "›";
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                font-weight: bold;
+                color: #94a3b8;
+                background: linear-gradient(to right, transparent, rgba(15, 23, 42, 0.9) 40%);
+                pointer-events: none;
+            }
+
+            .toolbar-scroll * {
+                flex-shrink: 0;
+            }
+
+            /* thin scrollbar for WebKit browsers (Chrome, Edge, Safari) */
+            .toolbar-scroll::-webkit-scrollbar {
+                height: 4px;
+            }
+
+            .toolbar-scroll::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .toolbar-scroll::-webkit-scrollbar-thumb {
+                background-color: rgba(148, 163, 184, 0.4);
+                border-radius: 4px;
+            }
+
+            .toolbar-scroll::-webkit-scrollbar-thumb:hover {
+                background-color: rgba(148, 163, 184, 0.6);
+            }
+
+            /* prevent inner flex items from shrinking/wrapping */
+            .toolbar-scroll .d-flex {
+                flex-wrap: nowrap !important;
+                min-width: max-content;
+            }
+            /*scrollable no shrink element*/
+
+            @media screen and (max-width:1220px){
+                .site-header h1 {
+                    width: 20px;
+                    height: 20px;
+                    overflow: hidden;
+                }
+                .site-header .subtitle{display: none;}
+            }
+
+            @media screen and (max-width:880px){
+                .site-header .toolbar-scroll button span:nth-of-type(2){
+                    display:none;
+                }
+            }
+
+            @media screen and (max-width:615px){
+                .site-header h1 {
+                    display:none;
+                }
             }
 
             /* ---- FILTER PANEL ---- */
@@ -751,6 +829,17 @@
                 font-size: 13px;
                 font-weight: 600;
                 color: var(--accent);
+            }
+            @media screen and (max-width:1450px){
+                .stats-bar button span.btnLabel{
+                    display: none;
+                }
+                .stats-bar > button,.stats-bar #compareChip {
+                    order: 0;
+                }
+                .stats-bar > div {
+                    order: 1;
+                }
             }
 
             /* ---- TABLE ---- */
@@ -1519,6 +1608,14 @@
             }
             .multi-banner button:hover {
                 background: rgba(59, 130, 246, 0.15);
+            }
+            @media screen and (max-width:1280px){
+                .multi-banner button{
+                    order: 0;
+                }
+                .multi-banner span{
+                    order: 1;
+                }
             }
 
             /* ---- WATCHLIST STAR (inline in Code cell, no layout shift) ---- */
@@ -3560,7 +3657,7 @@
     <body>
         <!-- HEADER -->
         <div
-            class="site-header d-flex align-items-start justify-content-between flex-wrap gap-2"
+            class="site-header d-flex align-items-start justify-content-between flex-wrap gap-2 align-items-center"
         >
             <div>
                 <h1>⚡ NSE MOMENTUM SCREENER</h1>
@@ -3568,7 +3665,8 @@
                     Relative Strength · Linearity · Sector · Volume · Market Cap
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="toolbar-scroll ms-auto">
+                <div class="d-flex align-items-center gap-2 flex-nowrap">
                 <span class="data-date-badge" id="data-date">Loading...</span>
                 <button
                     class="btn-toggle-filters"
@@ -3589,14 +3687,14 @@
                         color: #a78bfa;
                     "
                 >
-                    <span>📊</span> Industry
+                    <span>📊</span> <span id="industryBtnLabel">Industry</span>
                 </button>
                 <button
                     class="btn-toggle-filters"
                     id="toggleFiltersBtn"
                     onclick="toggleFilters()"
                 >
-                    <span>⚙</span> Filters
+                    <span>⚙</span> <span id="filterBtnLabel">Filters</span>
                 </button>
                 <button
                     class="btn-toggle-filters"
@@ -3619,7 +3717,7 @@
                     "
                     title="How to use this screener"
                 >
-                    <span>❓</span> Help
+                    <span>❓</span> <span id="helpBtnLabel">Help</span>
                 </button>
                 <button
                     class="btn-icon-only"
@@ -3647,6 +3745,7 @@
                 >
                     <span id="themeToggleIcon">☀️</span>
                 </button>
+                </div>
             </div>
         </div>
 
@@ -3802,6 +3901,21 @@
                                     />
                                     <span class="tradable-check-label"
                                         >📶 Higher Low Structure</span
+                                    >
+                                </label>
+                            </div>
+
+                            <div
+                                class="col-12 col-md-auto d-flex align-items-end"
+                            >
+                                <label class="tradable-check-item">
+                                    <input
+                                        id="f_hl_structure_3m"
+                                        onchange="applyFilters()"
+                                        type="checkbox"
+                                    />
+                                    <span class="tradable-check-label"
+                                        >📶 Higher Low Structure 3M</span
                                     >
                                 </label>
                             </div>
@@ -4823,6 +4937,171 @@
                                     <input
                                         class="form-control"
                                         id="f_afh9m_max"
+                                        oninput="applyFilters()"
+                                        placeholder="Max"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group" id="group11" data-group="group11">
+                    <button
+                        type="button"
+                        class="filter-group-header"
+                        onclick="toggleFilterGroup('group11')"
+                        aria-expanded="false"
+                    >
+                        <span class="filter-group-title">Away From SMA</span>
+                        <span class="filter-group-caret">▾</span>
+                    </button>
+                    <div class="filter-group-body">
+                        <div class="row g-2">
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">
+                                    Away From SMA10%
+                                </div>
+                                <div class="range-group">
+                                    <input
+                                        class="form-control"
+                                        id="f_sma10_min"
+                                        oninput="applyFilters()"
+                                        placeholder="Min"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                    <span class="range-sep">–</span>
+                                    <input
+                                        class="form-control"
+                                        id="f_sma10_max"
+                                        oninput="applyFilters()"
+                                        placeholder="Max"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">
+                                    Away From SMA20%
+                                </div>
+                                <div class="range-group">
+                                    <input
+                                        class="form-control"
+                                        id="f_sma20_min"
+                                        oninput="applyFilters()"
+                                        placeholder="Min"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                    <span class="range-sep">–</span>
+                                    <input
+                                        class="form-control"
+                                        id="f_sma20_max"
+                                        oninput="applyFilters()"
+                                        placeholder="Max"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">
+                                    Away From SMA50%
+                                </div>
+                                <div class="range-group">
+                                    <input
+                                        class="form-control"
+                                        id="f_sma50_min"
+                                        oninput="applyFilters()"
+                                        placeholder="Min"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                    <span class="range-sep">–</span>
+                                    <input
+                                        class="form-control"
+                                        id="f_sma50_max"
+                                        oninput="applyFilters()"
+                                        placeholder="Max"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">
+                                    Away From SMA100%
+                                </div>
+                                <div class="range-group">
+                                    <input
+                                        class="form-control"
+                                        id="f_sma100_min"
+                                        oninput="applyFilters()"
+                                        placeholder="Min"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                    <span class="range-sep">–</span>
+                                    <input
+                                        class="form-control"
+                                        id="f_sma100_max"
+                                        oninput="applyFilters()"
+                                        placeholder="Max"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">
+                                    Away From SMA150%
+                                </div>
+                                <div class="range-group">
+                                    <input
+                                        class="form-control"
+                                        id="f_sma150_min"
+                                        oninput="applyFilters()"
+                                        placeholder="Min"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                    <span class="range-sep">–</span>
+                                    <input
+                                        class="form-control"
+                                        id="f_sma150_max"
+                                        oninput="applyFilters()"
+                                        placeholder="Max"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">
+                                    Away From SMA200%
+                                </div>
+                                <div class="range-group">
+                                    <input
+                                        class="form-control"
+                                        id="f_sma200_min"
+                                        oninput="applyFilters()"
+                                        placeholder="Min"
+                                        step="0.1"
+                                        type="number"
+                                    />
+                                    <span class="range-sep">–</span>
+                                    <input
+                                        class="form-control"
+                                        id="f_sma200_max"
                                         oninput="applyFilters()"
                                         placeholder="Max"
                                         step="0.1"
@@ -5953,7 +6232,7 @@
         </div>
 
         <!-- MULTI-SEARCH ACTIVE BANNER -->
-        <div class="multi-banner" id="multiBanner" style="display: none">
+        <div class="multi-banner toolbar-scroll flex-nowrap" id="multiBanner" style="display: none">
             <span id="multiBannerText"></span>
             <button onclick="clearMultiSearch()">✕ Clear</button>
         </div>
@@ -6038,7 +6317,7 @@
         </div>
 
         <!-- STATS BAR -->
-        <div class="stats-bar" id="statsBar">
+        <div class="stats-bar toolbar-scroll flex-nowrap" id="statsBar">
             <div class="stat-item">
                 <span class="stat-label">Showing</span>
                 <span class="stat-val" id="stat-showing">—</span>
@@ -6075,7 +6354,7 @@
                 >
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                 </svg>
-                TV Watchlist
+                <span class="btnLabel">TV Watchlist</span>
             </button>
 
             <!-- Add Filtered to Watchlist — only visible when a filter is active -->
@@ -6086,7 +6365,7 @@
                 style="display: none"
                 title="Add all filtered stocks to a watchlist"
             >
-                ⭐ Add Filtered
+                ⭐ <span class="btnLabel">Add Filtered</span>
             </button>
 
             <!-- Export CSV button — only visible when a filter is active -->
@@ -6111,7 +6390,7 @@
                     <polyline points="7 10 12 15 17 10" />
                     <path d="M5 21h14" />
                 </svg>
-                Export CSV
+                <span class="btnLabel">Export CSV</span>
             </button>
 
             <!-- Compare vs Watchlist — only visible when a filter is active -->
@@ -6135,7 +6414,7 @@
                     <circle cx="11" cy="11" r="7" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                Compare Watchlist
+                <span class="btnLabel">Compare Watchlist</span>
             </button>
 
             <!-- Industry Breakdown of filtered stocks — only visible when a filter is active -->
@@ -6160,7 +6439,7 @@
                     <line x1="10" y1="20" x2="10" y2="4" />
                     <line x1="16" y1="20" x2="16" y2="14" />
                 </svg>
-                Industry Breakdown
+                <span class="btnLabel">Industry Breakdown</span>
             </button>
 
             <!-- Active-comparison chip -->
@@ -6191,7 +6470,7 @@
                     style="padding: 2px 10px; font-size: 11px"
                     onclick="openChartSettingsModal()"
                 >
-                    📈 Charts
+                    📈 <span class="btnLabel">Charts</span>
                 </button>
                 <span style="color: var(--border)">|</span>
                 <button
@@ -6199,7 +6478,7 @@
                     style="padding: 2px 10px; font-size: 11px"
                     onclick="openColumnModal()"
                 >
-                    ▦ Columns
+                    ▦ <span class="btnLabel">Columns</span>
                 </button>
                 <span style="color: var(--border)">|</span>
                 <span style="font-size: 10px; color: var(--muted)"
@@ -6321,6 +6600,14 @@
                             title="Higher Low Structure"
                         >
                             HL Structure
+                        </th>
+                        <th
+                            class="num"
+                            data-col="hl-structure-3m"
+                            onclick="sortBy('Higher_Low_Structure_3M')"
+                            title="Higher Low Structure 3M"
+                        >
+                            HL Structure 3M
                         </th>
                         <th
                             class="num"
@@ -6535,6 +6822,48 @@
                         </th>
                         <th
                             class="num"
+                            data-col="sma10"
+                            onclick="sortBy('Away_From_SMA10')"
+                        >
+                            Away From SMA10%
+                        </th>
+                        <th
+                            class="num"
+                            data-col="sma20"
+                            onclick="sortBy('Away_From_SMA20')"
+                        >
+                            Away From SMA20%
+                        </th>
+                        <th
+                            class="num"
+                            data-col="sma50"
+                            onclick="sortBy('Away_From_SMA50')"
+                        >
+                            Away From SMA50%
+                        </th>
+                        <th
+                            class="num"
+                            data-col="sma100"
+                            onclick="sortBy('Away_From_SMA100')"
+                        >
+                            Away From SMA100%
+                        </th>
+                        <th
+                            class="num"
+                            data-col="sma150"
+                            onclick="sortBy('Away_From_SMA150')"
+                        >
+                            Away From SMA150%
+                        </th>
+                        <th
+                            class="num"
+                            data-col="sma200"
+                            onclick="sortBy('Away_From_SMA200')"
+                        >
+                            Away From SMA200%
+                        </th>
+                        <th
+                            class="num"
                             data-col="chg5d"
                             onclick="sortBy('5 Days Chng%')"
                         >
@@ -6737,7 +7066,7 @@
         </div>
 
         <!-- PAGINATION -->
-        <div class="pag-bar" id="pagBar">
+        <div class="pag-bar toolbar-scroll flex-nowrap" id="pagBar">
             <button class="btn-page" id="btnPrev" onclick="prevPage()">
                 ‹ Prev
             </button>
@@ -10646,6 +10975,15 @@
                                 <label class="abv-check-item">
                                     <input
                                         type="checkbox"
+                                        data-col="hl-structure-3m"
+                                    />
+                                    <span>HL Structure 3M</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <label class="abv-check-item">
+                                    <input
+                                        type="checkbox"
                                         data-col="rs-total"
                                     />
                                     <span>RS Total</span>
@@ -10816,6 +11154,48 @@
                                 <label class="abv-check-item">
                                     <input type="checkbox" data-col="afh9m" />
                                     <span>Away From 9M%</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <div class="settings-section-title">Away From SMA</div>
+                        <div class="row g-2">
+                            <div class="col-6 col-sm-4 col-md-4">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="sma10" />
+                                    <span>Away From SMA10%</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-4">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="sma20" />
+                                    <span>Away From SMA20%</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-4">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="sma50" />
+                                    <span>Away From SMA50%</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-4">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="sma100" />
+                                    <span>Away From SMA100%</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-4">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="sma150" />
+                                    <span>Away From SMA150%</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-4">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="sma200" />
+                                    <span>Away From SMA200%</span>
                                 </label>
                             </div>
                         </div>
@@ -11227,15 +11607,30 @@
                                 <span>Source</span>
                                 <span>Color</span>
                             </div>
-                            <div
-                                class="chart-ma-row"
-                                id="chartMaRowTpl"
-                                style="display: none"
-                            ></div>
                             <!-- 6 rows rendered by JS into #chartMaRows -->
                             <div
                                 class="chart-ma-table"
                                 id="chartMaRows"
+                                style="gap: 8px"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <!-- AWAY FROM HIGHS -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">
+                            Away From High (8)
+                        </div>
+                        <div class="chart-ma-table">
+                            <div class="chart-ma-head">
+                                <span></span>
+                                <span>Length</span>
+                                <span>Color</span>
+                            </div>
+                            <!-- 8 rows rendered by JS into #chartAfhRows -->
+                            <div
+                                class="chart-ma-table"
+                                id="chartAfhRows"
                                 style="gap: 8px"
                             ></div>
                         </div>
@@ -12643,6 +13038,18 @@
                 const afh6mMax = gn("f_afh6m_max");
                 const afh9mMin = gn("f_afh9m_min");
                 const afh9mMax = gn("f_afh9m_max");
+                const sma10Min = gn("f_sma10_min");
+                const sma10Max = gn("f_sma10_max");
+                const sma20Min = gn("f_sma20_min");
+                const sma20Max = gn("f_sma20_max");
+                const sma50Min = gn("f_sma50_min");
+                const sma50Max = gn("f_sma50_max");
+                const sma100Min = gn("f_sma100_min");
+                const sma100Max = gn("f_sma100_max");
+                const sma150Min = gn("f_sma150_min");
+                const sma150Max = gn("f_sma150_max");
+                const sma200Min = gn("f_sma200_min");
+                const sma200Max = gn("f_sma200_max");
                 const chg1dMin = gn("f_chg1d_min");
                 const chg1dMax = gn("f_chg1d_max");
                 const chg5dMin = gn("f_chg5d_min");
@@ -12687,6 +13094,7 @@
                 const aai4mOnly = gc("f_aai_4m");
                 const aai6mOnly = gc("f_aai_6m");
                 const hlStructureOnly = gc("f_hl_structure");
+                const hlStructure3mOnly = gc("f_hl_structure_3m");
 
                 filteredData = allData.filter((r) => {
                     if (search) {
@@ -12989,6 +13397,60 @@
                     if (afh9mMax !== null && (isNaN(afh9m) || afh9m > afh9mMax))
                         return false;
 
+                    const sma10 = parseFloat(r["Away_From_SMA10"]);
+                    if (sma10Min !== null && (isNaN(sma10) || sma10 < sma10Min))
+                        return false;
+                    if (sma10Max !== null && (isNaN(sma10) || sma10 > sma10Max))
+                        return false;
+
+                    const sma20 = parseFloat(r["Away_From_SMA20"]);
+                    if (sma20Min !== null && (isNaN(sma20) || sma20 < sma20Min))
+                        return false;
+                    if (sma20Max !== null && (isNaN(sma20) || sma20 > sma20Max))
+                        return false;
+
+                    const sma50 = parseFloat(r["Away_From_SMA50"]);
+                    if (sma50Min !== null && (isNaN(sma50) || sma50 < sma50Min))
+                        return false;
+                    if (sma50Max !== null && (isNaN(sma50) || sma50 > sma50Max))
+                        return false;
+
+                    const sma100 = parseFloat(r["Away_From_SMA100"]);
+                    if (
+                        sma100Min !== null &&
+                        (isNaN(sma100) || sma100 < sma100Min)
+                    )
+                        return false;
+                    if (
+                        sma100Max !== null &&
+                        (isNaN(sma100) || sma100 > sma100Max)
+                    )
+                        return false;
+
+                    const sma150 = parseFloat(r["Away_From_SMA150"]);
+                    if (
+                        sma150Min !== null &&
+                        (isNaN(sma150) || sma150 < sma150Min)
+                    )
+                        return false;
+                    if (
+                        sma150Max !== null &&
+                        (isNaN(sma150) || sma150 > sma150Max)
+                    )
+                        return false;
+
+                    const sma200 = parseFloat(r["Away_From_SMA200"]);
+                    if (
+                        sma200Min !== null &&
+                        (isNaN(sma200) || sma200 < sma200Min)
+                    )
+                        return false;
+                    if (
+                        sma200Max !== null &&
+                        (isNaN(sma200) || sma200 > sma200Max)
+                    )
+                        return false;
+
                     const chg1d = parseFloat(r["1 Day Chng%"]);
                     if (chg1dMin !== null && (isNaN(chg1d) || chg1d < chg1dMin))
                         return false;
@@ -13132,6 +13594,11 @@
                     if (aai6mOnly && r["Above All Indices (6M)"] != 1)
                         return false;
                     if (hlStructureOnly && r["Higher_Low_Structure"] != 1)
+                        return false;
+                    if (
+                        hlStructure3mOnly &&
+                        r["Higher_Low_Structure_3M"] != 1
+                    )
                         return false;
 
                     return true;
@@ -13343,6 +13810,18 @@
                     "f_afh6m_max",
                     "f_afh9m_min",
                     "f_afh9m_max",
+                    "f_sma10_min",
+                    "f_sma10_max",
+                    "f_sma20_min",
+                    "f_sma20_max",
+                    "f_sma50_min",
+                    "f_sma50_max",
+                    "f_sma100_min",
+                    "f_sma100_max",
+                    "f_sma150_min",
+                    "f_sma150_max",
+                    "f_sma200_min",
+                    "f_sma200_max",
                     "f_chg1d_min",
                     "f_chg1d_max",
                     "f_chg5d_min",
@@ -13407,6 +13886,7 @@
                     "f_aai_6m",
                     "f_adv_enabled",
                     "f_hl_structure",
+                    "f_hl_structure_3m",
                 ].forEach((id) => {
                     const el = document.getElementById(id);
                     if (el) el.checked = false;
@@ -13448,6 +13928,7 @@
                 tradable: true,
                 "adv-decl": true,
                 "hl-structure": true,
+                "hl-structure-3m": true,
                 "rs-total": true,
                 chg1d: true,
                 mcap: true,
@@ -13473,6 +13954,12 @@
                 afh5m: true,
                 afh6m: true,
                 afh9m: true,
+                sma10: true,
+                sma20: true,
+                sma50: true,
+                sma100: true,
+                sma150: true,
+                sma200: true,
                 chg5d: true,
                 chg1m: true,
                 chg3m: true,
@@ -13621,6 +14108,17 @@
                 "#eab308",
             ];
 
+            const CHART_AFH_DEFAULT_COLORS = [
+                "#eeeeee",
+                "#e4e4e4",
+                "#dadada",
+                "#d0d0d0",
+                "#c6c6c6",
+                "#bdbdbd",
+                "#b3b3b3",
+                "#a9a9a9",
+            ];
+
             function defaultChartSettings() {
                 return {
                     enabled: true,
@@ -13637,6 +14135,13 @@
                         length: [9, 21, 50, 100, 150, 200][i],
                         source: "close",
                         color: CHART_MA_DEFAULT_COLORS[i],
+                    })),
+                    // 8 fixed Away From Highs Horizontal Lines slots, each independently
+                    // configurable and toggleable.
+                    afh: [0, 1, 2, 3, 4,5,6,7].map((i) => ({
+                        enabled: [2, 3, 7].includes(i),
+                        length: [15, 21, 42, 63, 84, 105, 126, 189][i],
+                        color: CHART_AFH_DEFAULT_COLORS[i],
                     })),
                     rsi: {
                         enabled: false,
@@ -13752,6 +14257,22 @@
                 wrap.dataset.built = "1";
             }
 
+            function renderChartAfhRows() {
+                const wrap = document.getElementById("chartAfhRows");
+                if (!wrap || wrap.dataset.built) return;
+                wrap.innerHTML = [0, 1, 2, 3, 4, 5,6,7]
+                    .map(
+                        (i) => `
+                    <div class="chart-ma-row">
+                        <input type="checkbox" data-cpath="afh.${i}.enabled" title="Enable AFH ${i + 1}" />
+                        <input type="number" min="15" step="3" data-cpath="afh.${i}.length"/>
+                        <input type="color" data-cpath="afh.${i}.color" />
+                    </div>`,
+                    )
+                    .join("");
+                wrap.dataset.built = "1";
+            }
+
             // Fill every <select data-chart-source-select> with the shared
             // source list (RSI / MACD source dropdowns).
             function populateChartSourceSelects() {
@@ -13783,6 +14304,7 @@
 
             function openChartSettingsModal() {
                 renderChartMaRows();
+                renderChartAfhRows();
                 populateChartSourceSelects();
                 populateChartSettingsForm(loadChartSettings());
                 document
@@ -13879,6 +14401,7 @@
                     "Is Tradable",
                     "Advancing_Neutral_Declining",
                     "Higher_Low_Structure",
+                    "Higher_Low_Structure_3M",
                     "_biRank",
                     "_indRank",
                     "_bi5dRank",
@@ -13912,6 +14435,12 @@
                     "Away_From_High_5_Month",
                     "Away_From_High_6_Month",
                     "Away_From_High_9_Month",
+                    "Away_From_SMA10",
+                    "Away_From_SMA20",
+                    "Away_From_SMA50",
+                    "Away_From_SMA100",
+                    "Away_From_SMA150",
+                    "Away_From_SMA200",
                     "5 Days Chng%",
                     "1 Month Chng%",
                     "2 Months Chng%",
@@ -14036,6 +14565,18 @@
                 if (cr >= 1) return cr.toFixed(2) + " Cr";
                 return cr.toFixed(2) + " Cr";
             }
+            // Away From SMA cells: negative (below SMA) = green, positive (above SMA) = red
+            function smaAwayCell(v) {
+                const n = parseFloat(v);
+                if (isNaN(n)) return '<span class="chng-neu">—</span>';
+                const col =
+                    n < 0
+                        ? "var(--success)"
+                        : n > 0
+                          ? "var(--danger)"
+                          : "var(--muted)";
+                return `<span style="color:${col}">${n.toFixed(2)}</span>`;
+            }
             function chngClass(v) {
                 const n = parseFloat(v);
                 if (isNaN(n)) return "chng-neu";
@@ -14106,7 +14647,6 @@
             }
 
             function renderPage() {
-                console.trace("coming in renderpage");
                 const tbody = document.getElementById("tableBody");
                 const start = (currentPage - 1) * rowsPerPage;
                 const end = Math.min(start + rowsPerPage, filteredData.length);
@@ -14181,6 +14721,7 @@
                             <td data-col="tradable">${r["Is Tradable"] == 1 ? '<span class="pill-tradable">⚡ YES</span>' : '<span class="pill-not-tradable">·</span>'}</td>
                             <td data-col="adv-decl" class="num">${advDeclIcon(r["Advancing_Neutral_Declining"])}</td>
                             <td data-col="hl-structure" class="num">${checkIcon(r["Higher_Low_Structure"])}</td>
+                            <td data-col="hl-structure-3m" class="num">${checkIcon(r["Higher_Low_Structure_3M"])}</td>
                             <td data-col="bi-rank" class="num">${(() => {
                                 const p = peerRankMap.get(r.Code);
                                 if (!p) return "—";
@@ -14364,6 +14905,12 @@
                                           : "var(--muted)";
                                 return `<span style="color:${col}">${fNum(perValue)}</span>`;
                             })()}</td>
+                            <td data-col="sma10" class="num">${smaAwayCell(r["Away_From_SMA10"])}</td>
+                            <td data-col="sma20" class="num">${smaAwayCell(r["Away_From_SMA20"])}</td>
+                            <td data-col="sma50" class="num">${smaAwayCell(r["Away_From_SMA50"])}</td>
+                            <td data-col="sma100" class="num">${smaAwayCell(r["Away_From_SMA100"])}</td>
+                            <td data-col="sma150" class="num">${smaAwayCell(r["Away_From_SMA150"])}</td>
+                            <td data-col="sma200" class="num">${smaAwayCell(r["Away_From_SMA200"])}</td>
                             <td data-col="chg5d" class="${chngClass(r["5 Days Chng%"])} num">${chngStr(r["5 Days Chng%"])}</td>
                             <td data-col="chg1m" class="${chngClass(r["1 Month Chng%"])} num">${chngStr(r["1 Month Chng%"])}</td>
                             <td data-col="chg2m" class="${chngClass(r["2 Months Chng%"])} num">${chngStr(r["2 Months Chng%"])}</td>
@@ -15419,6 +15966,18 @@
                 { id: "f_afh6m_max", type: "num" },
                 { id: "f_afh9m_min", type: "num" },
                 { id: "f_afh9m_max", type: "num" },
+                { id: "f_sma10_min", type: "num" },
+                { id: "f_sma10_max", type: "num" },
+                { id: "f_sma20_min", type: "num" },
+                { id: "f_sma20_max", type: "num" },
+                { id: "f_sma50_min", type: "num" },
+                { id: "f_sma50_max", type: "num" },
+                { id: "f_sma100_min", type: "num" },
+                { id: "f_sma100_max", type: "num" },
+                { id: "f_sma150_min", type: "num" },
+                { id: "f_sma150_max", type: "num" },
+                { id: "f_sma200_min", type: "num" },
+                { id: "f_sma200_max", type: "num" },
                 { id: "f_chg1d_min", type: "num" },
                 { id: "f_chg1d_max", type: "num" },
                 { id: "f_chg5d_min", type: "num" },
@@ -15462,6 +16021,7 @@
                 { id: "f_aai_4m", type: "check" },
                 { id: "f_aai_6m", type: "check" },
                 { id: "f_hl_structure", type: "check" },
+                { id: "f_hl_structure_3m", type: "check" },
                 { id: "f_adv_enabled", type: "check" },
                 { id: "f_adv_query", type: "text" },
             ];
@@ -15549,6 +16109,18 @@
                 f_afh6m_max: "Away From High 6M% Max",
                 f_afh9m_min: "Away From High 9M% Min",
                 f_afh9m_max: "Away From High 9M% Max",
+                f_sma10_min: "Away From SMA10% Min",
+                f_sma10_max: "Away From SMA10% Max",
+                f_sma20_min: "Away From SMA20% Min",
+                f_sma20_max: "Away From SMA20% Max",
+                f_sma50_min: "Away From SMA50% Min",
+                f_sma50_max: "Away From SMA50% Max",
+                f_sma100_min: "Away From SMA100% Min",
+                f_sma100_max: "Away From SMA100% Max",
+                f_sma150_min: "Away From SMA150% Min",
+                f_sma150_max: "Away From SMA150% Max",
+                f_sma200_min: "Away From SMA200% Min",
+                f_sma200_max: "Away From SMA200% Max",
                 f_chg1d_min: "1D Chng% Min",
                 f_chg1d_max: "1D Chng% Max",
                 f_chg5d_min: "5D Chng% Min",
@@ -15592,6 +16164,7 @@
                 f_aai_4m: "AAI 4M",
                 f_aai_6m: "AAI 6M",
                 f_hl_structure: "Higher Low Structure",
+                f_hl_structure_3m: "Higher Low Structure 3M",
                 f_adv_enabled: "Advanced Query Enabled",
                 f_adv_query: "Advanced Query",
             };
@@ -16041,6 +16614,12 @@
                     get: (r) => r["Higher_Low_Structure"],
                 },
                 {
+                    name: "HL_STRUCTURE_3M",
+                    label: "Higher Low Structure 3M",
+                    type: "bool",
+                    get: (r) => r["Higher_Low_Structure_3M"],
+                },
+                {
                     name: "ADV_DECL",
                     label: "Advancing/Neutral/Declining",
                     type: "number",
@@ -16094,6 +16673,42 @@
                     label: "Name",
                     type: "text",
                     get: (r) => r["Name"],
+                },
+                {
+                    name: "AWAY_SMA10",
+                    label: "Away From SMA10 %",
+                    type: "number",
+                    get: (r) => parseFloat(r["Away_From_SMA10"]),
+                },
+                {
+                    name: "AWAY_SMA20",
+                    label: "Away From SMA20 %",
+                    type: "number",
+                    get: (r) => parseFloat(r["Away_From_SMA20"]),
+                },
+                {
+                    name: "AWAY_SMA50",
+                    label: "Away From SMA50 %",
+                    type: "number",
+                    get: (r) => parseFloat(r["Away_From_SMA50"]),
+                },
+                {
+                    name: "AWAY_SMA100",
+                    label: "Away From SMA100 %",
+                    type: "number",
+                    get: (r) => parseFloat(r["Away_From_SMA100"]),
+                },
+                {
+                    name: "AWAY_SMA150",
+                    label: "Away From SMA150 %",
+                    type: "number",
+                    get: (r) => parseFloat(r["Away_From_SMA150"]),
+                },
+                {
+                    name: "AWAY_SMA200",
+                    label: "Away From SMA200 %",
+                    type: "number",
+                    get: (r) => parseFloat(r["Away_From_SMA200"]),
                 },
             ];
 
@@ -17012,6 +17627,12 @@
                     if (!chk("f_afh5m", "Away_From_High_5_Month")) return false;
                     if (!chk("f_afh6m", "Away_From_High_6_Month")) return false;
                     if (!chk("f_afh9m", "Away_From_High_9_Month")) return false;
+                    if (!chk("f_sma10", "Away_From_SMA10")) return false;
+                    if (!chk("f_sma20", "Away_From_SMA20")) return false;
+                    if (!chk("f_sma50", "Away_From_SMA50")) return false;
+                    if (!chk("f_sma100", "Away_From_SMA100")) return false;
+                    if (!chk("f_sma150", "Away_From_SMA150")) return false;
+                    if (!chk("f_sma200", "Away_From_SMA200")) return false;
                     if (!chk("f_chg1d", "1 Day Chng%")) return false;
                     if (!chk("f_chg5d", "5 Days Chng%")) return false;
                     if (!chk("f_chg1m", "1 Month Chng%")) return false;
@@ -17110,6 +17731,11 @@
                     if (
                         gbool("f_hl_structure") &&
                         r["Higher_Low_Structure"] != 1
+                    )
+                        return false;
+                    if (
+                        gbool("f_hl_structure_3m") &&
+                        r["Higher_Low_Structure_3M"] != 1
                     )
                         return false;
                     return true;
@@ -17579,9 +18205,10 @@
                 if (!search) return;
                 clearMultiSearch(false); // clear any multi mode silently
                 // Open filter panel
-                document.getElementById("filterPanel").style.display = "block";
-                filtersVisible = true;
+                //document.getElementById("filterPanel").style.display = "block";
+                //filtersVisible = true;
                 restoreFilters(search.state);
+                toggleSavedPanel();
             }
 
             // ---- Run multiple searches (combine results) ----
@@ -17599,6 +18226,8 @@
                     runSingle(ids[0]);
                     return;
                 }
+
+                toggleSavedPanel();
 
                 // Multi: combine unique results
                 const searches = ids
@@ -18912,6 +19541,66 @@
                 return rsiSeries;
             }
 
+            function calculateHighestHighResistance(data, options) {
+                const { length } = options;
+
+                if (!Array.isArray(data) || data.length === 0 || !length || length <= 0) {
+                    return null;
+                }
+
+                // offsetDays = (length / 9) * 3, rounded to nearest integer day
+                const offsetDays = Math.round((length / 9) * 3);
+
+                const n = data.length;
+
+                // Skip `offsetDays` most recent records, then look back `length` records from there.
+                const endIndex = n - 1 - offsetDays;   // last index to consider (inclusive)
+                const startIndex = endIndex - length + 1; // first index to consider (inclusive)
+
+                if (endIndex < 0) {
+                    // Not enough data even after offset
+                    return null;
+                }
+
+                const from = Math.max(0, startIndex);
+                const to = endIndex;
+
+                let highestHigh = -Infinity;
+                let highestIndex = -1;
+
+                // Single pass, O(n) — high performance, no allocations, no sorting
+                for (let i = from; i <= to; i++) {
+                    const h = data[i].high;
+                    if (h > highestHigh) {
+                        highestHigh = h;
+                        highestIndex = i;
+                    }
+                }
+
+                if (highestIndex === -1) return null;
+
+                return {
+                    price: highestHigh,
+                    index: highestIndex,
+                    dataPoint: data[highestIndex]
+                };
+            }
+
+            function hexToRgba(hex, opacity = 1) {
+                hex = hex.replace('#', '');
+
+                // Support shorthand hex (#f00 -> #ff0000)
+                if (hex.length === 3) {
+                    hex = hex.split('').map(c => c + c).join('');
+                }
+
+                const r = parseInt(hex.substring(0, 2), 16);
+                const g = parseInt(hex.substring(2, 4), 16);
+                const b = parseInt(hex.substring(4, 6), 16);
+
+                return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            }
+
             var thumbCharts = [];
             var charts = {};
             var chartSeries = {};
@@ -19228,6 +19917,22 @@
                                 }
                             });
 
+                            //Draw highest high resistance line on price candelstick series
+                            chartSettings.afh.forEach((afh) => {
+                                if (afh.enabled && afh.length>=15) {
+                                    const result = calculateHighestHighResistance(data, { length: afh.length });
+                                    if (result) {
+                                        chartSeries.createPriceLine({
+                                            price: result.price,
+                                            color: afh.color,
+                                            lineWidth: 1,
+                                            lineStyle: LightweightCharts.LineStyle.LargeDashed,
+                                            axisLabelVisible: false,
+                                        });
+                                    }
+                                }
+                            });
+
                             thumbCharts[isin].timeScale().fitContent();
                         } catch (error) {
                             console.error(
@@ -19276,13 +19981,6 @@
                     }
                 }
             }
-
-            window.addEventListener("resize", (event) => {
-                requestAnimationFrame(() => {
-                    // This runs AFTER the browser accepts the new HTML layout
-                    resizeThumbnailChart();
-                });
-            });
 
             function openChartModal(Caller) {
                 const chartSettings = getChartSettings();
@@ -19368,16 +20066,12 @@
 
                         const data = await response.json();
 
-                        const chartWidth = screenWidth - 40;
+                        const chartWidth = screenWidth-15;
                         const mainChartHeight =
-                            screenHeight - (otherChartHeight + 112);
+                            screenHeight - (otherChartHeight + 85);
 
                         // Helper function to create chart with common options
-                        const createChart = (
-                            container,
-                            height,
-                            options = {},
-                        ) => {
+                        const createChart = (container,height,options = {}) => {
                             return LightweightCharts.createChart(container, {
                                 width: chartWidth,
                                 height: height,
@@ -19619,6 +20313,33 @@
                                             { ...bar, color: ma.color },
                                         ]),
                                     );
+                            }
+                        });
+
+                        //Draw highest high resistance line on price candelstick series
+                        chartSettings.afh.forEach((afh) => {
+                            if (afh.enabled && afh.length>=15) {
+                                const result = calculateHighestHighResistance(data, { length: afh.length });
+                                if (result) {
+                                    const startTime = result.dataPoint.time;
+                                    const lastTime = data[data.length - 1].time;
+                                    charts.main.addSeries(
+                                        LightweightCharts.LineSeries,
+                                        {
+                                            // title:afh.length+' HH',
+                                            color: afh.color,
+                                            lineWidth: 1,
+                                            lineStyle: LightweightCharts.LineStyle.LargeDashed,
+                                            lastValueVisible: true,
+                                            priceLineVisible: false,
+                                            crosshairMarkerVisible: false,
+                                            autoscale: false, // <-- Crucial: Tells the chart to ignore this line when calculating vertical margins
+                                        },
+                                    ).setData([
+                                            { time: startTime, value: result.price },
+                                            { time: lastTime, value: result.price },
+                                        ]);
+                                }
                             }
                         });
 
@@ -20109,6 +20830,25 @@
                 })();
             }
 
+            function resizeMainChart(){
+                const screenWidth = window.innerWidth;
+                const screenHeight = window.innerHeight;
+                const chartArray = Object.values(charts);
+                const chartWidth = screenWidth-15;
+                const otherChartHeight=(screenHeight*0.15)*(chartArray.length - 1);
+                const mainChartHeight = screenHeight - (otherChartHeight + 85);
+                chartArray.forEach((chart,index) => {
+                    let chartHeight=(screenHeight * 0.15);
+                    if(index==0){
+                        chartHeight=mainChartHeight;
+                    }
+                    chart.applyOptions({
+                        width:chartWidth,
+                        height:chartHeight
+                    });
+                });
+            }
+
             function closeChartModal() {
                 //remove the existing charts from the memory.
                 for (const key in charts) {
@@ -20131,6 +20871,44 @@
                     closeChartModal();
             }
 
+            function initToolBarScrollOverflowCheck() {
+                document.querySelectorAll('.toolbar-scroll').forEach(el => {
+                    // initial check
+                    if (el.scrollWidth > el.clientWidth) {
+                        el.classList.add('has-overflow');
+                    }else{
+                        el.classList.remove('has-overflow');
+                    }
+
+                    // once user scrolls, remove indicator permanently and detach listener
+                    const onScroll = () => {
+                        el.classList.remove('has-overflow');
+                        el.removeEventListener('scroll', onScroll);
+                    };
+
+                    el.addEventListener('scroll', onScroll, { once: true });
+                });
+            }
+
+            document.addEventListener("DOMContentLoaded",
+                () => {
+                    requestAnimationFrame(() => {
+                        initToolBarScrollOverflowCheck();
+                    });
+                },
+                { once: true },
+            );
+
+
+            window.addEventListener("resize", (event) => {
+                requestAnimationFrame(() => {
+                    // This runs AFTER the browser accepts the new HTML layout
+                    initToolBarScrollOverflowCheck();
+                    resizeThumbnailChart();
+                    resizeMainChart();
+                });
+            });
+
             // ============ INIT ============
             document
                 .getElementById("tableBody")
@@ -20150,7 +20928,7 @@
 
                     const tvCell = e.target.closest(".tv-link");
                     if (tvCell) {
-                        const url = `https://www.tradingview.com/chart/?symbol=NSE:${encodeURIComponent(tvCell.dataset.code)}`;
+                        const url = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(toTvSymbol(tvCell.dataset.code))}`;
                         window.open(url, "_blank", "noopener");
                     }
 
@@ -20224,7 +21002,7 @@
                 border-top: 1px solid var(--border, #1e2d45);
             "
         >
-            <nav aria-label="Footer">
+            <nav aria-label="Footer" class="d-flex toolbar-scroll flex-nowrap justify-content-center align-items-center">
                 <a
                     href="#"
                     onclick="
@@ -20265,9 +21043,11 @@
                     >@jadeja_rajdeep on X</a
                 >
             </nav>
-            <div style="margin-top: 8px">
-                NSE Momentum Screener — Free stock screener for Indian equity
-                markets. Data updates daily after market close (IST).
+            <div style="margin-top: 8px" class="d-flex toolbar-scroll flex-nowrap justify-content-between justify-items-center align-items-center">
+                <div class="text-center mx-auto">
+                    NSE Momentum Screener — Free stock screener for Indian equity
+                    markets. Data updates daily after market close (IST).
+                </div>
             </div>
         </footer>
 

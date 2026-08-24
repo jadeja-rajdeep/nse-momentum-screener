@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v64";
+const CACHE_VERSION = "nse-screener-v65";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Fonts (and the CSS that declares them) rarely change and are identical
