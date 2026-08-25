@@ -9,8 +9,18 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v65";
+const CACHE_VERSION = "nse-screener-v66";
 const DATA_CACHE = "nse-screener-data-v1";
+
+// Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
+// separate from DATA_CACHE so it can be bulk-purged independently. These
+// are cache-first (fast repeat opens) rather than network-first like
+// m.json, because the page (index.html) purges this whole cache the
+// moment tryLoadFromCacheIfFresh() decides the day's data is stale —
+// so a stale entry never lingers past that point, and we don't pay a
+// network round-trip on every single chart open in between.
+// Keep this name in sync with CHART_CACHE_NAME in index.html.
+const CHART_CACHE = "nse-screener-chart-v1";
 
 // Fonts (and the CSS that declares them) rarely change and are identical
 // across app versions, so they get their own cache that is NEVER deleted
@@ -88,7 +98,8 @@ self.addEventListener("activate", (event) => {
                             (k) =>
                                 k !== CACHE_VERSION &&
                                 k !== DATA_CACHE &&
-                                k !== FONT_CACHE,
+                                k !== FONT_CACHE &&
+                                k !== CHART_CACHE,
                         )
                         .map((k) => {
                             console.log("[SW] Deleting old cache:", k);
@@ -112,6 +123,15 @@ self.addEventListener("fetch", (event) => {
     // m.json → Network-first, fall back to stale cache
     if (url.pathname.endsWith("m.json")) {
         event.respondWith(networkFirstData(event.request));
+        return;
+    }
+
+    // Per-ISIN chart JSON → Cache-first into its own CHART_CACHE. Freshness
+    // is NOT handled here — index.html purges CHART_CACHE entirely as soon
+    // as it detects the day's data has moved on (see tryLoadFromCacheIfFresh
+    // in index.html), so whatever's cached here is trusted as-is.
+    if (url.pathname.includes("/data/chart/") && url.pathname.endsWith(".json")) {
+        event.respondWith(cacheFirst(event.request, CHART_CACHE));
         return;
     }
 

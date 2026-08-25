@@ -12450,7 +12450,6 @@
             let industryToBasics = {}; // industry → Set of basic industries
 
             const DATA_CACHE_NAME = "nse-screener-data-v1"; // must match sw.js DATA_CACHE
-            const CHART_CACHE_NAME = "nse-screener-chart-v1"; // must match sw.js CHART_CACHE
             const NSE_PUBLISH_HOUR_IST = 17; // NSE publishes updated data ~5 PM IST after market close
 
             // Get current date/time in IST (Asia/Kolkata), independent of the
@@ -12554,18 +12553,7 @@
                         isSundayOlderPrePublish ||
                         isMondayFriday;
 
-                    if (!canServeFromCache) {
-                        // Day's data has moved on — every ISIN chart cached
-                        // under the old date is now stale too. Purge the
-                        // whole chart cache so the next time each chart is
-                        // opened, sw.js's cacheFirst misses and fetches the
-                        // fresh file (then re-caches it) instead of quietly
-                        // continuing to serve yesterday's candles.
-                        if ("caches" in window) {
-                            caches.delete(CHART_CACHE_NAME);
-                        }
-                        return null;
-                    }
+                    if (!canServeFromCache) return null;
 
                     return raw;
                 } catch {
