@@ -244,6 +244,36 @@
                 --warn: #d97706;
             }
 
+            /* Apply to everything, including html/body and any scrollable div */
+            * {
+              scrollbar-width: thin;                              /* Firefox */
+              scrollbar-color: rgba(148, 163, 184, 0.4) transparent; /* Firefox: thumb track */
+            }
+
+            /* Chrome, Edge, Safari, Opera (WebKit-based) */
+            *::-webkit-scrollbar {
+              width: 6px;      /* vertical scrollbar thickness */
+              height: 6px;     /* horizontal scrollbar thickness */
+            }
+
+            *::-webkit-scrollbar-track {
+              background: transparent;
+            }
+
+            *::-webkit-scrollbar-thumb {
+              background-color: rgba(148, 163, 184, 0.4);
+              border-radius: 10px;
+              border: none;
+            }
+
+            *::-webkit-scrollbar-thumb:hover {
+              background-color: rgba(148, 163, 184, 0.6); /* slightly darker on hover, desktop only */
+            }
+
+            *::-webkit-scrollbar-corner {
+              background: transparent;
+            }
+
             * {
                 box-sizing: border-box;
             }
@@ -911,6 +941,11 @@
             }
             tbody tr.tradable-row:hover {
                 background: rgba(0, 212, 170, 0.09);
+            }
+            #mainTable{
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin; /* Firefox */
+                scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
             }
             #mainTable tbody > tr:hover {
                 background: rgba(0, 212, 170, 0.09);
@@ -3607,6 +3642,7 @@
                 border-right: 0 !important;
             }
 
+            #chartModal .settings-modal-body{position: relative;}
             #chartModal .tv-lightweight-charts table tr th:nth-child(1),
             #chartModal .tv-lightweight-charts table tr td:nth-child(1) {
                 position: initial !important;
@@ -3628,7 +3664,7 @@
 
             #chartModal .chart-tooltip {
                 position: absolute;
-                z-index: 9999;
+                z-index: 9991;
                 left: 0;
                 top: 0;
                 max-width: 80%;
@@ -3648,6 +3684,50 @@
             }
             #chartModal .chart-tooltip .line span.name {
                 color: var(--muted);
+            }
+
+            /* Label/value grid inside modal */
+            #chartModal .detail-grid {
+              display: none;/*grid*/
+              grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+              gap: 16px;
+              position: absolute;
+              inset: 0;              /* top/right/bottom/left: 0 */
+              height: 100%;          /* not min-height — locks to parent's box */
+              width: 100%;
+              z-index: 9999;
+              background: var(--bg);
+              overflow-y: auto;      /* scroll happens INSIDE this element */
+              align-content: start;  /* prevents grid rows from stretching to fill height */
+              padding: 20px;
+              box-sizing: border-box;
+            }
+            #chartModal .detail-grid.open {
+                display: grid !important;
+            }
+             #chartModal .detail-item {
+              border-bottom: 1px solid var(--border);
+              padding-bottom: 6px;
+            }
+            #chartModal .detail-label {
+                /*background: var(--surface);*/
+                color: var(--muted);
+                font-family: var(--mono);
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.07em;
+                padding: 5px 10px;
+                white-space: nowrap;
+                user-select: none;
+                transition: color 0.15s;
+              margin-bottom: 2px;
+            }
+            #chartModal .detail-value {
+                font-size: 12px;
+                color:var(--text);
+                word-break: break-word;
+                padding: 0px 10px;
             }
         </style>
 
@@ -11827,8 +11907,15 @@
                             Script Full Name Goes Here
                         </div>
                     </div>
-
-                    <div class="btn-group btn-group-sm ms-auto" role="group" aria-label="Pre Next">
+                    <button
+                        class="peer-modal-close text-info border-info bg-info ms-auto"
+                        style="--bs-bg-opacity: 0.1"
+                        id="toggelChartDetail"
+                        onclick="toggelChartDetail()"
+                    >
+                        ▤
+                    </button>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Pre Next">
                       <button type="button" class="btn btn-outline-primary chartmodal-prev-btn">&larr;</button>
                       <button type="button" class="btn btn-outline-primary chartmodal-next-btn">&rarr;</button>
                     </div>
@@ -20024,6 +20111,10 @@
             document.querySelector('.chartmodal-prev-btn').addEventListener('click', () => goToSiblingFullScreenBtn(-1));
             document.querySelector('.chartmodal-next-btn').addEventListener('click', () => goToSiblingFullScreenBtn(1));
 
+            function toggelChartDetail(){
+                document.querySelector('#chartModal #detailGrid').classList.toggle('open');
+            }
+
             document.addEventListener('keydown', function (e) {
                 const modal = document.querySelector('#chartModal');
                 if (!modal || !modal.classList.contains('open')) return;
@@ -20034,15 +20125,65 @@
                 } else if (e.key === 'ArrowDown') {
                     e.preventDefault();
                     goToSiblingFullScreenBtn(1);
+                }else if (e.key === 'd' || e.key === 'D' || e.key === 'i' || e.key === 'I') {
+                    toggelChartDetail();
                 }
             });
+
+            function generateChartDetails(Caller){
+                const currentTr = Caller.closest("tr");
+                const previousTr = currentTr
+                    ? currentTr.previousElementSibling
+                    : null;
+
+                // Get header cells, excluding col-hidden ones — but keep track of index
+                const allHeaderCells = Array.from(document.querySelectorAll('#mainTable thead th'));
+
+                const visibleIndexes = [];
+                const headers = [];
+
+                allHeaderCells.forEach((th, i) => {
+                  if (!th.classList.contains('col-hidden')) {
+                    headers.push(th.textContent.trim());
+                    visibleIndexes.push(i);
+                  }
+                });
+
+                const grid = document.getElementById('detailGrid');
+
+                const allCells = Array.from(previousTr.querySelectorAll('td'));
+                grid.innerHTML = '';
+
+                headers.forEach((label, idx) => {
+                  const originalIndex = visibleIndexes[idx];
+                  const cell = allCells[originalIndex];
+                  if (!cell) return;
+
+                  const item = document.createElement('div');
+                  item.className = 'detail-item';
+
+                  const labelEl = document.createElement('div');
+                  labelEl.className = 'detail-label';
+                  labelEl.textContent = label;
+
+                  const valueEl = document.createElement('div');
+                  valueEl.className = 'detail-value';
+                  valueEl.innerHTML = cell.innerHTML.trim();
+
+                  item.appendChild(labelEl);
+                  item.appendChild(valueEl);
+                  grid.appendChild(item);
+                });
+            }
 
             function openChartModal(Caller) {
                 currentFullScreenBtn=Caller;
 
                 const chartSettings = getChartSettings();
                 const chartModal = document.getElementById("chartModal");
-                chartModal.querySelector(".settings-modal-body").innerHTML = "";
+                chartModal.querySelector(".settings-modal-body").innerHTML = `<div class="detail-grid" id="detailGrid"></div>`;
+
+                generateChartDetails(Caller);
 
                 const chartMain = document.createElement("div");
                 chartMain.id = "chart-main";
