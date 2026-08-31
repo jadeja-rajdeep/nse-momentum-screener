@@ -7519,6 +7519,9 @@
                             <span class="help-tab-icon">📈</span> TradingView
                             Chart
                         </div>
+                        <div class="help-tab" data-help-tab="livecharts">
+                            <span class="help-tab-icon">🕯</span> Live Charts
+                        </div>
                         <div class="help-tab" data-help-tab="industry">
                             <span class="help-tab-icon">📊</span> Industry
                             Performance
@@ -7769,6 +7772,31 @@
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
+                                    🗳 All Index Filter (Multi-Select Dropdown)
+                                </div>
+                                <p>
+                                    <strong>All Index</strong> is a
+                                    multi-select dropdown, same style as the
+                                    Sector/Industry dropdowns, listing every
+                                    NSE index (NIFTY 50, NIFTY 500, sectoral
+                                    indices, etc.) present in the data. Tick
+                                    one or more indices to keep only stocks
+                                    that are a constituent of
+                                    <strong>any</strong> selected index (OR
+                                    logic within the dropdown). Combine with
+                                    Sector/Industry filters (AND logic across
+                                    dropdowns) to, for example, find NIFTY 500
+                                    stocks within a specific sector. See the
+                                    <span class="help-kbd"
+                                        >📋 Table Columns</span
+                                    >
+                                    tab to also display the underlying
+                                    <strong>All Index</strong> column in the
+                                    table.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
                                     📏 Range Filters — complete list
                                 </div>
                                 <ul>
@@ -7851,14 +7879,23 @@
                                         combination.
                                     </li>
                                     <li>
-                                        <strong>5D Range% (High–Low)</strong>
+                                        <strong
+                                            >5D / 10D / 15D / 21D Range%
+                                            (High–Low)</strong
+                                        >
                                         — the percentage spread between the
-                                        highest and lowest close over the last 5
-                                        trading days. A low Max value (a tight
+                                        highest and lowest close over the last
+                                        5, 10, 15, or 21 trading days
+                                        respectively. A low Max value (a tight
                                         range) flags stocks that are tightening
-                                        up this week — combine with flat 6M
-                                        Chng% and Narrow Range to spot a base
-                                        tightening into a potential breakout.
+                                        up over that window — combine with flat
+                                        6M Chng% and Narrow Range to spot a
+                                        base tightening into a potential
+                                        breakout. Use the shorter windows (5D,
+                                        10D) to catch a fast, fresh squeeze and
+                                        the longer ones (15D, 21D) to confirm
+                                        the tightening has held over several
+                                        weeks, not just a couple of days.
                                     </li>
                                     <li>
                                         <strong>RVOL AVG 3M (≥)</strong> —
@@ -7939,6 +7976,53 @@
                                         prioritise names both tightening and
                                         showing volume support right at the edge
                                         of the base.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📐 Away From SMA % Filters
+                                </div>
+                                <p style="margin-bottom: 10px">
+                                    <strong
+                                        >Away From SMA10% / SMA20% / SMA50% /
+                                        SMA100% / SMA150% / SMA200%</strong
+                                    >
+                                    — six range filters measuring how far
+                                    today's close sits from that stock's own
+                                    10/20/50/100/150/200-day simple moving
+                                    average, as a percentage. A
+                                    <strong>negative</strong> value means the
+                                    close is currently
+                                    <em>above</em> that moving average
+                                    (bullish); a <strong>positive</strong>
+                                    value means it's <em>below</em> it
+                                    (bearish) — the same sign convention as the
+                                    Away From High filters.
+                                </p>
+                                <ul>
+                                    <li>
+                                        Use the shorter averages (SMA10,
+                                        SMA20) to check a stock is holding its
+                                        near-term trend, and the longer ones
+                                        (SMA100, SMA150, SMA200) to confirm the
+                                        broader trend is intact.
+                                    </li>
+                                    <li>
+                                        Set <strong>Away From SMA50% Max = 0</strong>
+                                        to keep only stocks trading above their
+                                        50-day average, or a tight band like
+                                        <span class="help-kbd">-3 to 0</span>
+                                        to find stocks that have just pulled
+                                        back to, and are holding, that average
+                                        — a common continuation entry.
+                                    </li>
+                                    <li>
+                                        Stacking all six with negative values
+                                        (close above every SMA from 10 to 200)
+                                        confirms a stock is in a clean,
+                                        established uptrend across every
+                                        timeframe.
                                     </li>
                                 </ul>
                             </div>
@@ -8097,6 +8181,54 @@
                                     higher structure rather than a stock
                                     chopping around randomly.
                                 </p>
+                                <div class="help-tip" style="margin-top: 10px">
+                                    <strong>Higher Low Structure 3M</strong> is
+                                    the same step-up-lows check applied to the
+                                    last <strong>3 months</strong> of price
+                                    data instead of 1 month, so it confirms the
+                                    orderly higher-low pattern has held over a
+                                    longer, more established base rather than
+                                    just the past few weeks.
+                                </div>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🏆 Above All Indices Filters (AAI)
+                                </div>
+                                <p>
+                                    <strong
+                                        >AAI 1D / 5D / 1M / 2M / 3M / 4M /
+                                        6M</strong
+                                    >
+                                    are checkboxes (1 = true) flagging whether
+                                    the stock's return over that timeframe beat
+                                    <strong
+                                        >every NSE index it belongs to</strong
+                                    >
+                                    (not just the broad market — every
+                                    individual index in its
+                                    <span class="help-kbd">All Index</span>
+                                    membership list). Ticking one keeps only
+                                    stocks that have been outperforming all
+                                    their relevant benchmarks over that window.
+                                </p>
+                                <ul>
+                                    <li>
+                                        Tick the shorter timeframes (AAI 1D,
+                                        AAI 5D) to catch stocks freshly
+                                        breaking out ahead of their indices
+                                        right now.
+                                    </li>
+                                    <li>
+                                        Tick several together (e.g. AAI 1M +
+                                        AAI 3M + AAI 6M) to find stocks that
+                                        have been consistently beating every
+                                        index they're part of across multiple
+                                        horizons — a strong sign of genuine,
+                                        sustained relative strength rather than
+                                        a one-off pop.
+                                    </li>
+                                </ul>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
@@ -8643,6 +8775,16 @@
                                         highest-quality coiling patterns.
                                     </li>
                                     <li>
+                                        <strong>10DR% / 15DR% / 21DR%</strong>
+                                        — the same High-Low range percentage as
+                                        5DR%, but measured over the last 10,
+                                        15, or 21 trading days instead of 5.
+                                        Use the longer windows to confirm a
+                                        tightening range has held for several
+                                        weeks rather than just the last few
+                                        days.
+                                    </li>
+                                    <li>
                                         <strong>Tradable</strong> — ⚡ YES pill
                                         for stocks flagged as currently
                                         tradable. Rows also get a subtle teal
@@ -8799,6 +8941,45 @@
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
+                                    🪜 Higher Low Structure 3M
+                                </div>
+                                <p>
+                                    The same ✓ / ✕ higher-low check as
+                                    <strong>Higher Low Structure</strong>,
+                                    applied to the last
+                                    <strong>3 months</strong> of price data
+                                    instead of 1 month. A ✓ confirms the
+                                    step-up pullback pattern has held over a
+                                    longer, more established base — useful for
+                                    distinguishing a genuinely mature structure
+                                    from one that only looks orderly over the
+                                    most recent few weeks.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🏆 Above All Indices (AAI 1D / 5D / 1M /
+                                    2M / 3M / 4M / 6M)
+                                </div>
+                                <p>
+                                    Seven columns, each shown as a green ▲ /
+                                    red ▼ arrow, flagging whether the stock's
+                                    return over that timeframe beat
+                                    <strong
+                                        >every NSE index it belongs to</strong
+                                    >
+                                    (all indices listed in its
+                                    <strong>All Index</strong> column) — not
+                                    just one benchmark. A green ▲ across
+                                    several timeframes at once (e.g. AAI 1M,
+                                    AAI 3M, and AAI 6M all green) signals the
+                                    stock has been consistently outrunning
+                                    every index it's a part of, across both
+                                    short and long horizons.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
                                     🔄 Advancing / Neutral / Declining
                                 </div>
                                 <p>
@@ -8944,6 +9125,43 @@
                                     into a breakout rather than stocks that are
                                     simply at a fresh, recent high.
                                 </div>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📐 Away From SMA columns
+                                </div>
+                                <p>
+                                    <strong
+                                        >Away From SMA10% / SMA20% / SMA50% /
+                                        SMA100% / SMA150% / SMA200%</strong
+                                    >
+                                    — how far today's close sits from that
+                                    stock's own 10/20/50/100/150/200-day simple
+                                    moving average, as a percentage.
+                                    <span
+                                        style="
+                                            color: var(--success);
+                                            font-weight: 600;
+                                        "
+                                        >Green (negative)</span
+                                    >
+                                    means the close is currently
+                                    <em>above</em> that moving average
+                                    (bullish);
+                                    <span
+                                        style="
+                                            color: var(--danger);
+                                            font-weight: 600;
+                                        "
+                                        >red (positive)</span
+                                    >
+                                    means it's <em>below</em> it (bearish) —
+                                    the same convention as the Away From High
+                                    columns. Scanning left to right (SMA10
+                                    through SMA200) shows whether a stock's
+                                    trend is intact across short, medium, and
+                                    long timeframes at a glance.
+                                </p>
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
@@ -9376,6 +9594,224 @@
                                     button in the stats bar (visible when a
                                     filter is active). See the TV Watchlist tab
                                     for full details.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- LIVE CHARTS -->
+                        <div class="help-section" data-help-section="livecharts">
+                            <h2>🕯 Live Charts</h2>
+                            <div class="help-tagline">
+                                Built-in candlestick charts with volume,
+                                moving averages, RSI, and MACD — no need to
+                                leave the screener. Click
+                                <span class="help-kbd">📈 Charts</span> in the
+                                header to configure them.
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🔛 Turning Charts On
+                                </div>
+                                <p>
+                                    Open
+                                    <span class="help-kbd">📈 Charts</span> in
+                                    the header and tick
+                                    <strong>Enable charts in tools</strong> at
+                                    the top of the settings panel, then
+                                    <span class="help-kbd">✓ Apply</span>. Once
+                                    on, a small candlestick
+                                    <strong>thumbnail chart</strong> appears in
+                                    its own row directly underneath every stock
+                                    row in the main table — no need to click
+                                    anything per-stock, they render
+                                    automatically as you scroll and filter.
+                                    Untick the same box to hide them again and
+                                    get back the more compact table view.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    ⛶ Opening the Full-Screen Chart
+                                </div>
+                                <p>
+                                    Click the
+                                    <span class="help-kbd">⛶</span> button
+                                    inside any thumbnail to expand that stock
+                                    into a full-screen chart modal. Inside the
+                                    modal:
+                                </p>
+                                <ul>
+                                    <li>
+                                        <span class="help-kbd">← →</span> —
+                                        step to the previous/next stock in the
+                                        current table order without closing the
+                                        modal, so you can flip through your
+                                        whole filtered list one chart at a
+                                        time.
+                                    </li>
+                                    <li>
+                                        <span class="help-kbd">▤</span> — opens
+                                        a
+                                        <strong>detail grid</strong> overlay
+                                        listing every currently visible table
+                                        column's value for that stock (RS
+                                        scores, ranks, fundamentals, whatever
+                                        columns you have shown) — a quick
+                                        reference without leaving the chart.
+                                    </li>
+                                    <li>
+                                        <span class="help-kbd">↺</span> —
+                                        resets the chart's zoom/pan back to the
+                                        default 6-month view.
+                                    </li>
+                                    <li>
+                                        <span class="help-kbd">✕</span> —
+                                        closes the chart and returns to the
+                                        table.
+                                    </li>
+                                </ul>
+                                <div class="help-tip" style="margin-top: 10px">
+                                    The full-screen chart pulls daily
+                                    OHLC/volume history for that stock and
+                                    renders it with all the same indicator
+                                    overlays configured in the Charts settings
+                                    panel — plus dedicated RSI and/or MACD
+                                    panes underneath if those are enabled.
+                                </div>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📊 Volume &amp; Moving Averages
+                                </div>
+                                <ul>
+                                    <li>
+                                        <strong>Volume</strong> — toggle the
+                                        volume histogram at the bottom of the
+                                        chart on/off, and optionally overlay a
+                                        volume moving average with a
+                                        configurable length and color.
+                                    </li>
+                                    <li>
+                                        <strong>Moving Averages (6)</strong> —
+                                        six independently configurable moving
+                                        average lines. For each you can set the
+                                        type (SMA/EMA), length, price source
+                                        (Close, Open, High, Low, etc.), and
+                                        line color — so you can, for example,
+                                        run 10/20/50/100/150/200-period lines
+                                        all at once, color-coded to match your
+                                        own system.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📏 Away From High Overlays (8)
+                                </div>
+                                <p>
+                                    Eight configurable horizontal reference
+                                    lines, one per Away From High timeframe
+                                    (0.5M through 9M), each with its own
+                                    lookback length and color. Enable the ones
+                                    you use most so the exact "old high" level
+                                    each Away From High% filter/column is
+                                    measuring against is drawn directly on the
+                                    chart — useful for visually confirming a
+                                    stock is genuinely approaching that older
+                                    high rather than just trusting the number
+                                    in the table.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    💪 RSI
+                                </div>
+                                <p>
+                                    Tick <strong>RSI</strong> to add a
+                                    dedicated Relative Strength Index pane
+                                    below the main chart (in both the
+                                    full-screen modal and, where space allows,
+                                    the thumbnail). Configurable fields:
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong>Length</strong> — the RSI
+                                        lookback period.
+                                    </li>
+                                    <li>
+                                        <strong>Source</strong> — which price
+                                        field RSI is calculated from (Close by
+                                        default).
+                                    </li>
+                                    <li>
+                                        <strong>Smoothing</strong> — optionally
+                                        apply an EMA or SMA smoothing to the
+                                        raw RSI line, with its own length and
+                                        color.
+                                    </li>
+                                    <li>
+                                        <strong>RSI Color</strong> — the color
+                                        of the main RSI line, independent of
+                                        the smoothing line color.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📉 MACD
+                                </div>
+                                <p>
+                                    Tick <strong>MACD</strong> to add a
+                                    dedicated MACD pane with histogram, MACD
+                                    line, and signal line. Configurable fields:
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong
+                                            >Source, Fast Length, Slow Length,
+                                            Signal Length</strong
+                                        >
+                                        — the standard MACD inputs (defaults
+                                        12/26/9 on Close).
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >Oscillator MA / Signal MA</strong
+                                        >
+                                        — choose EMA or SMA independently for
+                                        the oscillator and the signal line.
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >Hist +, Hist −, MACD Line, Signal
+                                            Line</strong
+                                        >
+                                        — separate colors for the positive
+                                        histogram bars, negative histogram
+                                        bars, the MACD line, and the signal
+                                        line.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    💾 Saving Your Settings
+                                </div>
+                                <p>
+                                    Every setting in the
+                                    <span class="help-kbd">📈 Charts</span>
+                                    panel is saved to your browser's
+                                    localStorage as soon as you click
+                                    <span class="help-kbd">✓ Apply</span> — it
+                                    persists across sessions and is included
+                                    when you export/import your settings
+                                    backup (see the
+                                    <span class="help-kbd"
+                                        >⚙ Settings &amp; Backup</span
+                                    >
+                                    tab), so your indicator setup travels with
+                                    you if you move to a new browser or
+                                    device.
                                 </p>
                             </div>
                         </div>
