@@ -353,6 +353,40 @@
                 border-radius: 20px;
             }
 
+            .alert-bell-btn {
+                position: relative;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                flex: 0 0 auto;
+                background: rgba(0, 212, 170, 0.1);
+                border: 1px solid rgba(0, 212, 170, 0.3);
+                border-radius: 50%;
+                color: var(--accent);
+                font-size: 14px;
+                cursor: pointer;
+                padding: 0;
+                transition: background 0.15s, border-color 0.15s;
+            }
+
+            .alert-bell-count {
+                position: absolute;
+                top: -3px;
+                right: -6px;
+                min-width: 16px;
+                height: 16px;
+                padding:0;
+                border-radius: 50%;
+                background: var(--danger, #ef4444);
+                color: #fff;
+                font-family: var(--mono);
+                font-size: 8px;
+                line-height: 16px;
+                text-align: center;
+            }
+
             /*scrollable no shrink element*/
             .toolbar-scroll {
                 position: relative;
@@ -3752,6 +3786,10 @@
             </div>
             <div class="toolbar-scroll ms-auto">
                 <div class="d-flex align-items-center gap-2 flex-nowrap">
+                    <button type="button" class="alert-bell-btn" id="alertBellBtn" title="Price alerts enabled">
+                        <span aria-hidden="true">🔔</span>
+                        <span class="alert-bell-count" id="alertBellCount">0</span>
+                    </button>
                 <span class="data-date-badge" id="data-date">Loading...</span>
                 <button
                     class="btn-toggle-filters"
@@ -11386,6 +11424,36 @@
                             />
                         </label>
                         <div class="settings-status" id="settingsStatus"></div>
+                    </div>
+
+                    <!-- Alerts -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">🔔 Alerts</div>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="abv-check-item">
+                                    <input
+                                        type="checkbox"
+                                        id="alertEnableCustom"
+                                        onchange="onAlertSettingChange()"
+                                    />
+                                    <span>Enable Custom Alerts</span>
+                                </label>
+                            </div>
+                            <div class="col-12">
+                                <label class="abv-check-item">
+                                    <input
+                                        type="checkbox"
+                                        id="alertEnableAwayFromHigh"
+                                        onchange="onAlertSettingChange()"
+                                    />
+                                    <span
+                                        >Enable Away From High Alerts (Same as
+                                        enabled in the chart settings)</span
+                                    >
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -19299,8 +19367,63 @@
             // ============ SETTINGS / TOOLS MODAL ============
             function openSettingsModal() {
                 hideSettingsStatus();
+                initAlertSettingsUI();
                 document.getElementById("settingsModal").classList.add("open");
             }
+
+            // ---- Alerts settings (Enable Custom Alerts / Away From High Alerts) ----
+            const ALERT_SETTINGS_KEY = "nse_screener_alert_settings";
+            function loadAlertSettings() {
+                try {
+                    return Object.assign(
+                        { customAlerts: false, awayFromHighAlerts: false },
+                        JSON.parse(
+                            localStorage.getItem(ALERT_SETTINGS_KEY) || "{}",
+                        ),
+                    );
+                } catch (e) {
+                    return { customAlerts: false, awayFromHighAlerts: false };
+                }
+            }
+            function saveAlertSettings(settings) {
+                try {
+                    localStorage.setItem(
+                        ALERT_SETTINGS_KEY,
+                        JSON.stringify(settings),
+                    );
+                } catch (e) {
+                    console.warn("Alert settings: could not save", e);
+                }
+                toggleAlertIcon();
+            }
+            function initAlertSettingsUI() {
+                const s = loadAlertSettings();
+                const customEl = document.getElementById("alertEnableCustom");
+                const afhEl = document.getElementById(
+                    "alertEnableAwayFromHigh",
+                );
+                if (customEl) customEl.checked = !!s.customAlerts;
+                if (afhEl) afhEl.checked = !!s.awayFromHighAlerts;
+            }
+            function onAlertSettingChange() {
+                const customEl = document.getElementById("alertEnableCustom");
+                const afhEl = document.getElementById(
+                    "alertEnableAwayFromHigh",
+                );
+                saveAlertSettings({
+                    customAlerts: !!(customEl && customEl.checked),
+                    awayFromHighAlerts: !!(afhEl && afhEl.checked),
+                });
+            }
+            function toggleAlertIcon(){
+                const s = loadAlertSettings();
+                if(s.customAlerts || s.awayFromHighAlerts){
+                    document.querySelector("#alertBellBtn").style.display="block";
+                }else{
+                    document.querySelector("#alertBellBtn").style.display="none";
+                }
+            }
+
             function closeSettingsModal() {
                 document
                     .getElementById("settingsModal")
@@ -19324,6 +19447,7 @@
                     ),
                     column_visibility: loadColumnVisibility(),
                     chart_settings: loadChartSettings(),
+                    alert_settings: loadAlertSettings(),
                 };
                 const json = JSON.stringify(payload, null, 2);
                 const blob = new Blob([json], { type: "application/json" });
@@ -19377,6 +19501,13 @@
                             localStorage.setItem(
                                 CHART_KEY,
                                 JSON.stringify(payload.chart_settings),
+                            );
+                        }
+                        // Restore alert settings if present
+                        if (payload.alert_settings) {
+                            localStorage.setItem(
+                                ALERT_SETTINGS_KEY,
+                                JSON.stringify(payload.alert_settings),
                             );
                         }
                         showSettingsStatus(
@@ -21822,6 +21953,7 @@
             refreshWatchlistUI(); // populate watchlist filter options + panel from localStorage on load
             advPopulateFieldSelect(); // populate the Advanced Query field dropdown
             renderSetupPresetPills(); // populate the Setup Preset pill list
+            toggleAlertIcon();
         </script>
         <!-- PWA: Install prompt toast -->
         <div class="pwa-toast" id="pwaInstallToast">
