@@ -387,238 +387,6 @@
                 text-align: center;
             }
 
-            /* ============ PRICE ALERTS MODAL (alert.js) ============ */
-            .pa-status-line {
-                font-size: 10px;
-                color: var(--muted);
-                margin-bottom: 12px;
-                font-family: var(--mono);
-                display: flex;
-                align-items: center;
-                gap: 6px;
-            }
-            .pa-status-dot {
-                width: 7px;
-                height: 7px;
-                border-radius: 50%;
-                background: var(--muted);
-                flex-shrink: 0;
-            }
-            .pa-status-dot.live {
-                background: var(--success);
-                box-shadow: 0 0 6px var(--success);
-            }
-            .pa-tabs {
-                display: flex;
-                border-bottom: 1px solid var(--border);
-                margin: -6px -18px 14px;
-                padding: 0 14px;
-                gap: 4px;
-            }
-            .pa-tab {
-                padding: 10px 12px;
-                font-size: 11px;
-                color: var(--muted);
-                cursor: pointer;
-                border-bottom: 2px solid transparent;
-                font-family: var(--mono);
-                font-weight: 600;
-                white-space: nowrap;
-            }
-            .pa-tab:hover {
-                color: var(--text);
-            }
-            .pa-tab.active {
-                color: var(--accent);
-                border-bottom-color: var(--accent);
-            }
-            .pa-tab-panel {
-                display: none;
-            }
-            .pa-tab-panel.active {
-                display: block;
-            }
-            .pa-form-row {
-                display: flex;
-                gap: 6px;
-                margin-bottom: 12px;
-                flex-wrap: wrap;
-            }
-            .pa-form-row input,
-            .pa-form-row select {
-                background: var(--surface2);
-                border: 1px solid var(--border);
-                color: var(--text);
-                border-radius: 6px;
-                padding: 7px 9px;
-                font-size: 11px;
-                font-family: var(--mono);
-            }
-            .pa-code-input {
-                flex: 1 1 130px;
-                min-width: 0;
-            }
-            .pa-cond-select {
-                width: 56px;
-                flex: 0 0 auto;
-            }
-            .pa-value-input {
-                width: 90px;
-                flex: 0 0 auto;
-            }
-            .pa-add-btn {
-                background: rgba(0, 212, 170, 0.12);
-                border: 1px solid rgba(0, 212, 170, 0.4);
-                color: var(--accent);
-                border-radius: 6px;
-                padding: 7px 14px;
-                font-size: 11px;
-                cursor: pointer;
-                font-weight: 700;
-                flex: 0 0 auto;
-            }
-            .pa-add-btn:hover {
-                background: rgba(0, 212, 170, 0.2);
-            }
-            .pa-hint {
-                font-size: 9.5px;
-                color: var(--muted);
-                margin: -6px 0 12px;
-                font-family: var(--mono);
-            }
-            .pa-list {
-                max-height: 280px;
-                overflow-y: auto;
-                display: flex;
-                flex-direction: column;
-                gap: 6px;
-            }
-            .pa-item {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                background: var(--surface2);
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                padding: 8px 10px;
-                font-size: 11px;
-            }
-            .pa-item.disabled {
-                opacity: 0.45;
-            }
-            .pa-item-info {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-                min-width: 0;
-            }
-            .pa-item-code {
-                font-weight: 700;
-                color: var(--text);
-                font-family: var(--mono);
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-            .pa-item-cond {
-                color: var(--muted);
-                font-family: var(--mono);
-                font-size: 10px;
-            }
-            .pa-item-actions {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                flex-shrink: 0;
-            }
-            .pa-switch {
-                position: relative;
-                width: 32px;
-                height: 18px;
-                flex-shrink: 0;
-                display: inline-block;
-            }
-            .pa-switch input {
-                opacity: 0;
-                width: 0;
-                height: 0;
-            }
-            .pa-switch-slider {
-                position: absolute;
-                inset: 0;
-                background: var(--border);
-                border-radius: 20px;
-                cursor: pointer;
-                transition: 0.15s;
-            }
-            .pa-switch-slider:before {
-                content: "";
-                position: absolute;
-                width: 14px;
-                height: 14px;
-                left: 2px;
-                top: 2px;
-                background: #fff;
-                border-radius: 50%;
-                transition: 0.15s;
-            }
-            .pa-switch input:checked + .pa-switch-slider {
-                background: var(--accent);
-            }
-            .pa-switch input:checked + .pa-switch-slider:before {
-                transform: translateX(14px);
-            }
-            .pa-del-btn {
-                background: none;
-                border: none;
-                color: var(--danger);
-                cursor: pointer;
-                font-size: 15px;
-                line-height: 1;
-                padding: 0 2px;
-            }
-            .pa-empty {
-                color: var(--muted);
-                font-size: 11px;
-                text-align: center;
-                padding: 28px 0;
-                font-family: var(--mono);
-            }
-            .pa-triggered-item {
-                background: var(--surface2);
-                border: 1px solid var(--border);
-                border-left: 3px solid var(--accent);
-                border-radius: 6px;
-                padding: 8px 10px;
-                font-size: 11px;
-            }
-            .pa-tt-head {
-                display: flex;
-                justify-content: space-between;
-                gap: 8px;
-                font-weight: 700;
-                color: var(--text);
-                font-family: var(--mono);
-            }
-            .pa-tt-time {
-                color: var(--muted);
-                font-weight: 500;
-                flex-shrink: 0;
-            }
-            .pa-tt-meta {
-                color: var(--muted);
-                font-size: 10px;
-                margin-top: 3px;
-                font-family: var(--mono);
-            }
-            .pa-tt-up {
-                color: var(--success);
-            }
-            .pa-tt-down {
-                color: var(--danger);
-            }
-
             /*scrollable no shrink element*/
             .toolbar-scroll {
                 position: relative;
@@ -4002,9 +3770,8 @@
             }
         </style>
 
-        <script src="./helper/indicator-db.js" async></script>
         <!-- Latest production standalone build at the time of this demo (5.2.1). -->
-        <script src="https://unpkg.com/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js" async></script>
+        <script src="https://unpkg.com/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js" defer></script>
     </head>
     <body>
         <!-- HEADER -->
@@ -4019,9 +3786,9 @@
             </div>
             <div class="toolbar-scroll ms-auto">
                 <div class="d-flex align-items-center gap-2 flex-nowrap">
-                    <button type="button" class="alert-bell-btn" id="alertBellBtn" title="Price alerts enabled" onclick="openPriceAlertModal()">
+                    <button type="button" class="alert-bell-btn" id="alertBellBtn" title="Price alerts enabled">
                         <span aria-hidden="true">🔔</span>
-                        <span class="alert-bell-count" id="alertBellCount" style="display:none">0</span>
+                        <span class="alert-bell-count" id="alertBellCount">0</span>
                     </button>
                 <span class="data-date-badge" id="data-date">Loading...</span>
                 <button
@@ -6623,83 +6390,6 @@
                         >
                             Got it
                         </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- PRICE ALERTS MODAL (alert.js) -->
-        <div
-            class="ss-modal-overlay"
-            id="priceAlertModal"
-            onclick="closePriceAlertModalOnOverlay(event)"
-        >
-            <div class="ss-modal" style="max-width:100%">
-                <div class="ss-modal-header">
-                    <span>🔔 Price Alerts</span>
-                    <button
-                        class="peer-modal-close"
-                        onclick="closePriceAlertModal()"
-                    >
-                        ✕
-                    </button>
-                </div>
-                <div class="ss-modal-body">
-                    <div class="pa-status-line">
-                        <span class="pa-status-dot" id="paStatusDot"></span>
-                        <span id="paStatusText">Checking status…</span>
-                    </div>
-                    <div class="pa-tabs">
-                        <div
-                            class="pa-tab active"
-                            data-pa-tab="triggered"
-                            onclick="switchAlertTab('triggered')"
-                        >
-                            📋 Today's Alerts
-                        </div>
-                        <div
-                            class="pa-tab"
-                            data-pa-tab="manage"
-                            onclick="switchAlertTab('manage')"
-                        >
-                            ⚙ Manage Custom Alerts
-                        </div>
-                    </div>
-                    <div class="pa-tab-panel active" data-pa-panel="triggered">
-                        <div class="pa-list" id="paTriggeredList"></div>
-                    </div>
-                    <div class="pa-tab-panel" data-pa-panel="manage">
-                        <div class="pa-form-row">
-                            <input
-                                type="text"
-                                class="pa-code-input"
-                                id="paCodeInput"
-                                list="paCodeList"
-                                placeholder="Script code e.g. RELIANCE"
-                                autocomplete="off"
-                            />
-                            <datalist id="paCodeList"></datalist>
-                            <select class="pa-cond-select" id="paCondSelect">
-                                <option value=">=">&ge;</option>
-                                <option value="<=">&le;</option>
-                            </select>
-                            <input
-                                type="number"
-                                class="pa-value-input"
-                                id="paValueInput"
-                                placeholder="Price"
-                                step="0.05"
-                                min="0"
-                            />
-                            <button
-                                class="pa-add-btn"
-                                onclick="addCustomAlertFromForm()"
-                            >
-                                + Add
-                            </button>
-                        </div>
-                        <div class="pa-hint" id="paFormHint"></div>
-                        <div class="pa-list" id="paCustomList"></div>
                     </div>
                 </div>
             </div>
@@ -13543,15 +13233,6 @@
                 }
             }
 
-            var CURRENT_DATA_DATE="";
-
-            async function ensureIndicatorCacheFreshness(currentDataDate) {
-              const storedDate = await IndicatorCacheDB.getAnyStoredDate();
-              if (storedDate !== null && storedDate !== currentDataDate) {
-                await IndicatorCacheDB.clearAll(); // whole cache stale, wipe fast
-              }
-            }
-
             async function loadData() {
                 try {
                     let raw = await tryLoadFromCacheIfFresh();
@@ -13562,11 +13243,6 @@
                         if (!res.ok) throw new Error(`HTTP ${res.status}`);
                         raw = await res.json();
                     }
-
-                    CURRENT_DATA_DATE=raw[0].Date;
-
-                    //clear chart indicator data from indexdb if date is not same.
-                    ensureIndicatorCacheFreshness(CURRENT_DATA_DATE);
 
                     let rows = [];
                     for (const block of raw) {
@@ -13783,14 +13459,6 @@
                     runAlertBadgeCheck(dates.length ? dates[0] : null);
 
                     applyFilters();
-
-                    // Hand off to alert.js (loaded later in the page) so it can
-                    // start/refresh the live price-alert worker cycle now that
-                    // allData (with previous-day Close prices) is available.
-                    if (typeof initPriceAlertSystem === "function") {
-                        initPriceAlertSystem();
-                    }
-
                 } catch (e) {
                     document.getElementById("loading").style.display = "none";
                     const el = document.getElementById("error-msg");
@@ -20797,15 +20465,6 @@
             var thumbCharts = [];
             var charts = {};
             var chartSeries = {};
-            var chartSeriesDataMap = {};
-            // Holds the single, currently-bound reset-chart click handler so it can be
-            // unbound before a new one is attached. Without this, every openChartModal()
-            // call added ANOTHER closure to the persistent #resetChart button, and since
-            // that closure shared its lexical scope with the crosshair/tooltip closures
-            // created in the same call, it kept the ENTIRE chart's data (raw OHLC array,
-            // chartSeriesDataMap, indicator series) alive forever — this was the main
-            // cause of RAM climbing into the GBs after browsing many charts.
-            var resetChartHandler = null;
 
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
@@ -20863,27 +20522,9 @@
             }
 
             var generatingThumbCharts = false;
-            // Bumped on every generateThumbnailChart() run. The per-row work below
-            // contains several fire-and-forget `async` callbacks (chartSettings.ma /
-            // supertrend / afh .forEach(async...)) that await an IndexedDB read
-            // (IndicatorCacheDB.get). If the user paginates again before those
-            // resolve, the next generateThumbnailChart() call disposes and deletes
-            // the old thumbCharts[isin] entries out from under them. Each callback
-            // captures the generation it was started with and checks it (via
-            // isThumbChartStale) before touching thumbCharts[isin] again, so a
-            // superseded callback just quietly stops instead of throwing on a
-            // removed chart.
-            var thumbChartGeneration = 0;
-            function isThumbChartStale(isin, generation) {
-                return (
-                    generation !== thumbChartGeneration || !thumbCharts[isin]
-                );
-            }
             function generateThumbnailChart() {
                 if (generatingThumbCharts) return;
                 generatingThumbCharts = true;
-                thumbChartGeneration++;
-                const myGeneration = thumbChartGeneration;
 
                 //remove the existing charts from the memory.
                 for (const key in thumbCharts) {
@@ -20936,12 +20577,6 @@
                             }
 
                             const data = await response.json();
-
-                            // A newer generateThumbnailChart() run may have already
-                            // torn this row's chart down while we were awaiting the
-                            // fetch above — stop before creating a new chart that
-                            // nothing will ever clean up, or clashing with the new run.
-                            if (myGeneration !== thumbChartGeneration) return;
 
                             let chartWidth =
                                 Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
@@ -21031,7 +20666,9 @@
                             chartSeries.setData(data.slice(-180));
 
                             if (chartSettings.volume.enabled == true) {
-                                let chartSeriesVolume = thumbCharts[isin].addSeries(LightweightCharts.HistogramSeries, {
+                                let chartSeriesVolume = thumbCharts[
+                                    isin
+                                ].addSeries(LightweightCharts.HistogramSeries, {
                                     title: "Volume",
                                     title2: "Volume",
                                     crosshairMarkerVisible: false,
@@ -21072,9 +20709,15 @@
                                     });
 
                                 if (chartSettings.volume.maLength > 0) {
-                                    let chartSeriesVolumeSma = thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
-                                        title2:"SMA" + chartSettings.volume.maLength.toString(),
-                                        title2:"SMA" + chartSettings.volume.maLength.toString(),
+                                    let chartSeriesVolumeSma = thumbCharts[
+                                        isin
+                                    ].addSeries(LightweightCharts.LineSeries, {
+                                        title2:
+                                            "SMA" +
+                                            chartSettings.volume.maLength.toString(),
+                                        title2:
+                                            "SMA" +
+                                            chartSettings.volume.maLength.toString(),
                                         color: chartSettings.volume.maColor,
                                         lineWidth: 1,
                                         crosshairMarkerVisible: false,
@@ -21087,83 +20730,72 @@
                                             bottom: 0,
                                         },
                                     });
-
-                                    const indicatorKey='volume_sma_' + chartSettings.volume.maLength;
-                                    let volMaData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                    if (!volMaData){
-                                        volMaData=calculateSMA(data,chartSettings.volume.maLength,"volume");
-                                        await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, volMaData);
-                                    }
-                                    if (isThumbChartStale(isin, myGeneration)) return;
-                                    chartSeriesVolumeSma.setData(volMaData.slice(-180));
+                                    chartSeriesVolumeSma.setData(
+                                        calculateSMA(
+                                            data,
+                                            chartSettings.volume.maLength,
+                                            "volume",
+                                        ).slice(-180),
+                                    );
                                 }
                             }
 
                             let maSeries = [];
-                            chartSettings.ma.forEach(async (ma, index) => {
-                                if (isThumbChartStale(isin, myGeneration)) return;
+                            chartSettings.ma.forEach((ma, index) => {
                                 if (ma.enabled == true) {
-                                    maSeries[index] = thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
-                                        titile: (ma.type + ma.length.toString()).toUpperCase(),
-                                        title2: (ma.type + ma.length.toString()).toUpperCase(),
+                                    maSeries[index] = thumbCharts[
+                                        isin
+                                    ].addSeries(LightweightCharts.LineSeries, {
+                                        titile: (
+                                            ma.type + ma.length.toString()
+                                        ).toUpperCase(),
+                                        title2: (
+                                            ma.type + ma.length.toString()
+                                        ).toUpperCase(),
                                         color: ma.color,
                                         lineWidth: 1,
                                         crosshairMarkerVisible: false,
                                         lastValueVisible: false,
                                         priceLineVisible: false,
                                     });
-
-                                    const indicatorKey=ma.type+'_' + ma.length +'_'+ma.source;
-                                    let maData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                    if (!maData){
-                                        if (ma.type == "ema") {
-                                            maData=calculateEMA(data,ma.length,ma.source);
-                                        } else {
-                                            maData=calculateSMA(data,ma.length,ma.source);
-                                        }
-                                        await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, maData);
+                                    if (ma.type == "ema") {
+                                        maSeries[index].setData(
+                                            calculateEMA(
+                                                data,
+                                                ma.length,
+                                                ma.source,
+                                            ).slice(-180),
+                                        );
+                                    } else {
+                                        maSeries[index].setData(
+                                            calculateSMA(
+                                                data,
+                                                ma.length,
+                                                ma.source,
+                                            ).slice(-180),
+                                        );
                                     }
-                                    if (isThumbChartStale(isin, myGeneration)) return;
-                                    maSeries[index].setData(maData.slice(-180));
                                 }
                             });
 
-                            chartSettings.supertrend.forEach(async (supertrend, index) => {
-                                if (isThumbChartStale(isin, myGeneration)) return;
+                            chartSettings.supertrend.forEach((supertrend, index) => {
                                 if (supertrend.enabled == true) {
-
-                                    const indicatorKey='supertrend_' + supertrend.atrLength+'_'+supertrend.factor;
-                                    let superTrendData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                    if (!superTrendData){
-                                        superTrendData=calculateSupertrend(data,supertrend);
-                                        await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, superTrendData);
-                                    }
-
-                                    if (isThumbChartStale(isin, myGeneration)) return;
                                     thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
                                         lineWidth: 1,
                                         crosshairMarkerVisible: false,
                                         lastValueVisible: false,
                                         priceLineVisible: false,
-                                    }).setData(superTrendData.slice(-180));
+                                    }).setData(calculateSupertrend(data,supertrend).slice(-180));
                                 }
                             });
 
                             //Draw highest high resistance line on price candelstick series
-                            chartSettings.afh.forEach(async (afh) => {
-                                if (isThumbChartStale(isin, myGeneration)) return;
+                            chartSettings.afh.forEach((afh) => {
                                 if (afh.enabled && afh.length>=15) {
-                                    const indicatorKey='afh_' + afh.length;
-                                    let afhData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                    if (!afhData){
-                                        afhData=calculateHighestHighResistance(data, { length: afh.length });
-                                        await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, afhData);
-                                    }
-
-                                    if (isThumbChartStale(isin, myGeneration)) return;
-                                    if (afhData) {
+                                    const result = calculateHighestHighResistance(data, { length: afh.length });
+                                    if (result) {
                                         chartSeries.createPriceLine({
-                                            price: afhData.price,
+                                            price: result.price,
                                             color: afh.color,
                                             lineWidth: 1,
                                             lineStyle: LightweightCharts.LineStyle.LargeDashed,
@@ -21173,7 +20805,6 @@
                                 }
                             });
 
-                            if (isThumbChartStale(isin, myGeneration)) return;
                             thumbCharts[isin].timeScale().fitContent();
                         } catch (error) {
                             console.error(
@@ -21587,15 +21218,14 @@
                                             },
                                         },
                                     );
-
-                                const indicatorKey='volume_sma_' + chartSettings.volume.maLength;
-                                let volumeMaData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!volumeMaData){
-                                    volumeMaData = calculateSMA(data,chartSettings.volume.maLength,"volume");
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, volumeMaData);
-                                }
-
-                                chartSeries.main.volume.sma.setData(volumeMaData);
+                                const volumeMaData = calculateSMA(
+                                    data,
+                                    chartSettings.volume.maLength,
+                                    "volume",
+                                );
+                                chartSeries.main.volume.sma.setData(
+                                    volumeMaData,
+                                );
                                 chartSeriesDataMap.main.volume.sma =
                                     Object.fromEntries(
                                         volumeMaData.map((bar, index) => [
@@ -21618,7 +21248,7 @@
                                 return true;
                             }
                         });
-                        chartSettings.ma.forEach(async (ma) => {
+                        chartSettings.ma.forEach((ma) => {
                             if (ma.enabled) {
                                 const key = (ma.type + ma.length).toUpperCase();
                                 chartSeries.main.ma[key] =
@@ -21634,16 +21264,18 @@
                                         },
                                     );
 
-                                const indicatorKey=ma.type + '_' + ma.length + '_' + ma.source;
-                                let calculation = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!calculation){
-                                    calculation =
+                                const calculation =
                                     ma.type === "ema"
-                                        ? calculateEMA(data,ma.length,ma.source)
-                                        : calculateSMA(data,ma.length,ma.source);
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, calculation);
-                                }
-
+                                        ? calculateEMA(
+                                              data,
+                                              ma.length,
+                                              ma.source,
+                                          )
+                                        : calculateSMA(
+                                              data,
+                                              ma.length,
+                                              ma.source,
+                                          );
                                 chartSeries.main.ma[key].setData(calculation);
                                 chartSeriesDataMap.main.ma[key] =
                                     Object.fromEntries(
@@ -21656,15 +21288,9 @@
                         });
 
                         //Draw highest high resistance line on price candelstick series
-                        chartSettings.afh.forEach(async (afh) => {
+                        chartSettings.afh.forEach((afh) => {
                             if (afh.enabled && afh.length>=15) {
-                                const indicatorKey='afh_' + afh.length;
-                                let result = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!result){
-                                    result = calculateHighestHighResistance(data, { length: afh.length });
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, result);
-                                }
-
+                                const result = calculateHighestHighResistance(data, { length: afh.length });
                                 if (result) {
                                     const startTime = result.dataPoint.time;
                                     const lastTime = data[data.length - 1].time;
@@ -21697,7 +21323,7 @@
                                 return true;
                             }
                         });
-                        chartSettings.supertrend.forEach(async (supertrend) => {
+                        chartSettings.supertrend.forEach((supertrend) => {
                             if (supertrend.enabled) {
                                 const key = ("supertrend_"+supertrend.atrLength +"_"+ supertrend.factor).toUpperCase();
                                 chartSeries.main.supertrend[key] =
@@ -21712,13 +21338,7 @@
                                         },
                                     );
 
-                                const indicatorKey="supertrend_"+supertrend.atrLength +"_"+ supertrend.factor;
-                                let calculation = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!calculation){
-                                    calculation = calculateSupertrend(data,supertrend);
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, calculation);
-                                }
-
+                                const calculation = calculateSupertrend(data,supertrend);
                                 chartSeries.main.supertrend[key].setData(calculation);
                                 chartSeriesDataMap.main.supertrend[key] =
                                     Object.fromEntries(
@@ -21737,12 +21357,10 @@
                                 chartContainers.rsi.height,
                             );
 
-                            const indicatorKey="rsi_"+chartSettings.rsi.length +"_"+ chartSettings.rsi.source+"_"+chartSettings.rsi.smoothingType+"_"+chartSettings.rsi.smoothingLength;
-                            let rsiChartData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                            if (!rsiChartData){
-                                rsiChartData = calculateRSI(data,chartSettings.rsi);
-                                await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, rsiChartData);
-                            }
+                            const rsiChartData = calculateRSI(
+                                data,
+                                chartSettings.rsi,
+                            );
 
                             chartSeries.rsi = {};
                             chartSeriesDataMap.rsi = {};
@@ -21784,25 +21402,18 @@
                                         priceLineVisible: false,
                                     },
                                 );
-
-                                const indicatorKey="rsi_sma_"+chartSettings.rsi.length +"_"+ chartSettings.rsi.source+"_"+chartSettings.rsi.smoothingType+"_"+chartSettings.rsi.smoothingLength;
-                                let calculation = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!calculation){
-                                    calculation =
-                                        chartSettings.rsi.smoothingType === "ema"
-                                            ? calculateEMA(
-                                                  rsiChartData,
-                                                  chartSettings.rsi.smoothingLength,
-                                                  "value",
-                                              )
-                                            : calculateSMA(
-                                                  rsiChartData,
-                                                  chartSettings.rsi.smoothingLength,
-                                                  "value",
-                                              );
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, calculation);
-                                }
-
+                                const calculation =
+                                    chartSettings.rsi.smoothingType === "ema"
+                                        ? calculateEMA(
+                                              rsiChartData,
+                                              chartSettings.rsi.smoothingLength,
+                                              "value",
+                                          )
+                                        : calculateSMA(
+                                              rsiChartData,
+                                              chartSettings.rsi.smoothingLength,
+                                              "value",
+                                          );
                                 chartSeries.rsi.ma.setData(calculation);
                                 chartSeriesDataMap.rsi.ma = Object.fromEntries(
                                     calculation.map((bar, index) => [
@@ -21824,12 +21435,10 @@
                                 chartContainers.macd.height,
                             );
 
-                            const indicatorKey="macd_"+chartSettings.macd.source +"_"+ chartSettings.macd.fastLength+"_"+chartSettings.macd.slowLength+"_"+chartSettings.macd.signalLength+"_"+chartSettings.macd.oscMaType+"_"+chartSettings.macd.signalMaType;
-                            let macdChartData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                            if (!macdChartData){
-                                macdChartData = calculateMACD(data,chartSettings.macd);
-                                await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, macdChartData);
-                            }
+                            const macdChartData = calculateMACD(
+                                data,
+                                chartSettings.macd,
+                            );
 
                             chartSeries.macd = {};
                             chartSeriesDataMap.macd = {};
@@ -22190,28 +21799,11 @@
                             }
                         }
 
-                        // Reset button handler.
-                        // IMPORTANT: #resetChart is a static button that lives outside the
-                        // modal body we recreate each time, so it survives every
-                        // openChartModal() call. Attaching a fresh closure to it on every
-                        // call (via addEventListener) without ever removing the previous
-                        // one meant each old closure - and everything it shared a lexical
-                        // scope with (the full price `data` array, chartSeriesDataMap,
-                        // chartSeries, etc.) - stayed reachable forever. Unbinding the
-                        // previous handler before attaching the new one lets that whole
-                        // scope become garbage as soon as the modal is closed/reopened.
+                        // Reset button handler
                         const resetChart =
                             document.querySelector("#resetChart");
                         if (resetChart) {
-                            if (resetChartHandler) {
-                                resetChart.removeEventListener(
-                                    "click",
-                                    resetChartHandler,
-                                );
-                                resetChartHandler = null;
-                            }
-
-                            resetChartHandler = function (e) {
+                            resetChart.addEventListener("click", function (e) {
                                 e.stopPropagation();
 
                                 if (syncingRange) return;
@@ -22234,12 +21826,7 @@
                                         syncingRange = false;
                                     });
                                 }, 100);
-                            };
-
-                            resetChart.addEventListener(
-                                "click",
-                                resetChartHandler,
-                            );
+                            });
                         }
                     } catch (error) {
                         console.error(
@@ -22276,35 +21863,8 @@
                     delete charts[key];
                 }
 
-                // chartSeries and chartSeriesDataMap were only kept alive so the
-                // crosshair handler could look up bar/indicator values by time while
-                // the modal was open. They're not needed once the charts themselves
-                // are gone, and chartSeriesDataMap in particular duplicates the full
-                // price + every indicator series (keyed by timestamp) for the whole
-                // history, so it's the biggest single chunk to release.
-                for (const key in chartSeries) {
-                    delete chartSeries[key];
-                }
-                for (const key in chartSeriesDataMap) {
-                    delete chartSeriesDataMap[key];
-                }
-
-                // Unbind the reset-chart handler too — it closes over chartArray,
-                // fromDate and toDate from this modal instance, so leaving it bound
-                // would keep those (and, transitively, the scope above) reachable
-                // until the next time the modal is opened.
-                const resetChart = document.getElementById("resetChart");
-                if (resetChart && resetChartHandler) {
-                    resetChart.removeEventListener("click", resetChartHandler);
-                }
-                resetChartHandler = null;
-
-                // Drop the tooltip/detail DOM we built for this instance so old
-                // container nodes (and anything referencing them) aren't held onto.
-                const modalBody = document
-                    .getElementById("chartModal")
-                    .querySelector(".settings-modal-body");
-                if (modalBody) modalBody.innerHTML = "";
+                delete charts;
+                delete chartSeries;
 
                 if (window.gc) {
                     gc();
@@ -22395,11 +21955,6 @@
             renderSetupPresetPills(); // populate the Setup Preset pill list
             toggleAlertIcon();
         </script>
-        <!-- Price alert engine: reads/writes localStorage alerts, manages the
-             notification bell modal, and schedules the alert-worker.js
-             Web Worker during market hours. Loaded after the main script so
-             it can see allData, loadAlertSettings(), etc. -->
-        <!--<script src="./helper/alert.js"></script>-->
         <!-- PWA: Install prompt toast -->
         <div class="pwa-toast" id="pwaInstallToast">
             <div class="pwa-toast-icon">📲</div>

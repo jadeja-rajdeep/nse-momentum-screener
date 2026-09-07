@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v71";
+const CACHE_VERSION = "nse-screener-v72";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
@@ -35,7 +35,10 @@ const STATIC_ASSETS = [
     "./assets/img/og-image.png",
     "./assets/img/favicon.svg",
     "./assets/img/favicon-32.png",
-    "./assets/img/favicon.png"
+    "./assets/img/favicon.png",
+    "./helper/indicator-db.js",
+    "./helper/alert.js",
+    "./helper/alert-worker.js"
 ];
 
 // The Bootstrap CSS + Google Fonts CSS URLs, precached into FONT_CACHE at
