@@ -12572,7 +12572,7 @@
                         </div>
                     </div>
 
-                    <!-- AWAY FROM HIGHS -->
+                    <!-- SUPERTREND -->
                     <div class="settings-section">
                         <div class="settings-section-title">
                             SuperTrend (3)
@@ -12589,6 +12589,27 @@
                             <div
                                 class="chart-ma-table"
                                 id="chartSupertrendRows"
+                                style="gap: 8px"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <!-- PIVOT TREND LINE -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">
+                            Pivot Trend Lines (3)
+                        </div>
+                        <div class="chart-ma-table">
+                            <div class="chart-ma-head">
+                                <span></span>
+                                <span>Length</span>
+                                <span>High</span>
+                                <span>Low</span>
+                            </div>
+                            <!-- 3 rows rendered by JS into #chartPivotTrendLineRows -->
+                            <div
+                                class="chart-ma-table"
+                                id="chartPivotTrendLineRows"
                                 style="gap: 8px"
                             ></div>
                         </div>
@@ -15154,6 +15175,12 @@
                         upColor: "#22c55e",
                         downColor: "#ef4444",
                     })),
+                    pivottrendline: [0, 1, 2].map((i) => ({
+                        enabled: false,
+                        length: 10*(i+1),
+                        highColor: "#22c55e",
+                        lowColor: "#ef4444",
+                    })),
                     rsi: {
                         enabled: false,
                         length: 14,
@@ -15302,6 +15329,23 @@
                 wrap.dataset.built = "1";
             }
 
+            function renderChartPivotTrendLineRows() {
+                const wrap = document.getElementById("chartPivotTrendLineRows");
+                if (!wrap || wrap.dataset.built) return;
+                wrap.innerHTML = [0, 1, 2]
+                    .map(
+                        (i) => `
+                    <div class="chart-ma-row">
+                        <input type="checkbox" data-cpath="pivottrendline.${i}.enabled" title="Enable ${i + 1}" />
+                        <input type="number" min="1" step="1" data-cpath="pivottrendline.${i}.length"/>
+                        <input type="color" data-cpath="pivottrendline.${i}.highColor" />
+                        <input type="color" data-cpath="pivottrendline.${i}.lowColor" />
+                    </div>`,
+                    )
+                    .join("");
+                wrap.dataset.built = "1";
+            }
+
             // Fill every <select data-chart-source-select> with the shared
             // source list (RSI / MACD source dropdowns).
             function populateChartSourceSelects() {
@@ -15335,6 +15379,7 @@
                 renderChartMaRows();
                 renderChartAfhRows();
                 renderChartSupertrendRows();
+                renderChartPivotTrendLineRows();
                 populateChartSourceSelects();
                 populateChartSettingsForm(loadChartSettings());
                 document
@@ -20646,23 +20691,21 @@
 
                 const n = data.length;
 
-                // Skip `offsetDays` most recent records, then look back `length` records from there.
-                const endIndex = n - 1 - offsetDays;   // last index to consider (inclusive)
-                const startIndex = endIndex - length + 1; // first index to consider (inclusive)
+                const startIndex = n - offsetDays - 1;
 
-                if (endIndex < 0) {
+                if (startIndex < 1) {
                     // Not enough data even after offset
                     return null;
                 }
 
-                const from = Math.max(0, startIndex);
-                const to = endIndex;
+                const from = startIndex;
+                const to = Math.max(0,(from - length));
 
                 let highestHigh = -Infinity;
                 let highestIndex = -1;
 
                 // Single pass, O(n) — high performance, no allocations, no sorting
-                for (let i = from; i <= to; i++) {
+                for (let i = from; i >= to; i--) {
                     const h = data[i].high;
                     if (h > highestHigh) {
                         highestHigh = h;
@@ -20777,6 +20820,105 @@
               }
 
               return result;
+            }
+
+            function calculateTrendlinePoints(data, length, mode = 'high') {
+                if (!Array.isArray(data) || data.length === 0) {
+                    throw new Error('data must be a non-empty array');
+                }
+                if (!Number.isInteger(length) || length <= 0) {
+                    throw new Error('length must be a positive integer');
+                }
+                if (mode !== 'high' && mode !== 'low') {
+                    throw new Error("mode must be 'high' or 'low'");
+                }
+
+                // find the extreme candle in data.slice(start, end), returning its
+                // *array index* (bar count) along with time/price so the slope can be
+                // calculated in "number of candles" rather than calendar days.
+                function findExtreme(start, end) {
+                    let best = null;
+                    for (let i = start; i < end; i++) {
+                        const candle = data[i];
+                        const price = mode === 'high' ? candle.high : candle.low;
+                        if (
+                        best === null ||
+                        (mode === 'high' ? price > best.price : price < best.price)
+                        ) {
+                            best = { index: i, time: candle.time, price };
+                        }
+                    }
+                    return best;
+                }
+
+                const n = data.length;
+
+                // window1: most recent `length` candles
+                const w1Start = Math.max(0, n - length);
+                // window2: the `length` candles before window1
+                const w2End = w1Start;
+                const w2Start = Math.max(0, w2End - length);
+                // window3: the `length` candles before window2
+                const w3End = w2Start;
+                const w3Start = Math.max(0, w3End - length);
+
+                if (w1Start >= n) {
+                throw new Error('No data available for window1');
+                }
+
+                const P1 = findExtreme(w1Start, n);
+                const P2 = w2End - w2Start > 0 ? findExtreme(w2Start, w2End) : null;
+                const P3 = w3End - w3Start > 0 ? findExtreme(w3Start, w3End) : null;
+
+                const latestIndex = n - 1;
+                const latestTime = data[latestIndex].time;
+
+                // Extends the line through pA -> pB out to the target bar index, using
+                // the NUMBER OF DATA POINTS (bar count) between pivots as the slope's
+                // x-step, rather than actual calendar-day gaps. This way weekends and
+                // holidays (which simply don't appear as rows in the data) don't distort
+                // the slope.
+                function extrapolate(pA, pB, targetIndex, targetTime) {
+                    const barsAB = pB.index - pA.index;
+                    if (barsAB === 0) {
+                        return { time: targetTime, value: pB.price };
+                    }
+                    const slopePerBar = (pB.price - pA.price) / barsAB;
+                    const barsToTarget = targetIndex - pB.index;
+                    const value = pB.price + slopePerBar * barsToTarget;
+                    return { time: targetTime, value };
+                }
+
+                function dedupeByTime(points) {
+                    const seen = new Set();
+                    return points.filter((p) => {
+                        if (seen.has(p.time)) return false;
+                        seen.add(p.time);
+                        return true;
+                    });
+                }
+
+                // Line A: P3 -> P2 -> extended to latest bar (needs both P3 and P2)
+                const lineA =
+                P3 && P2
+                    ? dedupeByTime([
+                        { time: P3.time, value: P3.price },
+                        { time: P2.time, value: P2.price },
+                        extrapolate(P3, P2, latestIndex, latestTime),
+                    ])
+                    : null;
+
+                // Line B: P2 -> P1 -> extended to latest bar (needs both P2 and P1)
+                const lineB =
+                P2 && P1
+                    ? dedupeByTime([
+                        { time: P2.time, value: P2.price },
+                        { time: P1.time, value: P1.price },
+                        extrapolate(P2, P1, latestIndex, latestTime),
+                    ])
+                    : null;
+
+                return { lineA, lineB, pivots: { P1, P2, P3 } };
             }
 
             function hexToRgba(hex, opacity = 1) {
@@ -21146,6 +21288,78 @@
                                         lastValueVisible: false,
                                         priceLineVisible: false,
                                     }).setData(superTrendData.slice(-180));
+                                }
+                            });
+
+                            chartSettings.pivottrendline.forEach(async (pivot, index) => {
+                                if (isThumbChartStale(isin, myGeneration)) return;
+                                if (pivot.enabled == true) {
+
+                                    const indicatorKey='pivottrendline_' + pivot.length +'_high';
+                                    let pivotData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
+                                    if (!pivotData){
+                                        pivotData=calculateTrendlinePoints(data,pivot.length,'high');
+                                        await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, pivotData);
+                                    }
+
+                                    if (isThumbChartStale(isin, myGeneration)) return;
+
+                                    if(pivotData.lineA){
+                                        thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
+                                            color: pivot.highColor,
+                                            lineWidth: 1,
+                                            lineStyle: LightweightCharts.LineStyle.Solid,
+                                            lastValueVisible: true,
+                                            priceLineVisible: false,
+                                            crosshairMarkerVisible: false,
+                                            autoscale: false, // <-- Crucial: Tells the chart to ignore this line when calculating vertical margins
+                                        }).setData(pivotData.lineA);
+                                    }
+
+                                    if(pivotData.lineB){
+                                        thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
+                                            color: pivot.highColor,
+                                            lineWidth: 1,
+                                            lineStyle: LightweightCharts.LineStyle.Solid,
+                                            lastValueVisible: true,
+                                            priceLineVisible: false,
+                                            crosshairMarkerVisible: false,
+                                            autoscale: false, // <-- Crucial: Tells the chart to ignore this line when calculating vertical margins
+                                        }).setData(pivotData.lineB);
+                                    }
+
+                                    const indicatorKeyLow='pivottrendline_' + pivot.length +'_low';
+                                    pivotData = await IndicatorCacheDB.get(isin, indicatorKeyLow, CURRENT_DATA_DATE);
+                                    if (!pivotData){
+                                        pivotData=calculateTrendlinePoints(data,pivot.length,'low');
+                                        await IndicatorCacheDB.set(isin, indicatorKeyLow, CURRENT_DATA_DATE, pivotData);
+                                    }
+
+                                    if (isThumbChartStale(isin, myGeneration)) return;
+
+                                    if(pivotData.lineA){
+                                        thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
+                                            color: pivot.lowColor,
+                                            lineWidth: 1,
+                                            lineStyle: LightweightCharts.LineStyle.Solid,
+                                            lastValueVisible: true,
+                                            priceLineVisible: false,
+                                            crosshairMarkerVisible: false,
+                                            autoscale: false, // <-- Crucial: Tells the chart to ignore this line when calculating vertical margins
+                                        }).setData(pivotData.lineA);
+                                    }
+
+                                    if(pivotData.lineB){
+                                        thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
+                                            color: pivot.lowColor,
+                                            lineWidth: 1,
+                                            lineStyle: LightweightCharts.LineStyle.Solid,
+                                            lastValueVisible: true,
+                                            priceLineVisible: false,
+                                            crosshairMarkerVisible: false,
+                                            autoscale: false, // <-- Crucial: Tells the chart to ignore this line when calculating vertical margins
+                                        }).setData(pivotData.lineB);
+                                    }
                                 }
                             });
 
@@ -21689,7 +21903,6 @@
                         });
 
                         // Add Supertrend to main chart
-
                         chartSettings.supertrend.forEach((supertrend) => {
                             if (supertrend.enabled) {
                                 chartSeries.main.supertrend = {};
@@ -21727,6 +21940,90 @@
                                             {...bar},
                                         ]),
                                     );
+                            }
+                        });
+
+                        //Draw pivot point trend line on price candelstick series
+                        chartSettings.pivottrendline.forEach(async (pivot) => {
+                            if (pivot.enabled && pivot.length>1) {
+                                const indicatorKey='pivottrendline_' + pivot.length+'_high';
+                                let result = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
+                                if (!result){
+                                    result = calculateTrendlinePoints(data, pivot.length,'high');
+                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, result);
+                                }
+
+                                if (result) {
+
+                                    if(result.lineA){
+                                        charts.main.addSeries(
+                                            LightweightCharts.LineSeries,
+                                            {
+                                                color: pivot.highColor,
+                                                lineWidth: 1,
+                                                lineStyle: LightweightCharts.LineStyle.Solid,
+                                                lastValueVisible: false,
+                                                priceLineVisible: false,
+                                                crosshairMarkerVisible: false,
+                                                autoscale: false, // <-- Crucial: Tells the chart to ignore this line when calculating vertical margins
+                                            },
+                                        ).setData(result.lineA);
+                                    }
+
+                                    if(result.lineB){
+                                        charts.main.addSeries(
+                                            LightweightCharts.LineSeries,
+                                            {
+                                                color: pivot.highColor,
+                                                lineWidth: 1,
+                                                lineStyle: LightweightCharts.LineStyle.Solid,
+                                                lastValueVisible: false,
+                                                priceLineVisible: false,
+                                                crosshairMarkerVisible: false,
+                                                autoscale: false, // <-- Crucial: Tells the chart to ignore this line when calculating vertical margins
+                                            },
+                                        ).setData(result.lineB);
+                                    }
+                                }
+
+                                const indicatorKeyLow='pivottrendline_' + pivot.length+'_low';
+                                result = await IndicatorCacheDB.get(isin, indicatorKeyLow, CURRENT_DATA_DATE);
+                                if (!result){
+                                    result = calculateTrendlinePoints(data, pivot.length,'low');
+                                    await IndicatorCacheDB.set(isin, indicatorKeyLow, CURRENT_DATA_DATE, result);
+                                }
+
+                                if (result) {
+                                    if(result.lineA){
+                                        charts.main.addSeries(
+                                            LightweightCharts.LineSeries,
+                                            {
+                                                color: pivot.lowColor,
+                                                lineWidth: 1,
+                                                lineStyle: LightweightCharts.LineStyle.Solid,
+                                                lastValueVisible: false,
+                                                priceLineVisible: false,
+                                                crosshairMarkerVisible: false,
+                                                autoscale: false, // <-- Crucial: Tells the chart to ignore this line when calculating vertical margins
+                                            },
+                                        ).setData(result.lineA);
+                                    }
+
+                                    if(result.lineB){
+                                        charts.main.addSeries(
+                                            LightweightCharts.LineSeries,
+                                            {
+                                                color: pivot.lowColor,
+                                                lineWidth: 1,
+                                                lineStyle: LightweightCharts.LineStyle.Solid,
+                                                lastValueVisible: false,
+                                                priceLineVisible: false,
+                                                crosshairMarkerVisible: false,
+                                                autoscale: false, // <-- Crucial: Tells the chart to ignore this line when calculating vertical margins
+                                            },
+                                        ).setData(result.lineB);
+                                    }
+                                }
                             }
                         });
 
