@@ -13568,7 +13568,7 @@
 
             async function ensureIndicatorCacheFreshness(currentDataDate) {
               const storedDate = await IndicatorCacheDB.getAnyStoredDate();
-              if (storedDate !== null && storedDate !== currentDataDate) {
+              if (storedDate !== currentDataDate) {
                 await IndicatorCacheDB.clearAll(); // whole cache stale, wipe fast
               }
             }
@@ -13584,11 +13584,6 @@
                         raw = await res.json();
                     }
 
-                    CURRENT_DATA_DATE=raw[0].Date;
-
-                    //clear chart indicator data from indexdb if date is not same.
-                    ensureIndicatorCacheFreshness(CURRENT_DATA_DATE);
-
                     let rows = [];
                     for (const block of raw) {
                         if (block.type === "table" && block.data) {
@@ -13597,6 +13592,10 @@
                         }
                     }
                     if (!rows.length) throw new Error("No data found in JSON");
+
+                    CURRENT_DATA_DATE = rows[0]?.Date;
+                    //clear chart indicator data from indexdb if date is not same.
+                    ensureIndicatorCacheFreshness(CURRENT_DATA_DATE);
 
                     allData = rows;
 
