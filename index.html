@@ -1208,6 +1208,13 @@
             tbody tr.tradable-row:hover {
                 background: rgba(0, 212, 170, 0.09);
             }
+            tbody td {
+                padding: 7px 10px;
+                vertical-align: middle;
+                white-space: nowrap;
+                color: var(--text);
+            }
+
             #mainTable{
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: thin; /* Firefox */
@@ -1216,24 +1223,18 @@
             #mainTable tbody > tr:hover {
                 background: rgba(0, 212, 170, 0.09);
             }
-            tbody td {
-                padding: 7px 10px;
-                vertical-align: middle;
-                white-space: nowrap;
-                color: var(--text);
-            }
 
             /* sticky first two columns */
-            th:nth-child(1),
-            td:nth-child(1) {
+            #mainTable th:nth-child(1),
+            #mainTable td:nth-child(1) {
                 position: sticky;
                 left: 0;
                 z-index: 5;
                 background: var(--surface);
                 min-width: 90px;
             }
-            th:nth-child(2),
-            td:nth-child(2) {
+            #mainTable th:nth-child(2),
+            #mainTable td:nth-child(2) {
                 position: sticky;
                 left: 90px;
                 z-index: 5;
@@ -1242,10 +1243,10 @@
                 border-right: 1px solid var(--border);
             }
             /* corner cells: sticky both row + col — must be above everything */
-            thead th:nth-child(1) {
+            #mainTable thead th:nth-child(1) {
                 z-index: 20;
             }
-            thead th:nth-child(2) {
+            #mainTable thead th:nth-child(2) {
                 z-index: 20;
             }
             #mainTable > tbody > tr:not(.chart-row):hover > td:nth-child(1),
@@ -3863,7 +3864,7 @@
                 left: 0;
                 display: inline-block; /* so sticky has a real box to stick, not the full row width */
             }
-            .thumb-chart .fullscreen-btn {
+            .thumb-chart .fullscreen-btn,.thumb-chart .financial-btn {
                 position: absolute;
                 top: 5px;
                 left: 50%;
@@ -3886,7 +3887,11 @@
                 transition: all 0.2s ease;
             }
 
-            .thumb-chart .fullscreen-btn:hover {
+            .thumb-chart .financial-btn{
+                left: calc(50% + 35px) !important;
+            }
+
+            .thumb-chart .fullscreen-btn:hover,.thumb-chart .financial-btn:hover {
                 font-size: 20px;
             }
 
@@ -3999,6 +4004,23 @@
                 #chartModal .detail-grid {
                   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
                 }
+            }
+
+            #chartModal .chart-financial-data {
+              display: none;
+              position: absolute;
+              inset: 0;              /* top/right/bottom/left: 0 */
+              height: 100%;          /* not min-height — locks to parent's box */
+              width: 100%;
+              z-index: 9999;
+              background: var(--bg);
+              overflow-y: auto;      /* scroll happens INSIDE this element */
+              align-content: start;  /* prevents grid rows from stretching to fill height */
+              padding: 20px;
+              box-sizing: border-box;
+            }
+            #chartModal .chart-financial-data.open {
+                display: block !important;
             }
         </style>
 
@@ -7508,6 +7530,28 @@
                 Next ›
             </button>
             <span class="page-info" id="pageInfo"></span>
+        </div>
+
+        <!-- FINANCIAL MODAL -->
+        <div
+            class="peer-modal-overlay"
+            id="financialModal"
+            onclick="closeFinancialModalOnOverlay(event)"
+        >
+            <div class="peer-modal">
+                <div class="peer-modal-header">
+                    <div>
+                        <div class="peer-modal-title" id="financialModalTitle">
+                            Financials
+                        </div>
+                        <div class="peer-modal-meta" id="financialModalMeta"></div>
+                    </div>
+                    <button class="peer-modal-close" onclick="closeFinancialModal()">
+                        ✕
+                    </button>
+                </div>
+                <div class="peer-modal-body" id="financialModalBody">Loading...</div>
+            </div>
         </div>
 
         <!-- PEER MODAL -->
@@ -12806,14 +12850,24 @@
                             Script Full Name Goes Here
                         </div>
                     </div>
+
                     <button
                         class="peer-modal-close text-info border-info bg-info ms-auto"
+                        style="--bs-bg-opacity: 0.1"
+                        id="toggelChartFinancialDetail"
+                        onclick="toggelChartFinancialDetail(this)"
+                    >
+                        🗠
+                    </button>
+                    <button
+                        class="peer-modal-close text-info border-info bg-info"
                         style="--bs-bg-opacity: 0.1"
                         id="toggelChartDetail"
                         onclick="toggelChartDetail()"
                     >
                         ▤
                     </button>
+
                     <div class="btn-group btn-group-sm" role="group" aria-label="Pre Next">
                       <button type="button" class="btn btn-outline-primary chartmodal-prev-btn">&larr;</button>
                       <button type="button" class="btn btn-outline-primary chartmodal-next-btn">&rarr;</button>
@@ -13442,6 +13496,7 @@
 
             const DATA_CACHE_NAME = "nse-screener-data-v1"; // must match sw.js DATA_CACHE
             const CHART_CACHE_NAME = "nse-screener-chart-v1"; // must match sw.js CHART_CACHE
+            const FINANCIAL_CACHE_NAME = "nse-screener-financial-v1"; // must match sw.js CHART_CACHE
             const NSE_PUBLISH_HOUR_IST = 17; // NSE publishes updated data ~5 PM IST after market close
 
             // Get current date/time in IST (Asia/Kolkata), independent of the
@@ -13554,6 +13609,7 @@
                         // continuing to serve yesterday's candles.
                         if ("caches" in window) {
                             caches.delete(CHART_CACHE_NAME);
+                            caches.delete(FINANCIAL_CACHE_NAME);
                         }
                         return null;
                     }
@@ -15746,7 +15802,10 @@
                             chartTr = `
                                 <tr class="chart-row">
                                     <td colspan="82" class="chart-cell">
-                                        <div class="thumb-chart" data-isin="${r["ISIN"]}"><button class="fullscreen-btn" title="Full Screen" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">⛶</button></div>
+                                        <div class="thumb-chart" data-isin="${r["ISIN"]}">
+                                            <button class="fullscreen-btn" title="Full Screen" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">⛶</button>
+                                            <button class="financial-btn" title="Financial" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">🗠</button>
+                                        </div>
                                     </td>
                                 </tr>
                             `;
@@ -16319,6 +16378,115 @@
               </div>`;
             }
 
+            // ============ FINANCIAL MODAL ============
+
+            // Renders a value cell colored per the shared chng-pos/chng-neg/chng-neu theme classes.
+            function finValCell(v, decimals = 2, suffix = "") {
+                const n = parseFloat(v);
+                if (v === undefined || v === null || isNaN(n)) {
+                    return '<span class="chng-neu">—</span>';
+                }
+                return `<span class="${chngClass(n)}">${n.toFixed(decimals)}${suffix}</span>`;
+            }
+
+            function renderFinancialTable(rows) {
+                const cols = [
+                    { label: "Time", key: (r) => r.time || "—" },
+                    { label: "Sales", key: (r) => r.sales.toFixed(2) },
+                    { label: "EPS", key: (r) => r.eps.toFixed(2) },
+                    { label: "Sales %", key: (r) => finValCell(r.sales_per, 2, "%") },
+                    { label: "EPS %", key: (r) => finValCell(r.eps_per, 2, "%") },
+                    {
+                        label: "Sales % QoQ",
+                        key: (r) => finValCell(r.sales_per_qoq, 2, "%"),
+                    },
+                    {
+                        label: "EPS % QoQ",
+                        key: (r) => finValCell(r.eps_per_qoq, 2, "%"),
+                    },
+                ];
+
+                const ths = cols.map((c) => `<th>${c.label}</th>`).join("");
+
+                let trs;
+                if (!rows || rows.length === 0) {
+                    trs = `<tr><td colspan="${cols.length}" style="text-align:center;color:var(--muted)">No records found</td></tr>`;
+                } else {
+                    trs = rows
+                        .map((r) => {
+                            const tds = cols
+                                .map((c) => `<td>${c.key(r)}</td>`)
+                                .join("");
+                            return `<tr>${tds}</tr>`;
+                        })
+                        .join("");
+                }
+
+                return `
+              <div class="peer-table-wrap">
+                <table class="peer-table">
+                  <thead><tr>${ths}</tr></thead>
+                  <tbody>${trs}</tbody>
+                </table>
+              </div>`;
+            }
+
+            async function loadFinancialTable(isin, el) {
+                if (!el) return;
+
+                // Clear the target element before inserting new content.
+                el.innerHTML = "Loading...";
+
+                let rows = [];
+                try {
+                    const response = await fetch(
+                        `data/financial/${isin}.json`,
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    rows = Array.isArray(data) ? data : [];
+                } catch (err) {
+                    console.error(
+                        `Failed to load financial data for ${isin}:`,
+                        err,
+                    );
+                    rows = [];
+                }
+
+                el.innerHTML = renderFinancialTable(rows);
+            }
+
+            function openFinancialModal(isin, title, meta) {
+                document.getElementById("financialModalTitle").textContent =
+                    title || "Financials";
+                document.getElementById("financialModalMeta").textContent =
+                    meta || isin || "";
+
+                document.getElementById("financialModal").classList.add("open");
+                document.body.style.overflow = "hidden";
+
+                loadFinancialTable(
+                    isin,
+                    document.getElementById("financialModalBody"),
+                );
+            }
+
+            function closeFinancialModal() {
+                document
+                    .getElementById("financialModal")
+                    .classList.remove("open");
+                document.body.style.overflow = "";
+            }
+
+            function closeFinancialModalOnOverlay(e) {
+                if (e.target === document.getElementById("financialModal"))
+                    closeFinancialModal();
+            }
+
             function closePeerModal() {
                 document.getElementById("peerModal").classList.remove("open");
                 document.body.style.overflow = "";
@@ -16332,6 +16500,7 @@
             // Close on Escape key
             document.addEventListener("keydown", (e) => {
                 if (e.key === "Escape") {
+                    closeFinancialModal();
                     closePeerModal();
                     closeSaveModal();
                     closeTvModal();
@@ -21461,7 +21630,15 @@
             document.querySelector('.chartmodal-prev-btn').addEventListener('click', () => goToSiblingFullScreenBtn(-1));
             document.querySelector('.chartmodal-next-btn').addEventListener('click', () => goToSiblingFullScreenBtn(1));
 
+            function toggelChartFinancialDetail(el){
+                document.querySelector('#chartModal #detailGrid').classList.remove('open');
+                const chartFinancialData=document.querySelector('#chartModal #chartFinancialData');
+                loadFinancialTable(el.dataset.isin,chartFinancialData);
+                chartFinancialData.classList.toggle('open');
+            }
+
             function toggelChartDetail(){
+                document.querySelector('#chartModal #chartFinancialData').classList.remove('open');
                 document.querySelector('#chartModal #detailGrid').classList.toggle('open');
             }
 
@@ -21477,6 +21654,8 @@
                     goToSiblingFullScreenBtn(1);
                 }else if (e.key === 'd' || e.key === 'D' || e.key === 'i' || e.key === 'I') {
                     toggelChartDetail();
+                }else if (e.key === 'f' || e.key === 'F') {
+                    toggelChartFinancialDetail(document.querySelector("#chartModal #toggelChartFinancialDetail"));
                 }
             });
 
@@ -21529,9 +21708,15 @@
             function openChartModal(Caller) {
                 currentFullScreenBtn=Caller;
 
+                const isin = Caller.dataset.isin;
+                const code = Caller.dataset.code;
+                const name = Caller.dataset.name;
+
+                document.getElementById('toggelChartFinancialDetail').dataset.isin=isin;
+
                 const chartSettings = getChartSettings();
                 const chartModal = document.getElementById("chartModal");
-                chartModal.querySelector(".settings-modal-body").innerHTML = `<div class="detail-grid" id="detailGrid"></div>`;
+                chartModal.querySelector(".settings-modal-body").innerHTML = `<div class="detail-grid" id="detailGrid"></div><div class="chart-financial-data" id="chartFinancialData"></div>`;
 
                 generateChartDetails(Caller);
 
@@ -21590,10 +21775,6 @@
                     };
                     otherChartHeight += screenHeight * 0.15;
                 }
-
-                const isin = Caller.dataset.isin;
-                const code = Caller.dataset.code;
-                const name = Caller.dataset.name;
 
                 document.querySelector(
                     "#chartModal .settings-modal-title",
@@ -22675,11 +22856,15 @@
                         window.open(url, "_blank", "noopener");
                     }
 
-                    const thumbChartFullScreenBtn =
-                        e.target.closest(".fullscreen-btn");
+                    const thumbChartFullScreenBtn = e.target.closest(".fullscreen-btn");
                     if (thumbChartFullScreenBtn) {
                         //open the full chart modal here.
                         openChartModal(thumbChartFullScreenBtn);
+                    }
+
+                    const thumbChartFinancialBtn = e.target.closest(".financial-btn");
+                    if (thumbChartFinancialBtn) {
+                        openFinancialModal(thumbChartFinancialBtn.dataset.isin, thumbChartFinancialBtn.dataset.code + ' - ' + thumbChartFinancialBtn.dataset.name, 'Financial Information');
                     }
                 });
 

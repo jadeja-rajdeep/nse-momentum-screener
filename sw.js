@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v74";
+const CACHE_VERSION = "nse-screener-v75";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
@@ -21,6 +21,7 @@ const DATA_CACHE = "nse-screener-data-v1";
 // network round-trip on every single chart open in between.
 // Keep this name in sync with CHART_CACHE_NAME in index.html.
 const CHART_CACHE = "nse-screener-chart-v1";
+const FINANCIAL_CACHE = "nse-screener-financial-v1";
 
 // Fonts (and the CSS that declares them) rarely change and are identical
 // across app versions, so they get their own cache that is NEVER deleted
@@ -102,7 +103,8 @@ self.addEventListener("activate", (event) => {
                                 k !== CACHE_VERSION &&
                                 k !== DATA_CACHE &&
                                 k !== FONT_CACHE &&
-                                k !== CHART_CACHE,
+                                k !== CHART_CACHE &&
+                                k !== FINANCIAL_CACHE
                         )
                         .map((k) => {
                             console.log("[SW] Deleting old cache:", k);
@@ -135,6 +137,9 @@ self.addEventListener("fetch", (event) => {
     // in index.html), so whatever's cached here is trusted as-is.
     if (url.pathname.includes("/data/chart/") && url.pathname.endsWith(".json")) {
         event.respondWith(cacheFirst(event.request, CHART_CACHE));
+        return;
+    }else if (url.pathname.includes("/data/financial/") && url.pathname.endsWith(".json")) {
+        event.respondWith(cacheFirst(event.request, FINANCIAL_CACHE));
         return;
     }
 
