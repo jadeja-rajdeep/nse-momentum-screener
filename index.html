@@ -3889,6 +3889,7 @@
 
             .thumb-chart .financial-btn{
                 left: calc(50% + 35px) !important;
+                padding: 6px 4px;
             }
 
             .thumb-chart .fullscreen-btn:hover,.thumb-chart .financial-btn:hover {
@@ -6347,6 +6348,98 @@
                                     />
                                 </div>
                             </div>
+
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">
+                                    EPS Latest Qtr QoQ %
+                                </div>
+                                <div class="range-group">
+                                    <input
+                                        class="form-control"
+                                        id="f_epsq1_min"
+                                        oninput="applyFilters()"
+                                        placeholder="Min"
+                                        type="number"
+                                    />
+                                    <span class="range-sep">–</span>
+                                    <input
+                                        class="form-control"
+                                        id="f_epsq1_max"
+                                        oninput="applyFilters()"
+                                        placeholder="Max"
+                                        type="number"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">
+                                    Sales Latest Qtr QoQ %
+                                </div>
+                                <div class="range-group">
+                                    <input
+                                        class="form-control"
+                                        id="f_salq1_min"
+                                        oninput="applyFilters()"
+                                        placeholder="Min"
+                                        type="number"
+                                    />
+                                    <span class="range-sep">–</span>
+                                    <input
+                                        class="form-control"
+                                        id="f_salq1_max"
+                                        oninput="applyFilters()"
+                                        placeholder="Max"
+                                        type="number"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">
+                                    EPS Prev Qtr QoQ %
+                                </div>
+                                <div class="range-group">
+                                    <input
+                                        class="form-control"
+                                        id="f_epsq2_min"
+                                        oninput="applyFilters()"
+                                        placeholder="Min"
+                                        type="number"
+                                    />
+                                    <span class="range-sep">–</span>
+                                    <input
+                                        class="form-control"
+                                        id="f_epsq2_max"
+                                        oninput="applyFilters()"
+                                        placeholder="Max"
+                                        type="number"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-3 col-xl-2">
+                                <div class="filter-label">
+                                    Sales Prev Qtr QoQ %
+                                </div>
+                                <div class="range-group">
+                                    <input
+                                        class="form-control"
+                                        id="f_salq2_min"
+                                        oninput="applyFilters()"
+                                        placeholder="Min"
+                                        type="number"
+                                    />
+                                    <span class="range-sep">–</span>
+                                    <input
+                                        class="form-control"
+                                        id="f_salq2_max"
+                                        oninput="applyFilters()"
+                                        placeholder="Max"
+                                        type="number"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -7510,6 +7603,34 @@
                             onclick="sortBy('Sales Prev Qtr %')"
                         >
                             Sales Q2%
+                        </th>
+                        <th
+                            class="num"
+                            data-col="epsq1"
+                            onclick="sortBy('EPS Latest Qtr QoQ %')"
+                        >
+                            EPS QoQ1%
+                        </th>
+                        <th
+                            class="num"
+                            data-col="salq1"
+                            onclick="sortBy('Sales Latest Qtr QoQ %')"
+                        >
+                            Sales QoQ1%
+                        </th>
+                        <th
+                            class="num"
+                            data-col="epsq2"
+                            onclick="sortBy('EPS Prev Qtr QoQ %')"
+                        >
+                            EPS QoQ2%
+                        </th>
+                        <th
+                            class="num"
+                            data-col="salq2"
+                            onclick="sortBy('Sales Prev Qtr QoQ %')"
+                        >
+                            Sales QoQ2%
                         </th>
                         <th data-col="allindex" class="col-allindex">
                             All Index
@@ -9413,6 +9534,17 @@
                                         highest-quality fundamental combination.
                                     </li>
                                     <li>
+                                        <strong>EPS QoQ1% / QoQ2%</strong> —
+                                        sequential (quarter-over-quarter) EPS
+                                        growth for the latest and previous
+                                        reported quarters.
+                                    </li>
+                                    <li>
+                                        <strong>Sales QoQ1% / QoQ2%</strong> —
+                                        sequential (quarter-over-quarter) revenue
+                                        growth, same basis as EPS QoQ1%/QoQ2%.
+                                    </li>
+                                    <li>
                                         <strong>Holdings %</strong> — three
                                         values in one cell: P = Promoter %, E =
                                         Employee Trust %, D = Public (Diffuse)
@@ -9887,8 +10019,9 @@
                                 </ul>
                                 <p style="margin-top: 8px">
                                     Each row shows: Code, Name, RS Total badge,
-                                    EPS Q1%/Q2%, Sales Q1%/Q2%, Market Cap,
-                                    Price Band, and 1M/3M Linearity.
+                                    EPS Q1%/Q2%, Sales Q1%/Q2%, EPS QoQ1%/QoQ2%,
+                                    Sales QoQ1%/QoQ2%, Market Cap, Price Band,
+                                    and 1M/3M Linearity.
                                 </p>
                             </div>
                             <div class="help-block">
@@ -12480,6 +12613,30 @@
                             </div>
                             <div class="col-6 col-sm-4 col-md-3">
                                 <label class="abv-check-item">
+                                    <input type="checkbox" data-col="epsq1" />
+                                    <span>EPS QoQ1%</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="salq1" />
+                                    <span>Sales QoQ1%</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="epsq2" />
+                                    <span>EPS QoQ2%</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" data-col="salq2" />
+                                    <span>Sales QoQ2%</span>
+                                </label>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3">
+                                <label class="abv-check-item">
                                     <input
                                         type="checkbox"
                                         data-col="allindex"
@@ -12857,7 +13014,7 @@
                         id="toggelChartFinancialDetail"
                         onclick="toggelChartFinancialDetail(this)"
                     >
-                        🗠
+                        🧾
                     </button>
                     <button
                         class="peer-modal-close text-info border-info bg-info"
@@ -14158,6 +14315,14 @@
                 const sal1Max = gn("f_sal1_max");
                 const sal2Min = gn("f_sal2_min");
                 const sal2Max = gn("f_sal2_max");
+                const epsq1Min = gn("f_epsq1_min");
+                const epsq1Max = gn("f_epsq1_max");
+                const salq1Min = gn("f_salq1_min");
+                const salq1Max = gn("f_salq1_max");
+                const epsq2Min = gn("f_epsq2_min");
+                const epsq2Max = gn("f_epsq2_max");
+                const salq2Min = gn("f_salq2_min");
+                const salq2Max = gn("f_salq2_max");
 
                 const volAbv = gc("f_vol_abv");
                 const toAbv = gc("f_to_abv");
@@ -14650,6 +14815,30 @@
                     if (sal2Max !== null && (isNaN(sal2) || sal2 > sal2Max))
                         return false;
 
+                    const epsq1 = parseFloat(r["EPS Latest Qtr QoQ %"]);
+                    if (epsq1Min !== null && (isNaN(epsq1) || epsq1 < epsq1Min))
+                        return false;
+                    if (epsq1Max !== null && (isNaN(epsq1) || epsq1 > epsq1Max))
+                        return false;
+
+                    const salq1 = parseFloat(r["Sales Latest Qtr QoQ %"]);
+                    if (salq1Min !== null && (isNaN(salq1) || salq1 < salq1Min))
+                        return false;
+                    if (salq1Max !== null && (isNaN(salq1) || salq1 > salq1Max))
+                        return false;
+
+                    const epsq2 = parseFloat(r["EPS Prev Qtr QoQ %"]);
+                    if (epsq2Min !== null && (isNaN(epsq2) || epsq2 < epsq2Min))
+                        return false;
+                    if (epsq2Max !== null && (isNaN(epsq2) || epsq2 > epsq2Max))
+                        return false;
+
+                    const salq2 = parseFloat(r["Sales Prev Qtr QoQ %"]);
+                    if (salq2Min !== null && (isNaN(salq2) || salq2 < salq2Min))
+                        return false;
+                    if (salq2Max !== null && (isNaN(salq2) || salq2 > salq2Max))
+                        return false;
+
                     if (volAbv && r["Volume Above Avg"] !== "Yes") return false;
                     if (toAbv && r["Turnover Above Avg"] !== "Yes")
                         return false;
@@ -14929,6 +15118,14 @@
                     "f_sal1_max",
                     "f_sal2_min",
                     "f_sal2_max",
+                    "f_epsq1_min",
+                    "f_epsq1_max",
+                    "f_salq1_min",
+                    "f_salq1_max",
+                    "f_epsq2_min",
+                    "f_epsq2_max",
+                    "f_salq2_min",
+                    "f_salq2_max",
                 ].forEach((id) => {
                     const el = document.getElementById(id);
                     if (el) el.value = "";
@@ -15083,6 +15280,10 @@
                 eps2: true,
                 sales1: true,
                 sales2: true,
+                epsq1: true,
+                salq1: true,
+                epsq2: true,
+                salq2: true,
                 allindex: false,
             };
 
@@ -15603,6 +15804,10 @@
                     "EPS Prev Qtr %",
                     "Sales Latest Qtr %",
                     "Sales Prev Qtr %",
+                    "EPS Latest Qtr QoQ %",
+                    "Sales Latest Qtr QoQ %",
+                    "EPS Prev Qtr QoQ %",
+                    "Sales Prev Qtr QoQ %",
                     "All Index",
                 ];
                 const idx = cols.indexOf(col);
@@ -15804,7 +16009,7 @@
                                     <td colspan="82" class="chart-cell">
                                         <div class="thumb-chart" data-isin="${r["ISIN"]}">
                                             <button class="fullscreen-btn" title="Full Screen" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">⛶</button>
-                                            <button class="financial-btn" title="Financial" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">🗠</button>
+                                            <button class="financial-btn" title="Financial" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">🧾</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -16080,6 +16285,10 @@
                             <td data-col="eps2" class="${chngClass(r["EPS Prev Qtr %"])} num">${chngStr(r["EPS Prev Qtr %"], 0)}</td>
                             <td data-col="sales1" class="${chngClass(r["Sales Latest Qtr %"])} num">${chngStr(r["Sales Latest Qtr %"], 0)}</td>
                             <td data-col="sales2" class="${chngClass(r["Sales Prev Qtr %"])} num">${chngStr(r["Sales Prev Qtr %"], 0)}</td>
+                            <td data-col="epsq1" class="${chngClass(r["EPS Latest Qtr QoQ %"])} num">${chngStr(r["EPS Latest Qtr QoQ %"], 0)}</td>
+                            <td data-col="salq1" class="${chngClass(r["Sales Latest Qtr QoQ %"])} num">${chngStr(r["Sales Latest Qtr QoQ %"], 0)}</td>
+                            <td data-col="epsq2" class="${chngClass(r["EPS Prev Qtr QoQ %"])} num">${chngStr(r["EPS Prev Qtr QoQ %"], 0)}</td>
+                            <td data-col="salq2" class="${chngClass(r["Sales Prev Qtr QoQ %"])} num">${chngStr(r["Sales Prev Qtr QoQ %"], 0)}</td>
                             <td data-col="allindex" class="all-index-cell col-allindex">${formatAllIndex(r["All Index"])}</td>
                         </tr>
                         ${chartTr}
@@ -16331,6 +16540,26 @@
                         label: "Sales Q2%",
                         key: (r) =>
                             `<span class="${chngClass(r["Sales Prev Qtr %"])} num">${chngStr(r["Sales Prev Qtr %"], 0)}</span>`,
+                    },
+                    {
+                        label: "EPS QoQ1%",
+                        key: (r) =>
+                            `<span class="${chngClass(r["EPS Latest Qtr QoQ %"])} num">${chngStr(r["EPS Latest Qtr QoQ %"], 0)}</span>`,
+                    },
+                    {
+                        label: "Sales QoQ1%",
+                        key: (r) =>
+                            `<span class="${chngClass(r["Sales Latest Qtr QoQ %"])} num">${chngStr(r["Sales Latest Qtr QoQ %"], 0)}</span>`,
+                    },
+                    {
+                        label: "EPS QoQ2%",
+                        key: (r) =>
+                            `<span class="${chngClass(r["EPS Prev Qtr QoQ %"])} num">${chngStr(r["EPS Prev Qtr QoQ %"], 0)}</span>`,
+                    },
+                    {
+                        label: "Sales QoQ2%",
+                        key: (r) =>
+                            `<span class="${chngClass(r["Sales Prev Qtr QoQ %"])} num">${chngStr(r["Sales Prev Qtr QoQ %"], 0)}</span>`,
                     },
                     {
                         label: "MCap Cr",
@@ -17249,6 +17478,14 @@
                 { id: "f_sal1_max", type: "num" },
                 { id: "f_sal2_min", type: "num" },
                 { id: "f_sal2_max", type: "num" },
+                { id: "f_epsq1_min", type: "num" },
+                { id: "f_epsq1_max", type: "num" },
+                { id: "f_salq1_min", type: "num" },
+                { id: "f_salq1_max", type: "num" },
+                { id: "f_epsq2_min", type: "num" },
+                { id: "f_epsq2_max", type: "num" },
+                { id: "f_salq2_min", type: "num" },
+                { id: "f_salq2_max", type: "num" },
                 { id: "f_vol_abv", type: "check" },
                 { id: "f_to_abv", type: "check" },
                 { id: "f_del_abv", type: "check" },
@@ -17392,6 +17629,14 @@
                 f_sal1_max: "Sales Q1 Max",
                 f_sal2_min: "Sales Q2 Min",
                 f_sal2_max: "Sales Q2 Max",
+                f_epsq1_min: "EPS QoQ1 Min",
+                f_epsq1_max: "EPS QoQ1 Max",
+                f_salq1_min: "Sales QoQ1 Min",
+                f_salq1_max: "Sales QoQ1 Max",
+                f_epsq2_min: "EPS QoQ2 Min",
+                f_epsq2_max: "EPS QoQ2 Max",
+                f_salq2_min: "Sales QoQ2 Min",
+                f_salq2_max: "Sales QoQ2 Max",
                 f_vol_abv: "Vol Above Avg",
                 f_to_abv: "Turnover Above Avg",
                 f_del_abv: "Delivery Above Avg",
@@ -17711,6 +17956,30 @@
                     label: "Sales Prev Qtr %",
                     type: "number",
                     get: (r) => parseFloat(r["Sales Prev Qtr %"]),
+                },
+                {
+                    name: "EPS_QOQ1",
+                    label: "EPS Latest Qtr QoQ %",
+                    type: "number",
+                    get: (r) => parseFloat(r["EPS Latest Qtr QoQ %"]),
+                },
+                {
+                    name: "SALES_QOQ1",
+                    label: "Sales Latest Qtr QoQ %",
+                    type: "number",
+                    get: (r) => parseFloat(r["Sales Latest Qtr QoQ %"]),
+                },
+                {
+                    name: "EPS_QOQ2",
+                    label: "EPS Prev Qtr QoQ %",
+                    type: "number",
+                    get: (r) => parseFloat(r["EPS Prev Qtr QoQ %"]),
+                },
+                {
+                    name: "SALES_QOQ2",
+                    label: "Sales Prev Qtr QoQ %",
+                    type: "number",
+                    get: (r) => parseFloat(r["Sales Prev Qtr QoQ %"]),
                 },
                 {
                     name: "BI_RANK_PCT",
@@ -18843,6 +19112,10 @@
                     if (!chk("f_eps2", "EPS Prev Qtr %")) return false;
                     if (!chk("f_sal1", "Sales Latest Qtr %")) return false;
                     if (!chk("f_sal2", "Sales Prev Qtr %")) return false;
+                    if (!chk("f_epsq1", "EPS Latest Qtr QoQ %")) return false;
+                    if (!chk("f_salq1", "Sales Latest Qtr QoQ %")) return false;
+                    if (!chk("f_epsq2", "EPS Prev Qtr QoQ %")) return false;
+                    if (!chk("f_salq2", "Sales Prev Qtr QoQ %")) return false;
                     if (!chk1("f_lin3m_min", "3 Month Linearity >= 0.5"))
                         return false;
                     if (!chk1("f_lin1m_min", "1 Month Linearity >= 0.5"))
