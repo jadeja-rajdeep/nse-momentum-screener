@@ -1,6 +1,18 @@
 <!doctype html>
 <html lang="en-IN" data-theme="dark">
     <head>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-98EDPVMLG7"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag("js", new Date());
+
+            gtag("config", "G-98EDPVMLG7");
+        </script>
+
         <script>
             (function () {
                 try {
@@ -154,20 +166,6 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link rel="preconnect" href="https://unpkg.com" crossorigin />
 
-        <link
-            rel="preload"
-            as="style"
-            crossorigin
-            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;600;700&display=swap"
-        />
-        <link
-            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;600;700&display=swap"
-            rel="stylesheet"
-            crossorigin
-            media="print"
-            onload="this.media = 'all'"
-        />
-
         <!--
             Bootstrap CSS + Google Fonts are loaded non-render-blocking:
             they're fetched with low priority (media="print") and swapped
@@ -188,7 +186,19 @@
             media="print"
             onload="this.media = 'all'"
         />
-
+        <link
+            rel="preload"
+            as="style"
+            crossorigin
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;600;700&display=swap"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;600;700&display=swap"
+            rel="stylesheet"
+            crossorigin
+            media="print"
+            onload="this.media = 'all'"
+        />
         <noscript>
             <link
                 href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -202,20 +212,6 @@
             />
         </noscript>
         <style>
-            /* Critical-path copies of the Bootstrap utility classes used in the
-            above-the-fold header/toolbar, so layout is correct on first paint
-            even before bootstrap.min.css finishes loading. Values match
-            Bootstrap 5.3.3 exactly, so there is no visual change once the
-            real stylesheet swaps in. */
-            .d-flex { display: flex !important; }
-            .align-items-start { align-items: flex-start !important; }
-            .align-items-center { align-items: center !important; }
-            .justify-content-between { justify-content: space-between !important; }
-            .flex-wrap { flex-wrap: wrap !important; }
-            .flex-nowrap { flex-wrap: nowrap !important; }
-            .gap-2 { gap: 0.5rem !important; }
-            .ms-auto { margin-left: auto !important; }
-
             :root {
                 --bg: #0b0f1a;
                 --surface: #111827;
@@ -1049,7 +1045,7 @@
                 align-items: center;
                 gap: 6px;
                 font-family: var(--sans);
-                transition: border-color 0.2s, color 0.2s;
+                transition: all 0.2s;
             }
             .btn-toggle-filters:hover {
                 border-color: var(--accent);
@@ -1070,7 +1066,7 @@
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
-                transition: border-color 0.2s, color 0.2s, background 0.2s;
+                transition: all 0.2s;
             }
             .btn-icon-only:hover {
                 border-color: #1d9bf0;
@@ -1363,7 +1359,7 @@
                 padding: 4px 12px;
                 border-radius: 5px;
                 cursor: pointer;
-                transition: border-color 0.15s, color 0.15s, background 0.15s;
+                transition: all 0.15s;
                 font-family: var(--mono);
             }
             .btn-page:hover,
@@ -3704,18 +3700,12 @@
             }
 
             /* all index cell */
-            .all-index-wrap {
-                display: flex;
-                flex-direction: row;
-                flex-shrink: 1;
-                flex-wrap: wrap;
-                max-height: 40px;
-                overflow: auto;
-            }
             .all-index-cell {
                 font-size: 10px;
                 color: var(--muted);
+                max-width: 160px;
                 white-space: normal;
+                line-height: 1.5;
             }
             .index-tag {
                 display: inline-block;
@@ -3873,8 +3863,6 @@
                 position: sticky;
                 left: 0;
                 display: inline-block; /* so sticky has a real box to stick, not the full row width */
-                width:100vw;
-                height: calc(100vh - 295px); /*299.2px*/
             }
             .thumb-chart .fullscreen-btn,.thumb-chart .financial-btn {
                 position: absolute;
@@ -4348,7 +4336,7 @@
                                                     type="checkbox"
                                                     value="0"
                                                 /><span class="msel-opt-label"
-                                                    >0%</span
+                                                    >0% (No Limit)</span
                                                 ></label
                                             >
                                             <label class="msel-opt"
@@ -13372,7 +13360,7 @@
                 return String(v)
                     .split("\n")
                     .map((s) => s.trim())
-                    .filter((s) => s && s !== "-" && s !== "—");
+                    .filter(Boolean);
             }
 
             function mselSetOptions(field, options) {
@@ -15987,15 +15975,10 @@
                 const tags = v
                     .split("\n")
                     .map((s) => s.trim())
-                    .filter((s) => s && s !== "-" && s !== "—"); // drop empty/placeholder lines
-
-                if (!tags.length) return '<span style="color:var(--muted)">—</span>';
-
-                const tagHtml = tags
+                    .filter(Boolean);
+                return tags
                     .map((t) => `<span class="index-tag">${t}</span>`)
                     .join("");
-
-                return `<div class="all-index-wrap">${tagHtml}</div>`;
             }
 
             function renderPage() {
@@ -16325,14 +16308,9 @@
                             // This runs AFTER the browser accepts the new HTML layout
                             requestAnimationFrame(() => {
                                 if (chartSettings.enabled == true) {
-                                    document.fonts.ready.then(() => {
-                                        requestAnimationFrame(() => {
-                                            setTimeout(() => {
-                                                generateThumbnailChart();
-                                                //scrollTop();
-                                            }, 100);
-                                        });
-                                    });
+                                    setTimeout(() => {
+                                        generateThumbnailChart();
+                                    }, 100);
                                 }
                             });
                         }
@@ -16342,17 +16320,14 @@
                     // This runs AFTER the browser accepts the new HTML layout
                     requestAnimationFrame(() => {
                         if (chartSettings.enabled == true) {
-                            document.fonts.ready.then(() => {
-                                requestAnimationFrame(() => {
-                                    setTimeout(() => {
-                                         generateThumbnailChart();
-                                    }, 100);
-                                });
-                            });
+                            setTimeout(() => {
+                                generateThumbnailChart();
+                            }, 100);
                         }
-                        scrollTop();
                     });
                 }
+
+                scrollTop();
             }
 
             // ============ STATS ============
@@ -16454,9 +16429,7 @@
                     renderPagination();
                     // const cv = loadColumnVisibility();
                     // applyColumnVisibility(cv);
-                    requestAnimationFrame(()=>{
-                        scrollTop();
-                    });
+                    scrollTop();
                 }
             }
             function nextPage() {
@@ -16467,9 +16440,7 @@
                     renderPagination();
                     // const cv = loadColumnVisibility();
                     // applyColumnVisibility(cv);
-                    requestAnimationFrame(()=>{
-                        scrollTop();
-                    });
+                    scrollTop();
                 }
             }
             function goToPage(p) {
@@ -16478,9 +16449,7 @@
                 renderPagination();
                 // const cv = loadColumnVisibility();
                 // applyColumnVisibility(cv);
-                requestAnimationFrame(()=>{
-                    scrollTop();
-                });
+                scrollTop();
             }
             function changeRowsPerPage() {
                 rowsPerPage = parseInt(
@@ -16493,9 +16462,7 @@
                 // applyColumnVisibility(cv);
             }
             function scrollTop() {
-                requestAnimationFrame(() => {
-                    document.getElementById("tableWrapper").scrollTop = 0;
-                });
+                document.getElementById("tableWrapper").scrollTop = 0;
             }
 
             // ============ PEER MODAL ============
@@ -21495,7 +21462,6 @@
                     generation !== thumbChartGeneration || !thumbCharts[isin]
                 );
             }
-
             function generateThumbnailChart() {
                 if (generatingThumbCharts) return;
                 generatingThumbCharts = true;
@@ -21512,7 +21478,6 @@
                 }
 
                 const chartSettings = getChartSettings();
-                let otherHeight = calculateChartHeight();
 
                 document
                     .querySelectorAll(".thumb-chart")
@@ -21544,12 +21509,6 @@
                                 : "";
                         }
 
-                        let chartWidth =
-                            Math.round(Math.max(screenWidth, 360)) - 15; //30px less to give room for scroll movement
-                        let chartHeight = Math.round(
-                            screenHeight - (otherHeight + previousTrHeight),
-                        );
-
                         try {
                             const response = await fetch(
                                 `data/chart/${isin}.json`,
@@ -21566,6 +21525,13 @@
                             // fetch above — stop before creating a new chart that
                             // nothing will ever clean up, or clashing with the new run.
                             if (myGeneration !== thumbChartGeneration) return;
+
+                            let chartWidth =
+                                Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
+                            let otherHeight = calculateChartHeight();
+                            let chartHeight = Math.round(
+                                screenHeight - (otherHeight + previousTrHeight),
+                            );
 
                             // Create your chart here
                             thumbCharts[isin] = LightweightCharts.createChart(
@@ -21879,11 +21845,10 @@
 
             function resizeThumbnailChart() {
                 const chartSettings = getChartSettings();
-
                 if (chartSettings.enabled == true) {
                     let screenWidth = window.innerWidth;
                     let screenHeight = window.innerHeight;
-                    let otherHeight = calculateChartHeight();
+
                     for (const key in thumbCharts) {
                         const chartDiv = document.querySelector(
                             `[data-isin="${key}"]`,
@@ -21896,7 +21861,8 @@
                             previousTr.getBoundingClientRect().height;
 
                         let chartWidth =
-                            Math.round(Math.max(screenWidth, 360)) - 15; //30px less to give room for scroll movement
+                            Math.round(Math.max(screenWidth, 360)) - 30; //30px less to give room for scroll movement
+                        let otherHeight = calculateChartHeight();
                         /*
                         let chartHeight = Math.round(
                             Math.min(chartWidth / 1.8, screenHeight - (otherHeight + previousTrHeight)),
@@ -23428,18 +23394,6 @@
                 if (saved) setTheme(saved);
                 else setTheme("dark");
             })();
-        </script>
-
-        <!-- Google tag (gtag.js) -->
-        <script defer src="https://www.googletagmanager.com/gtag/js?id=G-98EDPVMLG7"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() {
-                dataLayer.push(arguments);
-            }
-            gtag("js", new Date());
-
-            gtag("config", "G-98EDPVMLG7");
         </script>
     </body>
 </html>
