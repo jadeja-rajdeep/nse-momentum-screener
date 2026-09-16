@@ -3927,86 +3927,6 @@
             }
 
             #chartModal .settings-modal-body{position: relative;}
-            #chartModal .settings-modal { position: relative; overflow: hidden; }
-            #chartModal .chart-watchlist-drawer {
-              position: absolute;
-              z-index: 10000;
-              top: 0;
-              bottom: 0;
-              left: 0;
-              width: min(390px, 100%);
-              display: flex;
-              flex-direction: column;
-              background: var(--surface);
-              border-right: 1px solid var(--border);
-              box-shadow: none;
-              transform: translateX(-100%);
-              transition: transform .2s ease;
-              visibility: hidden;
-            }
-            #chartModal .chart-watchlist-drawer.open {
-              transform: translateX(0);
-              visibility: visible;
-            }
-            #chartModal .chart-watchlist-drawer-header {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              gap: 12px;
-              padding: 14px 16px;
-              border-bottom: 1px solid var(--border);
-            }
-            #chartModal .chart-watchlist-drawer-subtitle {
-              color: var(--muted);
-              font-size: 12px;
-            }
-            #chartModal .chart-watchlist-drawer-list {
-              overflow-y: auto;
-              padding: 10px;
-            }
-            #chartModal .chart-watchlist-group { border-color: var(--border) !important; }
-            #chartModal .chart-watchlist-group .accordion-button {
-              background: var(--surface);
-              color: var(--text);
-              box-shadow: none;
-            }
-            #chartModal .chart-watchlist-group .accordion-button:not(.collapsed) {
-              color: var(--text);
-              background: var(--bg);
-            }
-            #chartModal .chart-watchlist-stock {
-              display: grid;
-              grid-template-columns: minmax(0, 1fr) auto;
-              gap: 3px 12px;
-              width: 100%;
-              padding: 10px 12px;
-              border: 0;
-              border-bottom: 1px solid var(--border);
-              background: transparent;
-              color: var(--text);
-              text-align: left;
-            }
-            #chartModal .chart-watchlist-stock:hover,
-            #chartModal .chart-watchlist-stock:focus-visible {
-              background: var(--bg);
-              outline: 0;
-            }
-            #chartModal .chart-watchlist-stock.is-selected {
-              background: var(--bg);
-              box-shadow: inset 3px 0 0 var(--bs-primary, var(--accent));
-            }
-            #chartModal .chart-watchlist-stock-code { font: 700 12px var(--mono); }
-            #chartModal .chart-watchlist-stock-name {
-              min-width: 0;
-              overflow: hidden;
-              color: var(--muted);
-              font-size: 11px;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            #chartModal .chart-watchlist-stock-price { font: 700 12px var(--mono); }
-            #chartModal .chart-watchlist-stock-change { font: 600 11px var(--mono); text-align: right; }
-            #chartModal .chart-watchlist-empty { color: var(--muted); font-size: 13px; padding: 24px 12px; text-align: center; }
             #chartModal .tv-lightweight-charts table tr th:nth-child(1),
             #chartModal .tv-lightweight-charts table tr td:nth-child(1) {
                 position: initial !important;
@@ -13101,19 +13021,7 @@
                     </div>
 
                     <button
-                        type="button"
-                        class="peer-modal-close text-danger border-dagner bg-danger ms-auto"
-                        style="--bs-bg-opacity: 0.1"
-                        id="chartWatchlistToggle"
-                        title="Open watchlists"
-                        aria-label="Open watchlists"
-                        aria-expanded="false"
-                        onclick="toggleChartWatchlistDrawer()"
-                    >
-                        🔖
-                    </button>
-                    <button
-                        class="peer-modal-close text-info border-info bg-info"
+                        class="peer-modal-close text-info border-info bg-info ms-auto"
                         style="--bs-bg-opacity: 0.1"
                         id="toggelChartFinancialDetail"
                         onclick="toggelChartFinancialDetail(this)"
@@ -13148,21 +13056,6 @@
                         ✕
                     </button>
                 </div>
-                <aside
-                    class="chart-watchlist-drawer"
-                    id="chartWatchlistDrawer"
-                    aria-label="Chart watchlists"
-                    aria-hidden="true"
-                >
-                    <div class="chart-watchlist-drawer-header">
-                        <div>
-                            <div class="fw-semibold">Watchlists</div>
-                            <div class="chart-watchlist-drawer-subtitle">Select a stock to view its chart</div>
-                        </div>
-                        <button type="button" class="peer-modal-close" aria-label="Close watchlists" onclick="toggleChartWatchlistDrawer(false)">✕</button>
-                    </div>
-                    <div class="chart-watchlist-drawer-list" id="chartWatchlistDrawerList"></div>
-                </aside>
                 <div class="settings-modal-body" style="padding:5px 10px;gap: 0;">Main Chart Goes Here...</div>
             </div>
         </div>
@@ -16105,11 +15998,11 @@
                 return `<div class="all-index-wrap">${tagHtml}</div>`;
             }
 
-            function renderPage(options = {}) {
-                const tbody = options.tbody || document.getElementById("tableBody");
+            function renderPage() {
+                const tbody = document.getElementById("tableBody");
                 const start = (currentPage - 1) * rowsPerPage;
                 const end = Math.min(start + rowsPerPage, filteredData.length);
-                const page = options.rows || filteredData.slice(start, end);
+                const page = filteredData.slice(start, end);
 
                 const chartSettings = getChartSettings();
 
@@ -16423,11 +16316,6 @@
                 const cv = loadColumnVisibility();
                 applyColumnVisibility(cv);
 
-                // Used by chart detail fallback to create one detached, fully
-                // formatted source row without touching the visible table or
-                // scheduling thumbnail chart work.
-                if (options.suppressPostRender) return;
-
                 //calling thumnail chart function
                 if (document.readyState !== "complete") {
                     // Page is not loaded yet — wait until DOM is ready
@@ -16441,7 +16329,7 @@
                                         requestAnimationFrame(() => {
                                             setTimeout(() => {
                                                 generateThumbnailChart();
-                                                scrollTop();
+                                                //scrollTop();
                                             }, 100);
                                         });
                                     });
@@ -16566,9 +16454,9 @@
                     renderPagination();
                     // const cv = loadColumnVisibility();
                     // applyColumnVisibility(cv);
-                    // requestAnimationFrame(()=>{
-                    //     scrollTop();
-                    // });
+                    requestAnimationFrame(()=>{
+                        scrollTop();
+                    });
                 }
             }
             function nextPage() {
@@ -16579,9 +16467,9 @@
                     renderPagination();
                     // const cv = loadColumnVisibility();
                     // applyColumnVisibility(cv);
-                    // requestAnimationFrame(()=>{
-                    //     scrollTop();
-                    // });
+                    requestAnimationFrame(()=>{
+                        scrollTop();
+                    });
                 }
             }
             function goToPage(p) {
@@ -16590,9 +16478,9 @@
                 renderPagination();
                 // const cv = loadColumnVisibility();
                 // applyColumnVisibility(cv);
-                // requestAnimationFrame(()=>{
-                //     scrollTop();
-                // });
+                requestAnimationFrame(()=>{
+                    scrollTop();
+                });
             }
             function changeRowsPerPage() {
                 rowsPerPage = parseInt(
@@ -16930,7 +16818,6 @@
                 const names = lists.map((wl) => wl.name);
                 mselSetOptions("f_watchlist", names);
                 renderWatchlistPanel();
-                if (chartWatchlistState.open) renderChartWatchlistDrawer();
                 //renderPage(); // re-render current page so star icons reflect latest state
                 // const cv = loadColumnVisibility();
                 // applyColumnVisibility(cv);
@@ -22026,268 +21913,24 @@
             }
 
             var currentFullScreenBtn=null;
-            var lastFullScreenBtn=null;
-            const chartWatchlistState = {
-                open: false,
-                selectedWatchlistId: null,
-                selectedCode: null,
-            };
-            let chartWatchlistOutsideClickHandler = null;
-            let chartWatchlistDrawerClickHandler = null;
-
-            function formatChartWatchlistNumber(value) {
-                const number = parseFloat(value);
-                return Number.isFinite(number)
-                    ? number.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                    : "—";
-            }
-
-            function toggleChartWatchlistDrawer(forceOpen) {
-                const drawer = document.getElementById("chartWatchlistDrawer");
-                const toggle = document.getElementById("chartWatchlistToggle");
-                if (!drawer || !toggle) return;
-
-                chartWatchlistState.open = typeof forceOpen === "boolean"
-                    ? forceOpen
-                    : !chartWatchlistState.open;
-                drawer.classList.toggle("open", chartWatchlistState.open);
-                drawer.setAttribute("aria-hidden", String(!chartWatchlistState.open));
-                toggle.setAttribute("aria-expanded", String(chartWatchlistState.open));
-                if (chartWatchlistState.open) {
-                    bindChartWatchlistDrawerEvents();
-                    renderChartWatchlistDrawer();
-                } else {
-                    unbindChartWatchlistDrawerEvents();
-                }
-            }
-
-            function clearChartWatchlistDrawer() {
-                const container = document.getElementById("chartWatchlistDrawerList");
-                if (container) container.replaceChildren();
-            }
-
-            function bindChartWatchlistDrawerEvents() {
-                const modal = document.getElementById("chartModal");
-                const container = document.getElementById("chartWatchlistDrawerList");
-                if (!chartWatchlistOutsideClickHandler) {
-                    // The chart modal stops bubbling to protect its overlay, so this
-                    // capture listener closes only the drawer when chart/header area
-                    // outside it is clicked.
-                    chartWatchlistOutsideClickHandler = (event) => {
-                        const target = event.target;
-                        if (target.closest("#chartWatchlistDrawer, #chartWatchlistToggle")) return;
-                        toggleChartWatchlistDrawer(false);
-                    };
-                    modal.addEventListener("click", chartWatchlistOutsideClickHandler, true);
-                }
-                if (!chartWatchlistDrawerClickHandler) {
-                    chartWatchlistDrawerClickHandler = (event) => {
-                        const stockButton = event.target.closest(
-                            ".chart-watchlist-stock:not(:disabled)",
-                        );
-                        if (stockButton) openChartModal(stockButton);
-                    };
-                    container.addEventListener("click", chartWatchlistDrawerClickHandler);
-                }
-            }
-
-            function unbindChartWatchlistDrawerEvents() {
-                const modal = document.getElementById("chartModal");
-                const container = document.getElementById("chartWatchlistDrawerList");
-                if (chartWatchlistOutsideClickHandler) {
-                    modal.removeEventListener("click", chartWatchlistOutsideClickHandler, true);
-                    chartWatchlistOutsideClickHandler = null;
-                }
-                if (chartWatchlistDrawerClickHandler) {
-                    container.removeEventListener("click", chartWatchlistDrawerClickHandler);
-                    chartWatchlistDrawerClickHandler = null;
-                }
-            }
-
-            function renderChartWatchlistDrawer() {
-                const container = document.getElementById("chartWatchlistDrawerList");
-                if (!container) return;
-
-                const lists = loadWatchlists();
-                const stocksByCode = new Map((typeof allData === "undefined" ? [] : allData)
-                    .map((stock) => [String(stock.Code || "").toUpperCase(), stock]));
-                container.replaceChildren();
-
-                if (!lists.length) {
-                    const empty = document.createElement("div");
-                    empty.className = "chart-watchlist-empty";
-                    empty.textContent = "No watchlists yet.";
-                    container.appendChild(empty);
-                    return;
-                }
-
-                lists.forEach((watchlist, index) => {
-                    const watchlistId = String(watchlist.id);
-                    const collapseId = `chartWatchlistCollapse${watchlistId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
-                    const group = document.createElement("div");
-                    group.className = "accordion accordion-flush chart-watchlist-group mb-2 border rounded";
-
-                    const heading = document.createElement("h2");
-                    heading.className = "accordion-header";
-                    const collapseButton = document.createElement("button");
-                    const expanded = chartWatchlistState.selectedWatchlistId === watchlistId || index === 0;
-                    collapseButton.className = `accordion-button py-2 ${expanded ? "" : "collapsed"}`;
-                    collapseButton.type = "button";
-                    collapseButton.dataset.bsToggle = "collapse";
-                    collapseButton.dataset.bsTarget = `#${collapseId}`;
-                    collapseButton.setAttribute("aria-expanded", String(expanded));
-                    collapseButton.setAttribute("aria-controls", collapseId);
-                    const watchlistName = document.createElement("span");
-                    watchlistName.className = "text-truncate";
-                    watchlistName.textContent = watchlist.name || "Untitled watchlist";
-                    const count = document.createElement("span");
-                    count.className = "badge text-bg-secondary ms-2";
-                    count.textContent = String((watchlist.codes || []).length);
-                    collapseButton.append(watchlistName, count);
-                    collapseButton.addEventListener("click", () => {
-                        const nowExpanded = collapseButton.classList.toggle("collapsed");
-                        collapse.classList.toggle("show", !nowExpanded);
-                        collapseButton.setAttribute("aria-expanded", String(!nowExpanded));
-                    });
-                    heading.appendChild(collapseButton);
-
-                    const collapse = document.createElement("div");
-                    collapse.id = collapseId;
-                    collapse.className = `accordion-collapse collapse ${expanded ? "show" : ""}`;
-                    const body = document.createElement("div");
-                    body.className = "accordion-body p-0";
-                    const codes = Array.isArray(watchlist.codes) ? watchlist.codes : [];
-
-                    if (!codes.length) {
-                        const empty = document.createElement("div");
-                        empty.className = "small text-body-secondary p-3";
-                        empty.textContent = "No stocks in this watchlist.";
-                        body.appendChild(empty);
-                    }
-
-                    codes.forEach((watchlistCode) => {
-                        const stock = stocksByCode.get(String(watchlistCode || "").toUpperCase());
-                        const item = document.createElement("button");
-                        item.type = "button";
-                        item.className = "chart-watchlist-stock";
-                        item.dataset.watchlistId = watchlistId;
-                        item.dataset.code = stock ? stock.Code || watchlistCode : watchlistCode || "";
-                        item.dataset.name = stock ? stock.Name || "" : "";
-                        item.dataset.isin = stock ? stock.ISIN || "" : "";
-                        item.title = stock ? `Open chart for ${stock.Code}` : `${watchlistCode} is not in the current data`;
-
-                        if (!stock || !stock.ISIN) {
-                            item.disabled = true;
-                            item.classList.add("opacity-50");
-                        }
-                        if (chartWatchlistState.selectedWatchlistId === watchlistId &&
-                            chartWatchlistState.selectedCode === item.dataset.code) {
-                            item.classList.add("is-selected");
-                        }
-
-                        const code = document.createElement("span");
-                        code.className = "chart-watchlist-stock-code";
-                        code.textContent = item.dataset.code || "—";
-                        const price = document.createElement("span");
-                        price.className = "chart-watchlist-stock-price";
-                        price.textContent = stock ? formatChartWatchlistNumber(stock.Close) : "—";
-                        const name = document.createElement("span");
-                        name.className = "chart-watchlist-stock-name";
-                        name.textContent = item.dataset.name || "Not in current scan";
-                        const change = document.createElement("span");
-                        const dayChange = stock ? parseFloat(stock["1 Day Chng%"]) : NaN;
-                        change.className = `chart-watchlist-stock-change ${dayChange > 0 ? "chng-pos" : dayChange < 0 ? "chng-neg" : "chng-neu"}`;
-                        change.textContent = Number.isFinite(dayChange) ? `${dayChange > 0 ? "+" : ""}${dayChange.toFixed(2)}%` : "—";
-                        item.append(code, price, name, change);
-                        body.appendChild(item);
-                    });
-
-                    collapse.appendChild(body);
-                    group.append(heading, collapse);
-                    container.appendChild(group);
-                });
-
-                // Arrow navigation can move into a long, off-screen watchlist.
-                // Wait for the selected accordion section to lay out, then bring its
-                // active row into the drawer viewport without shifting the chart.
-                requestAnimationFrame(() => {
-                    const selectedStock = container.querySelector(".chart-watchlist-stock.is-selected");
-                    if (selectedStock) {
-                        selectedStock.scrollIntoView({ block: "nearest", inline: "nearest" });
-                    }
-                });
-            }
-
             function getAllFullscreenBtns() {
                 // Get them in DOM order (which matches row order)
                 const table=document.querySelector('#mainTable');
                 return Array.from(table.querySelectorAll('tr.chart-row td.chart-cell > div.thumb-chart > button.fullscreen-btn'));
             }
 
-            function goToWatchlistDrawerStock(direction) {
-                // Use the actual drawer buttons so navigation follows precisely the
-                // same openChartModal() path as a user click.
-                const stockButtons = Array.from(document.querySelectorAll(
-                    "#chartWatchlistDrawer .chart-watchlist-stock:not(:disabled)",
-                ));
-                if (!stockButtons.length) return false;
-
-                let currentIndex = stockButtons.findIndex((button) =>
-                    button.dataset.watchlistId === chartWatchlistState.selectedWatchlistId &&
-                    button.dataset.code === chartWatchlistState.selectedCode,
-                );
-                if (currentIndex === -1 && currentFullScreenBtn) {
-                    currentIndex = stockButtons.findIndex(
-                        (button) => button.dataset.code === currentFullScreenBtn.dataset.code,
-                    );
-                }
-
-                const nextIndex = currentIndex === -1
-                    ? (direction > 0 ? 0 : stockButtons.length - 1)
-                    : currentIndex + direction;
-                if (nextIndex < 0 || nextIndex >= stockButtons.length) return true;
-
-                stockButtons[nextIndex].click();
-                return true;
-            }
-
             function goToSiblingFullScreenBtn(direction) {
                 // direction: 1 for next, -1 for previous
-                if (chartWatchlistState.open && goToWatchlistDrawerStock(direction)) return;
+                const btns = getAllFullscreenBtns();
+                const idx = btns.indexOf(currentFullScreenBtn);
+                if (idx === -1) return;
 
-                let btns = getAllFullscreenBtns();
-                let idx = btns.indexOf(currentFullScreenBtn);
-                let newIdx = 0;
-                if(idx===-1 && currentFullScreenBtn.classList.contains('chart-watchlist-stock')){
-                    //idx = btns.indexOf(btns[0]);
-                    //newIdx = idx;
-                    idx = btns.indexOf(lastFullScreenBtn);
-                    if (idx === -1) return;
-                    newIdx = idx + direction;
-                }else{
-                    if (idx === -1) return;
-                    newIdx = idx + direction;
-                }
-
+                const newIdx = idx + direction;
                 if (newIdx >= 0 && newIdx < btns.length) {
                     closeChartModal();
                     openChartModal(btns[newIdx]);
-                }else{
-                    // else: already at first/last, do nothing (or wrap around if you want)
-                    const t = Math.ceil(filteredData.length / rowsPerPage);
-                    if(direction==-1 && currentPage>1){
-                        prevPage();
-                        closeChartModal();
-                        btns = getAllFullscreenBtns();
-                        openChartModal(btns[btns.length-1]);
-                    }else if (direction==1 && currentPage < t){
-                        nextPage();
-                        closeChartModal();
-                        btns = getAllFullscreenBtns();
-                        openChartModal(btns[0]);
-                    }
                 }
-
+                // else: already at first/last, do nothing (or wrap around if you want)
             }
 
             // Wire up prev/next buttons inside the modal
@@ -22344,50 +21987,6 @@
 
                 const grid = document.getElementById('detailGrid');
 
-                // Drawer stocks are not table rows. They still use the same chart
-                // opener. Prefer the current table's real, formatted row when it
-                // exists; only build a detached fallback when it does not.
-                if (!previousTr) {
-                  const code = String(Caller.dataset.code || "").toUpperCase();
-                  const renderedChartButton = Array.from(document.querySelectorAll(
-                    '#mainTable .fullscreen-btn[data-code]',
-                  )).find((button) => String(button.dataset.code || "").toUpperCase() === code);
-                  if (renderedChartButton) {
-                    generateChartDetails(renderedChartButton);
-                    return;
-                  }
-                  const renderedDataRow = Array.from(document.querySelectorAll(
-                    '#mainTable tbody tr:not(.chart-row)',
-                  )).find((row) => {
-                    const codeCell = row.querySelector('.code-cell[data-code]');
-                    return String(codeCell?.dataset.code || "").toUpperCase() === code;
-                  });
-                  if (renderedDataRow) {
-                    // Chart thumbnails may be disabled, leaving no fullscreen
-                    // button. Clone the live formatted row and add the minimal
-                    // chart-row structure the original detail reader requires.
-                    const scratchTable = document.createElement("table");
-                    const scratchBody = document.createElement("tbody");
-                    scratchTable.appendChild(scratchBody);
-                    scratchBody.appendChild(renderedDataRow.cloneNode(true));
-                    const chartRow = document.createElement("tr");
-                    chartRow.className = "chart-row";
-                    const chartCell = document.createElement("td");
-                    const detailButton = document.createElement("button");
-                    chartCell.appendChild(detailButton);
-                    chartRow.appendChild(chartCell);
-                    scratchBody.appendChild(chartRow);
-                    generateChartDetails(detailButton);
-                    return;
-                  }
-                  const stock = (typeof allData === "undefined" ? [] : allData).find(
-                    (row) => String(row.Code || "").toUpperCase() === code,
-                  );
-                  grid.innerHTML = '';
-                  if (stock) generateChartDetailsFromStock(stock, grid);
-                  return;
-                }
-
                 const allCells = Array.from(previousTr.querySelectorAll('td'));
                 grid.innerHTML = '';
 
@@ -22413,44 +22012,8 @@
                 });
             }
 
-            function generateChartDetailsFromStock(stock, grid) {
-                // Reuse renderPage's existing row template. This keeps every
-                // decimal formatter, badge, colour class, and computed rank exactly
-                // the same as the main table without changing its visible state.
-                const scratchTable = document.createElement("table");
-                const scratchBody = document.createElement("tbody");
-                scratchTable.appendChild(scratchBody);
-                renderPage({
-                    tbody: scratchBody,
-                    rows: [stock],
-                    suppressPostRender: true,
-                });
-
-                let chartButton = scratchBody.querySelector(".fullscreen-btn");
-                if (!chartButton) {
-                    // Fullscreen controls are omitted when thumbnail charts are
-                    // disabled, so supply only the structural row/button that the
-                    // original detail reader expects.
-                    const chartRow = document.createElement("tr");
-                    chartRow.className = "chart-row";
-                    const chartCell = document.createElement("td");
-                    chartButton = document.createElement("button");
-                    chartButton.dataset.isin = stock.ISIN || "";
-                    chartButton.dataset.code = stock.Code || "";
-                    chartButton.dataset.name = stock.Name || "";
-                    chartCell.appendChild(chartButton);
-                    chartRow.appendChild(chartCell);
-                    scratchBody.appendChild(chartRow);
-                }
-
-                generateChartDetails(chartButton);
-            }
-
             function openChartModal(Caller) {
                 currentFullScreenBtn=Caller;
-                if(!Caller.classList.contains('chart-watchlist-stock')){
-                    lastFullScreenBtn=Caller;
-                }
 
                 const isin = Caller.dataset.isin;
                 const code = Caller.dataset.code;
@@ -22460,27 +22023,6 @@
 
                 const chartSettings = getChartSettings();
                 const chartModal = document.getElementById("chartModal");
-                const openedFromWatchlist = Boolean(Caller.dataset.watchlistId);
-                // A drawer selection replaces the chart in an already-open modal.
-                // Dispose the old chart objects first; replacing body HTML alone
-                // would leave their canvas/rendering state alive in memory.
-                if (chartModal.classList.contains("open")) {
-                    Object.keys(charts).forEach((key) => {
-                        charts[key].remove();
-                        delete charts[key];
-                    });
-                    Object.keys(chartSeries).forEach((key) => delete chartSeries[key]);
-                    Object.keys(chartSeriesDataMap).forEach((key) => delete chartSeriesDataMap[key]);
-                    const resetChart = document.getElementById("resetChart");
-                    if (resetChart && resetChartHandler) {
-                        resetChart.removeEventListener("click", resetChartHandler);
-                    }
-                    resetChartHandler = null;
-                }
-                if (openedFromWatchlist) {
-                    chartWatchlistState.selectedWatchlistId = Caller.dataset.watchlistId;
-                    chartWatchlistState.selectedCode = code;
-                }
                 chartModal.querySelector(".settings-modal-body").innerHTML = `<div class="detail-grid" id="detailGrid"></div><div class="chart-financial-data" id="chartFinancialData"></div>`;
 
                 generateChartDetails(Caller);
@@ -22549,7 +22091,6 @@
                 ).textContent = name;
 
                 chartModal.classList.add("open");
-                toggleChartWatchlistDrawer(openedFromWatchlist);
 
                 (async () => {
                     try {
@@ -23553,8 +23094,6 @@
                     gc();
                 }
 
-                toggleChartWatchlistDrawer(false);
-                clearChartWatchlistDrawer();
                 document.getElementById("chartModal").classList.remove("open");
             }
 
