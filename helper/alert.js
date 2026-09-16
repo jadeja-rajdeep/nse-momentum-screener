@@ -345,7 +345,7 @@
             if (!r.Code) return;
             const opt = document.createElement("option");
             opt.value = r.Code;
-            opt.label = r.Name || "";
+            opt.label = r.Name + ' - ' + r.Code || "";
             frag.appendChild(opt);
         });
         dl.innerHTML = "";
