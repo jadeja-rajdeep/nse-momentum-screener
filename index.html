@@ -12027,7 +12027,33 @@
                                         onchange="onAlertSettingChange()"
                                     />
                                     <span
-                                        >Enable Away From High Alerts (Same as
+                                        >Enable Watchlist Away From High Alerts (Same as
+                                        enabled in the chart settings)</span
+                                    >
+                                </label>
+                            </div>
+                            <div class="col-12">
+                                <label class="abv-check-item">
+                                    <input
+                                        type="checkbox"
+                                        id="alertEnablePivotTrendLine"
+                                        onchange="onAlertSettingChange()"
+                                    />
+                                    <span
+                                        >Enable Watchlist Pivot Trend Line Alerts (Same as
+                                        enabled in the chart settings)</span
+                                    >
+                                </label>
+                            </div>
+                            <div class="col-12">
+                                <label class="abv-check-item">
+                                    <input
+                                        type="checkbox"
+                                        id="alertEnableSuperTrend"
+                                        onchange="onAlertSettingChange()"
+                                    />
+                                    <span
+                                        >Enable Watchlist Super Trend Alerts (Same as
                                         enabled in the chart settings)</span
                                     >
                                 </label>
@@ -13102,7 +13128,18 @@
 
                     <button
                         type="button"
-                        class="peer-modal-close text-danger border-dagner bg-danger ms-auto"
+                        class="wl-star peer-modal-close text-warning border-warning bg-warning ms-auto"
+                        style="--bs-bg-opacity: 0.1"
+                        id="chartWatchlist"
+                        title="Add to watchlists"
+                        aria-label="Add to watchlists"
+                        data-wl-code=""
+                    >
+                        ☆
+                    </button>
+                    <button
+                        type="button"
+                        class="peer-modal-close text-danger border-dagner bg-danger"
                         style="--bs-bg-opacity: 0.1"
                         id="chartWatchlistToggle"
                         title="Open watchlists"
@@ -16930,7 +16967,7 @@
                 const names = lists.map((wl) => wl.name);
                 mselSetOptions("f_watchlist", names);
                 renderWatchlistPanel();
-                if (chartWatchlistState.open) renderChartWatchlistDrawer();
+                allowRenderChartWatchlistDrawer=true;
                 //renderPage(); // re-render current page so star icons reflect latest state
                 // const cv = loadColumnVisibility();
                 // applyColumnVisibility(cv);
@@ -16997,15 +17034,17 @@
                     const lists = loadWatchlists();
                     const wl = lists.find((w) => w.id === id);
                     if (!wl) return;
-                    const span = document.querySelector(
-                        `span[data-wl-code="${wlPopoverActiveCode}"]`,
+                    const starEl = document.querySelectorAll(
+                        `.wl-star[data-wl-code="${wlPopoverActiveCode}"]`,
                     );
                     if (cb.checked) {
                         if (!wl.codes.includes(wlPopoverActiveCode)) {
                             wl.codes.push(wlPopoverActiveCode);
-                            if (span) {
-                                span.textContent = "★";
-                                span.classList.add("in-watchlist");
+                            if (starEl) {
+                                starEl.forEach(function(span){
+                                    span.textContent = "★";
+                                    span.classList.add("in-watchlist");
+                                });
                             }
                         }
                     } else {
@@ -17018,9 +17057,11 @@
 
                     //if its not in any watchlist then update the star and remove the in-watchlist class
                     if (!isInAnyWatchlist(wlPopoverActiveCode)) {
-                        if (span) {
-                            span.textContent = "☆";
-                            span.classList.remove("in-watchlist");
+                        if (starEl) {
+                            starEl.forEach(function(span){
+                                span.textContent = "☆";
+                                span.classList.remove("in-watchlist");
+                            });
                         }
                     }
                 });
@@ -17043,7 +17084,7 @@
 
             // Close popover on outside click / Escape (Escape handled in the
             // global keydown listener further below)
-            document.addEventListener("click", (e) => {
+            function handleOutsideDismiss(e) {
                 const popover = document.getElementById("wlPopover");
                 if (
                     popover.classList.contains("open") &&
@@ -17052,7 +17093,15 @@
                 ) {
                     closeWatchlistStarPopover();
                 }
-            });
+            }
+            document.addEventListener("click", handleOutsideDismiss,true);
+            document.addEventListener("touchstart", handleOutsideDismiss, { passive: true });
+            document.addEventListener("click", (e) => {
+                const star = e.target.closest(".wl-star");
+                if (star) {
+                    openWatchlistStarPopover(star);
+                }
+            }, true); // Capture phase
 
             // ---- Watchlist management panel (toggle, list, rename, delete) ----
             function toggleWatchlistPanel() {
@@ -17132,7 +17181,7 @@
                         `Delete ${ids.size} watchlist${ids.size > 1 ? "s" : ""}? This cannot be undone.`,
                     )
                 )
-                    return;
+                return;
                 const lists = loadWatchlists().filter((wl) => !ids.has(wl.id));
                 saveWatchlists(lists);
                 refreshWatchlistUI();
@@ -17284,6 +17333,7 @@
                             el.classList.add("in-watchlist");
                         }
                     });
+
                 alert(
                     `Added ${added} new stock${added !== 1 ? "s" : ""} to "${target.name}" (${target.codes.length} total).`,
                 );
@@ -19821,7 +19871,7 @@
               <div class="ss-card" id="sscard-${s.id}">
                 <input type="checkbox" class="ss-card-check" data-id="${s.id}"
                   onchange="onSsCardCheck(this)">
-                <span class="ss-card-name" title="${s.name}">${s.name}</span>
+                <span class="ss-card-name ss-search-name" title="Click to rename" data-id="${s.id}" ondblclick="startRenameSavedSearch(${s.id})">${s.name}</span>
                 <span class="ss-card-meta">${s.saved}</span>
                 <button class="ss-run-one" title="Run this search" onclick="runSingle(${s.id})">▶</button>
               </div>
@@ -19829,6 +19879,35 @@
                     )
                     .join("");
                 updateSavedActions();
+            }
+
+            function startRenameSavedSearch(id) {
+                const nameEl = document.querySelector(
+                    `.ss-search-name[data-id="${id}"]`,
+                );
+                if (!nameEl) return;
+                const list = loadSavedSearches();
+                const s = list.find((item) => item.id === id);
+                if (!s) return;
+                const input = document.createElement("input");
+                input.type = "text";
+                input.className = "wl-rename-input";
+                input.value = s.name;
+                nameEl.replaceWith(input);
+                input.focus();
+                input.select();
+
+                const commit = () => {
+                    const newName = input.value.trim() || s.name;
+                    s.name = newName;
+                    saveSavedSearches(list);
+                    renderSavedList();
+                };
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter") commit();
+                    if (e.key === "Escape") renderSavedList();
+                });
+                input.addEventListener("blur", commit);
             }
 
             function onSsCardCheck(cb) {
@@ -20340,13 +20419,13 @@
             function loadAlertSettings() {
                 try {
                     return Object.assign(
-                        { customAlerts: false, awayFromHighAlerts: false },
+                        { customAlerts: false, awayFromHighAlerts: false,pivotTrendLineAlerts:false,superTrendAlerts:false },
                         JSON.parse(
                             localStorage.getItem(ALERT_SETTINGS_KEY) || "{}",
                         ),
                     );
                 } catch (e) {
-                    return { customAlerts: false, awayFromHighAlerts: false };
+                    return { customAlerts: false, awayFromHighAlerts: false,pivotTrendLineAlerts:false,superTrendAlerts:false };
                 }
             }
             function saveAlertSettings(settings) {
@@ -20366,22 +20445,39 @@
                 const afhEl = document.getElementById(
                     "alertEnableAwayFromHigh",
                 );
+                const ptlEl = document.getElementById(
+                    "alertEnablePivotTrendLine",
+                );
+                const stEl = document.getElementById(
+                    "alertEnableSuperTrend",
+                );
                 if (customEl) customEl.checked = !!s.customAlerts;
                 if (afhEl) afhEl.checked = !!s.awayFromHighAlerts;
+                if (ptlEl) ptlEl.checked = !!s.pivotTrendLineAlerts;
+                if (stEl) stEl.checked = !!s.superTrendAlerts;
             }
             function onAlertSettingChange() {
                 const customEl = document.getElementById("alertEnableCustom");
                 const afhEl = document.getElementById(
                     "alertEnableAwayFromHigh",
                 );
+                const ptlEl = document.getElementById(
+                    "alertEnablePivotTrendLine",
+                );
+                const stEl = document.getElementById(
+                    "alertEnableSuperTrend",
+                );
+
                 saveAlertSettings({
                     customAlerts: !!(customEl && customEl.checked),
                     awayFromHighAlerts: !!(afhEl && afhEl.checked),
+                    pivotTrendLineAlerts: !!(ptlEl && ptlEl.checked),
+                    superTrendAlerts: !!(stEl && stEl.checked),
                 });
             }
             function toggleAlertIcon(){
                 const s = loadAlertSettings();
-                if(s.customAlerts || s.awayFromHighAlerts){
+                if(s.customAlerts || s.awayFromHighAlerts || s.pivotTrendLineAlerts || s.superTrendAlerts){
                     document.querySelector("#alertBellBtn").style.display="block";
                 }else{
                     document.querySelector("#alertBellBtn").style.display="none";
@@ -22027,6 +22123,7 @@
 
             var currentFullScreenBtn=null;
             var lastFullScreenBtn=null;
+            var allowRenderChartWatchlistDrawer=true;
             const chartWatchlistState = {
                 open: false,
                 selectedWatchlistId: null,
@@ -22104,7 +22201,15 @@
                 }
             }
 
+            function handleWatchListCollapseClick(collapseButton){
+                const nowExpanded = collapseButton.classList.toggle("collapsed");
+                collapse.classList.toggle("show", !nowExpanded);
+                collapseButton.setAttribute("aria-expanded", String(!nowExpanded));
+            }
+
             function renderChartWatchlistDrawer() {
+                if(!allowRenderChartWatchlistDrawer) return;
+                allowRenderChartWatchlistDrawer=false;
                 const container = document.getElementById("chartWatchlistDrawerList");
                 if (!container) return;
 
@@ -22541,12 +22646,14 @@
                     otherChartHeight += screenHeight * 0.15;
                 }
 
-                document.querySelector(
-                    "#chartModal .settings-modal-title",
-                ).textContent = code;
-                document.querySelector(
-                    "#chartModal .tv-modal-meta",
-                ).textContent = name;
+                document.querySelector("#chartModal .settings-modal-title").textContent = code;
+                const wlbtn=document.querySelector("#chartModal #chartWatchlist");
+                wlbtn.dataset.wlCode=code;
+                if(isInAnyWatchlist(code)){
+                    wlbtn.textContent='★';
+                    wlbtn.classList.add("in-watchlist");
+                }
+                document.querySelector("#chartModal .tv-modal-meta").textContent = name;
 
                 chartModal.classList.add("open");
                 toggleChartWatchlistDrawer(openedFromWatchlist);
