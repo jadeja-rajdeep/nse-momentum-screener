@@ -22208,10 +22208,18 @@
             }
 
             function renderChartWatchlistDrawer() {
-                if(!allowRenderChartWatchlistDrawer) return;
-                allowRenderChartWatchlistDrawer=false;
                 const container = document.getElementById("chartWatchlistDrawerList");
                 if (!container) return;
+
+                // A chart change only needs to move the selected state.  Keep the
+                // existing rows/accordion state unless the watchlist itself changed.
+                // The child check also allows the drawer to rebuild after it was
+                // cleared when the chart modal was closed.
+                if (!allowRenderChartWatchlistDrawer && container.childElementCount) {
+                    syncChartWatchlistDrawerSelection(container);
+                    return;
+                }
+                allowRenderChartWatchlistDrawer = false;
 
                 const lists = loadWatchlists();
                 const stocksByCode = new Map((typeof allData === "undefined" ? [] : allData)
@@ -22312,14 +22320,46 @@
                     container.appendChild(group);
                 });
 
+                syncChartWatchlistDrawerSelection(container);
+            }
+
+            function syncChartWatchlistDrawerSelection(container) {
+                container.querySelectorAll(".chart-watchlist-stock.is-selected")
+                    .forEach((item) => item.classList.remove("is-selected"));
+
+                const selectedStock = Array.from(
+                    container.querySelectorAll(".chart-watchlist-stock"),
+                ).find((item) =>
+                    item.dataset.watchlistId === chartWatchlistState.selectedWatchlistId &&
+                    item.dataset.code === chartWatchlistState.selectedCode,
+                );
+                if (!selectedStock) return;
+
+                selectedStock.classList.add("is-selected");
+
+                // Keep accordion behavior during arrow navigation: only the
+                // watchlist containing the newly selected stock remains open.
+                const collapse = selectedStock.closest(".accordion-collapse");
+                const collapseButton = collapse?.previousElementSibling?.querySelector(".accordion-button");
+                if (collapse && collapseButton) {
+                    container.querySelectorAll(".accordion-collapse.show").forEach((section) => {
+                        if (section !== collapse) {
+                            section.classList.remove("show");
+                            const button = section.previousElementSibling?.querySelector(".accordion-button");
+                            if (button) {
+                                button.classList.add("collapsed");
+                                button.setAttribute("aria-expanded", "false");
+                            }
+                        }
+                    });
+                    collapse.classList.add("show");
+                    collapseButton.classList.remove("collapsed");
+                    collapseButton.setAttribute("aria-expanded", "true");
+                }
+
                 // Arrow navigation can move into a long, off-screen watchlist.
-                // Wait for the selected accordion section to lay out, then bring its
-                // active row into the drawer viewport without shifting the chart.
                 requestAnimationFrame(() => {
-                    const selectedStock = container.querySelector(".chart-watchlist-stock.is-selected");
-                    if (selectedStock) {
-                        selectedStock.scrollIntoView({ block: "nearest", inline: "nearest" });
-                    }
+                    selectedStock.scrollIntoView({ block: "nearest", inline: "nearest" });
                 });
             }
 
