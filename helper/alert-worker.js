@@ -42,7 +42,7 @@
    ========================================================================= */
 
 const LIVE_PRICE_API_URL =
-    "https://query1.finance.yahoo.com/v7/finance/quote?symbols=";
+    "https://query1.finance.yahoo.com/v7/finance/quote?field=regularMarketPrice&symbols=";
 
 // Turn our internal NSE "Code" into whatever the live-price API expects.
 function toApiSymbol(code) {

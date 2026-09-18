@@ -4093,12 +4093,6 @@
                 word-break: break-word;
                 padding: 0px 10px;
             }
-            @media screen and (max-width:432){
-                #chartModal .detail-grid {
-                  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-                }
-            }
-
             #chartModal .chart-financial-data {
               display: none;
               position: absolute;
@@ -4114,6 +4108,16 @@
             }
             #chartModal .chart-financial-data.open {
                 display: block !important;
+            }
+            @media screen and (max-width:665px){
+                #chartModal .settings-modal-title,#chartModal .tv-modal-meta {
+                    display:none;
+                }
+            }
+            @media screen and (max-width:432px){
+                #chartModal .detail-grid {
+                  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                }
             }
         </style>
 
@@ -21632,8 +21636,8 @@
             // cause of RAM climbing into the GBs after browsing many charts.
             var resetChartHandler = null;
 
-            const screenWidth = window.innerWidth;
-            const screenHeight = window.innerHeight;
+            var screenWidth = window.innerWidth;
+            var screenHeight = window.innerHeight;
 
             function calculateChartHeight() {
                 const header = Math.max(
@@ -22090,8 +22094,8 @@
                 const chartSettings = getChartSettings();
 
                 if (chartSettings.enabled == true) {
-                    let screenWidth = window.innerWidth;
-                    let screenHeight = window.innerHeight;
+                    screenWidth = window.innerWidth;
+                    screenHeight = window.innerHeight;
                     let otherHeight = calculateChartHeight();
                     for (const key in thumbCharts) {
                         const chartDiv = document.querySelector(
@@ -22465,6 +22469,8 @@
                     toggelChartDetail();
                 }else if (e.key === 'f' || e.key === 'F') {
                     toggelChartFinancialDetail(document.querySelector("#chartModal #toggelChartFinancialDetail"));
+                }else if (e.key === 'w' || e.key === 'W') {
+                    toggleChartWatchlistDrawer();
                 }
             });
 
@@ -23641,8 +23647,8 @@
             }
 
             function resizeMainChart(){
-                const screenWidth = window.innerWidth;
-                const screenHeight = window.innerHeight;
+                screenWidth = window.innerWidth;
+                screenHeight = window.innerHeight;
                 const chartArray = Object.values(charts);
                 const chartWidth = screenWidth-15;
                 const otherChartHeight=(screenHeight*0.15)*(chartArray.length - 1);

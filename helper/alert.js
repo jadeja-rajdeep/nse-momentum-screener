@@ -477,7 +477,7 @@
     function ensureWorker() {
         if (worker || !("Worker" in window)) return worker;
         try {
-            worker = new Worker("alert-worker.js");
+            worker = new Worker("./helper/alert-worker.js");
             worker.onmessage = function (e) {
                 const msg = e.data || {};
                 if (msg.type === "TRIGGERED") {
