@@ -33,6 +33,16 @@
     const CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
     const SCHEDULER_TICK_MS = 30 * 1000; // how often we check "should we be running right now"
 
+    const alertSound = new Audio('./assets/audio/nse_screener_alert.wav');
+    alertSound.preload = 'auto';
+
+    function playAlertSound() {
+      alertSound.currentTime = 0; // restart if it's already playing
+      alertSound.play().catch(err => {
+        console.warn('Alert sound blocked or failed:', err);
+      });
+    }
+
     // ------------------------------------------------------------------
     // Runtime state
     // ------------------------------------------------------------------
@@ -40,8 +50,19 @@
     let cycleInterval = null; // the 5-min "run a check" interval, only active in market hours
     let schedulerInterval = null; // the 30s "should the cycle be running?" interval
     let cycleRunning = false;
+    window.cycleRunning = cycleRunning;
     let checkInFlight = false;
     let notifPermissionAsked = false;
+    let allAlertStocksList = [];
+    window.allAlertStocksList = allAlertStocksList;
+    // Code -> row lookup, so we don't scan allData for every alert
+    let rowByCode = null;
+    const alertType = {
+      "customAlerts": "Custom Alert",
+      "awayFromHighAlerts": "Away From High",
+      "pivotTrendLineAlerts": "Pivot Trend Line",
+      "superTrendAlerts": "Super Trend",
+    };
 
     // ==================================================================
     // Small date/time helpers (IST-aware, independent of the visitor's
@@ -86,6 +107,16 @@
         const mins = p.hour * 60 + p.minute;
         return mins >= MARKET_OPEN_MIN && mins <= MARKET_CLOSE_MIN;
     }
+    window.isMarketOpenIST = isMarketOpenIST;
+
+    function getAlertSettings() {
+        const settings =
+            typeof loadAlertSettings === "function"
+                ? loadAlertSettings()
+                : { customAlerts: false, awayFromHighAlerts: false,pivotTrendLineAlerts:false,superTrendAlerts:false };
+        return settings;
+    }
+    window.getAlertSettings = getAlertSettings;
 
     // ==================================================================
     // localStorage helpers
@@ -115,6 +146,13 @@
     }
     function saveCustomAlerts(list) {
         safeSet(CUSTOM_ALERTS_KEY, list);
+
+        const settings = getAlertSettings();
+        const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts || settings.pivotTrendLineAlerts || settings.superTrendAlerts);
+
+        if (anyEnabled && isMarketOpenIST() && cycleRunning) {
+            allAlertStocksList['customAlerts'] = buildCustomAlertStocks();
+        }
     }
 
     // Public helper requested by spec: "one function which get all the
@@ -189,13 +227,14 @@
         results.forEach((r) => {
             store.items.push({
                 id: "t" + Date.now() + Math.random().toString(36).slice(2, 7),
-                alertId: r.alertId,
+                alertId: r.id,
                 code: r.code,
                 name: r.name,
                 condition: r.condition,
                 target: r.value,
                 ltp: r.ltp,
                 prevClose: r.prevClose,
+                type:r.type,
                 pct:
                     r.prevClose > 0
                         ? ((r.ltp - r.prevClose) / r.prevClose) * 100
@@ -205,17 +244,23 @@
 
             // Auto-disable the custom alert that fired so it doesn't spam the
             // user again every 5 minutes for the rest of the day.
-            const list = getCustomAlerts();
-            const item = list.find((a) => a.id === r.alertId);
-            if (item) {
-                item.enabled = false;
-                saveCustomAlerts(list);
+            //{ customAlerts: false, awayFromHighAlerts: false,pivotTrendLineAlerts:false,superTrendAlerts:false };
+            if (r.type == "customAlerts") {
+                const list = getCustomAlerts();
+                const item = list.find((a) => a.id === r.id);
+                if (item) {
+                    item.enabled = false;
+                    saveCustomAlerts(list);
+                }
             }
+            allAlertStocksList[r.type]= allAlertStocksList[r.type].filter(item => item.id !== r.id);
+
         });
         saveTriggeredStore(store);
         updateBellBadge();
         renderTriggeredAlertsList();
         renderCustomAlertsList();
+        playAlertSound();
         results.forEach(notifyUser);
     }
 
@@ -228,7 +273,7 @@
         const el = document.getElementById("alertBellCount");
         if (el) {
             el.textContent = unseen > 99 ? "99+" : String(unseen);
-            el.style.display = unseen > 0 ? "flex" : "none";
+            el.style.display = unseen > 0 ? "block" : "none";
         }
         try {
             if (unseen > 0 && navigator.setAppBadge) navigator.setAppBadge(unseen);
@@ -268,9 +313,9 @@
                 : "";
         try {
             const n = new Notification(`🔔 ${r.code} ${dir} ₹${r.value}`, {
-                body: `LTP ₹${r.ltp}${pctTxt}`,
+                body: `LTP ₹${r.ltp}${pctTxt}\n${alertType[r.type]}`,
                 tag: "nse-alert-" + r.alertId,
-                icon: "icons/icon-192.png",
+                icon: "./assets/img/icon-192.png",
             });
             n.onclick = () => {
                 window.focus();
@@ -318,11 +363,8 @@
         const dot = document.getElementById("paStatusDot");
         const text = document.getElementById("paStatusText");
         if (!dot || !text) return;
-        const settings =
-            typeof loadAlertSettings === "function"
-                ? loadAlertSettings()
-                : { customAlerts: false, awayFromHighAlerts: false };
-        const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts);
+        const settings = getAlertSettings();
+        const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts || settings.pivotTrendLineAlerts || settings.superTrendAlerts);
         const open = isMarketOpenIST();
         dot.classList.toggle("live", anyEnabled && open && cycleRunning);
         if (!anyEnabled) {
@@ -452,6 +494,7 @@
                         <span class="pa-tt-time">${istTimeLabel(new Date(t.triggeredAt))}</span>
                     </div>
                     <div class="pa-tt-meta">LTP &#8377;${t.ltp}${pctTxt}</div>
+                    <div class="pa-tt-badge"><span class="sector-pill">${alertType[t.type]}</span></div>
                 </div>`;
             })
             .join("");
@@ -470,6 +513,251 @@
                 })[c],
         );
     }
+
+    function buildCustomAlertStocks() {
+        const alertSettings = getAlertSettings();
+        if (!alertSettings.customAlerts) return [];
+        const enabledAlerts = getStoredAlerts(true);
+        if (!enabledAlerts.length) return [];
+        if (typeof allData === "undefined" || !allData.length) return [];
+        const stocks = enabledAlerts
+            .map((alert) => {
+                const row = rowByCode.get(alert.code);
+                if (!row) return null; // stock not in allData
+
+                const close = parseFloat(row.Close);
+                const target = parseFloat(alert.value);
+                if (isNaN(close) || isNaN(target)) return null;
+
+                // Keep only alerts whose condition matches your rule
+                const matched =
+                    (alert.condition === ">=" && close < target) ||
+                    (alert.condition === "<=" && close > target);
+                if (!matched) return null;
+
+                return {
+                    id:alert.id,
+                    code: row.Code,
+                    name: row.Name,
+                    prevClose: close,
+                    condition: alert.condition,
+                    value: target,
+                    type:'customAlerts'
+                };
+            })
+            .filter(Boolean);
+
+        if (!stocks.length) return [];
+
+        return stocks; // send to your worker from here
+    }
+
+    function buildAwayFromHighAlertStocks() {
+        const alertSettings = getAlertSettings();
+        const chartSettings = getChartSettings();
+        if (!alertSettings.awayFromHighAlerts) return [];
+        const watchLists = loadWatchlists();
+        if (!watchLists.length) return [];
+        if (typeof allData === "undefined" || !allData.length) return [];
+
+        const allCodes = [
+            ...new Set(
+                watchLists.flatMap(watchlist =>
+                    Array.isArray(watchlist.codes) ? watchlist.codes : []
+                )
+            )
+        ];
+
+        const stocks = allCodes
+            .map((alert) => {
+                const row = rowByCode.get(alert.code);
+                if (!row) return null; // stock not in allData
+
+                const close = parseFloat(row.Close);
+                if (isNaN(close)) return null;
+                chartSettings.afh.forEach(async (afh) => {
+                    if (afh.enabled && afh.length >= 15) {
+                        const indicatorKey = 'afh_' + afh.length;
+                        let result = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
+                        if (!result) {
+                            result = calculateHighestHighResistance(data, { length: afh.length });
+                            await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, result);
+                        }
+
+                        if (result) {
+                            const target = parseFloat(result.price);
+                            if (isNaN(target)) return null;
+
+                            // Keep only alerts whose condition matches your rule
+                            const matched = close < target;
+                            if (!matched) return null;
+
+                            return {
+                                id: "afh" + Date.now() + Math.random().toString(36).slice(2, 7),
+                                code: row.Code,
+                                name: row.Name,
+                                prevClose: close,
+                                condition: '>=',
+                                value: target,
+                                type:'awayFromHighAlerts'
+                            };
+                        }
+                    }
+                });
+            })
+            .filter(Boolean);
+
+        if (!stocks.length) return [];
+
+        return stocks; // send to your worker from here
+    }
+    window.buildAwayFromHighAlertStocks = buildAwayFromHighAlertStocks;
+
+    function buildPivotTrendLineAlertStocks() {
+        const alertSettings = getAlertSettings();
+        const chartSettings = getChartSettings();
+        if (!alertSettings.pivotTrendLineAlerts) return [];
+        const watchLists = loadWatchlists();
+        if (!watchLists.length) return [];
+        if (typeof allData === "undefined" || !allData.length) return [];
+
+        const allCodes = [
+            ...new Set(
+                watchLists.flatMap(watchlist =>
+                    Array.isArray(watchlist.codes) ? watchlist.codes : []
+                )
+            )
+        ];
+
+        const stocks = allCodes
+            .map((alert) => {
+                const row = rowByCode.get(alert.code);
+                if (!row) return null; // stock not in allData
+
+                const close = parseFloat(row.Close);
+                if (isNaN(close)) return null;
+
+                chartSettings.pivottrendline.forEach(async (pivot) => {
+                    if (pivot.enabled && pivot.length>1) {
+                        const indicatorKey='pivottrendline_' + pivot.length+'_high';
+                        let result = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
+                        if (!result){
+                            result = calculateTrendlinePoints(data, pivot.length,'high');
+                            await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, result);
+                        }
+
+                        if (result) {
+                            if (result.lineA) {
+                                const target = parseFloat(result.lineA[result.lineA.length - 1].value);
+                                if (isNaN(target)) return null;
+
+                                // Keep only alerts whose condition matches your rule
+                                const matched = close < target;
+                                if (!matched) return null;
+
+                                return {
+                                    id:'',
+                                    code: row.Code,
+                                    name: row.Name,
+                                    prevClose: close,
+                                    condition: '>=',
+                                    value: target,
+                                    type:'pivotTrendLineAlerts'
+                                };
+                            }
+
+                            if (result.lineB) {
+                                const target = parseFloat(result.lineA[result.lineB.length - 1].value);
+                                if (isNaN(target)) return null;
+
+                                // Keep only alerts whose condition matches your rule
+                                const matched = close < target;
+                                if (!matched) return null;
+
+                                return {
+                                    id: "ptl" + Date.now() + Math.random().toString(36).slice(2, 7),
+                                    code: row.Code,
+                                    name: row.Name,
+                                    prevClose: close,
+                                    condition: '>=',
+                                    value: target,
+                                    type:'pivotTrendLineAlerts'
+                                };
+                            }
+
+                        }
+                    }
+                });
+            })
+            .filter(Boolean);
+
+        if (!stocks.length) return [];
+
+        return stocks; // send to your worker from here
+    }
+    window.buildPivotTrendLineAlertStocks = buildPivotTrendLineAlertStocks;
+
+    function buildSuperTrendAlertStocks() {
+        const alertSettings = getAlertSettings();
+        const chartSettings = getChartSettings();
+        if (!alertSettings.superTrendAlerts) return [];
+        const watchLists = loadWatchlists();
+        if (!watchLists.length) return [];
+        if (typeof allData === "undefined" || !allData.length) return [];
+
+        const allCodes = [
+            ...new Set(
+                watchLists.flatMap(watchlist =>
+                    Array.isArray(watchlist.codes) ? watchlist.codes : []
+                )
+            )
+        ];
+
+        const stocks = allCodes
+            .map((alert) => {
+                const row = rowByCode.get(alert.code);
+                if (!row) return null; // stock not in allData
+
+                const close = parseFloat(row.Close);
+                if (isNaN(close)) return null;
+
+                chartSettings.supertrend.forEach(async (supertrend) => {
+                    if (supertrend.enabled) {
+                        const indicatorKey="supertrend_"+supertrend.atrLength +"_"+ supertrend.factor;
+                        let calculation = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
+                        if (!calculation){
+                            calculation = calculateSupertrend(data,supertrend);
+                            await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, calculation);
+                        }
+
+                        if (calculation) {
+                            const target = parseFloat(calculation[calculation.length - 1].value);
+                            if (isNaN(target)) return null;
+
+                            // Keep only alerts whose condition matches your rule
+                            const matched = close < target;
+                            if (!matched) return null;
+
+                            return {
+                                id: "supt" + Date.now() + Math.random().toString(36).slice(2, 7),
+                                code: row.Code,
+                                name: row.Name,
+                                prevClose: close,
+                                condition: '>=',
+                                value: target,
+                                type:'superTrendAlerts'
+                            };
+                        }
+                    }
+                });
+            })
+            .filter(Boolean);
+
+        if (!stocks.length) return [];
+
+        return stocks; // send to your worker from here
+    }
+    window.buildSuperTrendAlertStocks = buildSuperTrendAlertStocks;
 
     // ==================================================================
     // Worker lifecycle + the 5-minute check cycle
@@ -500,39 +788,17 @@
 
     function runAlertCheck() {
         if (checkInFlight) return; // don't overlap a slow check with the next tick
-        const enabledAlerts = getStoredAlerts(true);
-        if (!enabledAlerts.length) return;
+        const allAlerts = Object.values(allAlertStocksList).flat();
+        if (typeof allAlerts === "undefined" || !allAlerts.length) return;
         if (typeof allData === "undefined" || !allData.length) return;
 
         const w = ensureWorker();
         if (!w) return;
 
-        // Build a code -> previous day Close lookup from allData (this is the
-        // "previous day close" the worker needs but can't reach on its own,
-        // since a Web Worker has no access to the page's DOM/global scope).
-        const codesNeeded = [...new Set(enabledAlerts.map((a) => a.code.toUpperCase()))];
-        const stocks = codesNeeded
-            .map((code) => {
-                const row = allData.find(
-                    (r) => (r.Code || "").toUpperCase() === code,
-                );
-                return row
-                    ? {
-                          code: row.Code,
-                          name: row.Name,
-                          prevClose: parseFloat(row.Close) || null,
-                      }
-                    : { code: code, name: code, prevClose: null };
-            })
-            .filter((s) => s.prevClose != null);
-
-        if (!stocks.length) return;
-
         checkInFlight = true;
         w.postMessage({
             type: "CHECK_ALERTS",
-            stocks: stocks,
-            alerts: enabledAlerts,
+            allAlerts: allAlerts,
         });
     }
 
@@ -540,6 +806,10 @@
         if (cycleRunning) return;
         cycleRunning = true;
         ensureWorker();
+        allAlertStocksList['customAlerts'] = buildCustomAlertStocks();
+        allAlertStocksList['awayFromHighAlerts'] = buildAwayFromHighAlertStocks();
+        allAlertStocksList['pivotTrendLineAlerts'] = buildPivotTrendLineAlertStocks();
+        allAlertStocksList['superTrendAlerts'] = buildSuperTrendAlertStocks();
         runAlertCheck(); // don't wait 5 min for the first check of the day
         cycleInterval = setInterval(runAlertCheck, CHECK_INTERVAL_MS);
         refreshStatusLine();
@@ -561,12 +831,8 @@
     // alerts are enabled at all — it starts/stops the actual 5-min cycle as
     // the market opens/closes, so the worker never runs outside 9:15–15:30 IST.
     function schedulerTick() {
-        const settings =
-            typeof loadAlertSettings === "function"
-                ? loadAlertSettings()
-                : { customAlerts: false, awayFromHighAlerts: false };
-        const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts);
-
+        const settings = getAlertSettings();
+        const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts || settings.pivotTrendLineAlerts || settings.superTrendAlerts);
         if (anyEnabled && isMarketOpenIST()) {
             startCycle();
         } else {
@@ -578,13 +844,11 @@
     // Public entry point — called by the main script after allData loads
     // ==================================================================
     window.initPriceAlertSystem = function () {
+        rowByCode = new Map(allData.map((r) => [r.Code, r]));
         updateBellBadge();
 
-        const settings =
-            typeof loadAlertSettings === "function"
-                ? loadAlertSettings()
-                : { customAlerts: false, awayFromHighAlerts: false };
-        const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts);
+        const settings = getAlertSettings();
+        const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts || settings.pivotTrendLineAlerts || settings.superTrendAlerts);
 
         if (!anyEnabled) {
             refreshStatusLine();
@@ -601,15 +865,50 @@
     // and grab notification permission right away (this fires from a direct
     // user click, so the permission prompt is allowed).
     document.addEventListener("DOMContentLoaded", function () {
-        ["alertEnableCustom", "alertEnableAwayFromHigh"].forEach((id) => {
+        ["alertEnableCustom", "alertEnableAwayFromHigh","alertEnablePivotTrendLine","alertEnableSuperTrend"].forEach((id) => {
             const el = document.getElementById(id);
             if (el)
-                el.addEventListener("change", function () {
+                el.addEventListener("change", function (event) {
                     ensureNotificationPermission();
+
+                    requestAnimationFrame(() => {
+                        setTimeout(() => {
+                            const settings = getAlertSettings();
+                            const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts || settings.pivotTrendLineAlerts || settings.superTrendAlerts);
+
+                            if (anyEnabled && isMarketOpenIST() && cycleRunning) {
+                                const isChecked = event.target.checked;
+                                const chkID = event.target.id;
+                                if (chkID == "alertEnableCustom" && isChecked) {
+                                    allAlertStocksList['customAlerts'] = buildCustomAlertStocks();
+                                } else if (chkID == "alertEnableCustom" && !isChecked) {
+                                    allAlertStocksList['customAlerts'] = [];
+                                }else if (chkID == "alertEnableAwayFromHigh" && isChecked) {
+                                    allAlertStocksList['awayFromHighAlerts'] = buildAwayFromHighAlertStocks();
+                                }else if (chkID == "alertEnableAwayFromHigh" && !isChecked) {
+                                    allAlertStocksList['awayFromHighAlerts'] = [];
+                                }else if (chkID == "alertEnablePivotTrendLine" && isChecked) {
+                                    allAlertStocksList['pivotTrendLineAlerts'] = buildPivotTrendLineAlertStocks();
+                                }else if (chkID == "alertEnablePivotTrendLine" && !isChecked) {
+                                    allAlertStocksList['pivotTrendLineAlerts'] = [];
+                                }else if (chkID == "alertEnableSuperTrend" && isChecked) {
+                                    allAlertStocksList['superTrendAlerts'] = buildSuperTrendAlertStocks();
+                                }else if (chkID == "alertEnableSuperTrend" && !isChecked) {
+                                    allAlertStocksList['superTrendAlerts'] = [];
+                                }
+                            }
+                        }, 1000);
+                    });
+
                     if (typeof initPriceAlertSystem === "function")
                         initPriceAlertSystem();
-                    else schedulerTick();
+                    else
+                        schedulerTick();
                 });
         });
+
+        requestAnimationFrame(() => {
+            initPriceAlertSystem();
+        })
     });
 })();

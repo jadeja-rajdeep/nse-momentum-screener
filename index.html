@@ -610,7 +610,7 @@
                 font-weight: 500;
                 flex-shrink: 0;
             }
-            .pa-tt-meta {
+            .pa-tt-meta,.pa-tt-badge  {
                 color: var(--muted);
                 font-size: 10px;
                 margin-top: 3px;
@@ -14177,13 +14177,6 @@
 
                     applyFilters();
 
-                    // Hand off to alert.js (loaded later in the page) so it can
-                    // start/refresh the live price-alert worker cycle now that
-                    // allData (with previous-day Close prices) is available.
-                    if (typeof initPriceAlertSystem === "function") {
-                        initPriceAlertSystem();
-                    }
-
                 } catch (e) {
                     document.getElementById("loading").style.display = "none";
                     const el = document.getElementById("error-msg");
@@ -16951,6 +16944,17 @@
 
             function saveWatchlists(list) {
                 localStorage.setItem(WL_KEY, JSON.stringify(list));
+
+                //alert notification code.
+                if (typeof getAlertSettings === "function") {
+                    const settings = getAlertSettings();
+                    const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts || settings.pivotTrendLineAlerts || settings.superTrendAlerts);
+                    if (anyEnabled && isMarketOpenIST() && cycleRunning) {
+                        allAlertStocksList['awayFromHighAlerts'] = buildAwayFromHighAlertStocks();
+                        allAlertStocksList['pivotTrendLineAlerts'] = buildPivotTrendLineAlertStocks();
+                        allAlertStocksList['superTrendAlerts'] = buildSuperTrendAlertStocks();
+                    }
+                }
             }
 
             function isInAnyWatchlist(code) {
@@ -23801,7 +23805,7 @@
              notification bell modal, and schedules the alert-worker.js
              Web Worker during market hours. Loaded after the main script so
              it can see allData, loadAlertSettings(), etc. -->
-        <!--<script src="./helper/alert.js"></script>-->
+        <script src="./helper/alert.js"></script>
         <!-- PWA: Install prompt toast -->
         <div class="pwa-toast" id="pwaInstallToast">
             <div class="pwa-toast-icon">📲</div>

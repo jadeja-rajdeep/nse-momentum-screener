@@ -41,42 +41,20 @@
    else in this file (the alert-matching logic) stays the same.
    ========================================================================= */
 
-const LIVE_PRICE_API_URL =
-    "https://query1.finance.yahoo.com/v7/finance/quote?field=regularMarketPrice&symbols=";
+const LIVE_PRICE_API_URL = "https://nse-momentum-screener-api.vercel.app/api/get-live-data-proxy";
 
-// Turn our internal NSE "Code" into whatever the live-price API expects.
-function toApiSymbol(code) {
-    return code + ".NS";
-}
-
-// Build the request URL for a batch of stock codes.
-function buildRequestUrl(codes) {
-    const symbols = codes.map(toApiSymbol).join(",");
-    return LIVE_PRICE_API_URL + encodeURIComponent(symbols);
-}
-
-// Parse the API's JSON body into { CODE: lastTradedPrice, ... }.
-// Swap this out if you change LIVE_PRICE_API_URL to a different provider.
-function parseLivePriceResponse(json) {
-    const out = {};
-    const quotes =
-        (json && json.quoteResponse && json.quoteResponse.result) || [];
-    quotes.forEach((q) => {
-        const sym = (q.symbol || "").replace(/\.NS$/i, "");
-        const price = q.regularMarketPrice;
-        if (sym && typeof price === "number" && !isNaN(price)) {
-            out[sym.toUpperCase()] = price;
-        }
-    });
-    return out;
-}
-
-async function fetchLivePrices(codes) {
-    const url = buildRequestUrl(codes);
-    const res = await fetch(url, { headers: { Accept: "application/json" } });
+async function fetchLivePrices() {
+    const res = await fetch(LIVE_PRICE_API_URL, { headers: { Accept: "application/json" } });
     if (!res.ok) throw new Error("Live price API HTTP " + res.status);
     const json = await res.json();
-    return parseLivePriceResponse(json);
+    /*
+    for testing purpose.
+    const json = [
+        { "identifier": "TMPVQN", "symbol": "TMPV", "series": "EQ", "marketType": "N", "pchange": 2.52, "change": 18, "basePrice": 0, "previousClose": 300, "lastPrice": 305, "totalTradedVolume": 394.0071, "issuedCap": 15414179062, "totalTradedValue": 2868.371688, "totalMarketCap": 1126776.4894322 },
+    ];
+     */
+    const list = Array.isArray(json) ? json : (json.data || []);
+    return new Map(list.map((r) => [String(r.symbol).toUpperCase(), r]));
 }
 
 // Sanity guard: if the live price is wildly off from yesterday's close
@@ -90,36 +68,19 @@ function isSanePrice(ltp, prevClose) {
     return movePct <= MAX_SANE_MOVE_PCT;
 }
 
-function checkAlerts(stocks, alerts, prices) {
-    const prevCloseByCode = {};
-    stocks.forEach((s) => (prevCloseByCode[s.code.toUpperCase()] = s.prevClose));
-    const nameByCode = {};
-    stocks.forEach((s) => (nameByCode[s.code.toUpperCase()] = s.name));
-
+function checkAlerts(allAlerts, prices) {
     const results = [];
-    alerts.forEach((a) => {
-        if (!a.enabled) return;
-        const codeKey = (a.code || "").toUpperCase();
-        const ltp = prices[codeKey];
-        if (typeof ltp !== "number") return; // no live price for this code this round
-        const prevClose = prevCloseByCode[codeKey];
-        if (!isSanePrice(ltp, prevClose)) return;
+    allAlerts.forEach((a) => {
+        const row = prices.get((a.code || "").toUpperCase());
+        if (!row) return;                       // no live price this round
+        const ltp = parseFloat(row.lastPrice);
+        if (!Number.isFinite(ltp)) return;      // catches NaN
+        if (!isSanePrice(ltp, a.prevClose)) return;
 
         const hit =
             (a.condition === ">=" && ltp >= a.value) ||
             (a.condition === "<=" && ltp <= a.value);
-
-        if (hit) {
-            results.push({
-                alertId: a.id,
-                code: a.code,
-                name: nameByCode[codeKey] || a.code,
-                condition: a.condition,
-                value: a.value,
-                ltp: ltp,
-                prevClose: prevClose,
-            });
-        }
+        if (hit) results.push({ ...a, ltp });
     });
     return results;
 }
@@ -128,14 +89,12 @@ self.onmessage = async function (e) {
     const msg = e.data || {};
     if (msg.type !== "CHECK_ALERTS") return;
 
-    const stocks = msg.stocks || [];
-    const alerts = msg.alerts || [];
-    if (!stocks.length || !alerts.length) return;
+    const allAlerts = msg.allAlerts || [];
+    if (!allAlerts.length) return;
 
     try {
-        const codes = stocks.map((s) => s.code);
-        const prices = await fetchLivePrices(codes);
-        const results = checkAlerts(stocks, alerts, prices);
+        const prices = await fetchLivePrices();
+        const results = checkAlerts(allAlerts, prices);
         self.postMessage({ type: "TRIGGERED", results: results });
     } catch (err) {
         self.postMessage({
