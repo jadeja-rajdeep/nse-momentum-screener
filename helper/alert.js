@@ -63,6 +63,7 @@
       "pivotTrendLineAlerts": "Pivot Trend Line",
       "superTrendAlerts": "Super Trend",
     };
+    let livePrices = null;
 
     // ==================================================================
     // Small date/time helpers (IST-aware, independent of the visitor's
@@ -530,6 +531,18 @@
                 if (isNaN(close) || isNaN(target)) return null;
 
                 // Keep only alerts whose condition matches your rule
+                if (livePrices) {
+                    const livePrice = livePrices.get(alert.code);
+                    if (livePrice) {
+                        const ltp = parseFloat(livePrice.lastPrice);
+                        const matchedLive =
+                            (alert.condition === ">=" && ltp < target) ||
+                            (alert.condition === "<=" && ltp > target);
+                        if (!matchedLive) return null;
+                    }
+                }
+
+                // Keep only alerts whose condition matches your rule
                 const matched =
                     (alert.condition === ">=" && close < target) ||
                     (alert.condition === "<=" && close > target);
@@ -591,6 +604,16 @@
                             // Keep only alerts whose condition matches your rule
                             const matched = close < target;
                             if (!matched) return null;
+
+                            // Keep only alerts whose condition matches your rule
+                            if (livePrices) {
+                                const livePrice = livePrices.get(alert.code);
+                                if (livePrice) {
+                                    const ltp = parseFloat(livePrice.lastPrice);
+                                    const matchedLive = ltp < target
+                                    if (!matchedLive) return null;
+                                }
+                            }
 
                             return {
                                 id: "afh" + Date.now() + Math.random().toString(36).slice(2, 7),
@@ -655,6 +678,16 @@
                                 const matched = close < target;
                                 if (!matched) return null;
 
+                                // Keep only alerts whose condition matches your rule
+                                if (livePrices) {
+                                    const livePrice = livePrices.get(alert.code);
+                                    if (livePrice) {
+                                        const ltp = parseFloat(livePrice.lastPrice);
+                                        const matchedLive = ltp < target
+                                        if (!matchedLive) return null;
+                                    }
+                                }
+
                                 return {
                                     id:'',
                                     code: row.Code,
@@ -673,6 +706,16 @@
                                 // Keep only alerts whose condition matches your rule
                                 const matched = close < target;
                                 if (!matched) return null;
+
+                                // Keep only alerts whose condition matches your rule
+                                if (livePrices) {
+                                    const livePrice = livePrices.get(alert.code);
+                                    if (livePrice) {
+                                        const ltp = parseFloat(livePrice.lastPrice);
+                                        const matchedLive = ltp < target
+                                        if (!matchedLive) return null;
+                                    }
+                                }
 
                                 return {
                                     id: "ptl" + Date.now() + Math.random().toString(36).slice(2, 7),
@@ -738,6 +781,16 @@
                             const matched = close < target;
                             if (!matched) return null;
 
+                            // Keep only alerts whose condition matches your rule
+                            if (livePrices) {
+                                const livePrice = livePrices.get(alert.code);
+                                if (livePrice) {
+                                    const ltp = parseFloat(livePrice.lastPrice);
+                                    const matchedLive = ltp < target
+                                    if (!matchedLive) return null;
+                                }
+                            }
+
                             return {
                                 id: "supt" + Date.now() + Math.random().toString(36).slice(2, 7),
                                 code: row.Code,
@@ -769,6 +822,7 @@
             worker.onmessage = function (e) {
                 const msg = e.data || {};
                 if (msg.type === "TRIGGERED") {
+                    livePrices = msg.livePrices;
                     recordTriggeredAlerts(msg.results);
                 } else if (msg.type === "ERROR") {
                     console.warn("[alert-worker] ", msg.error);

@@ -95,7 +95,7 @@ self.onmessage = async function (e) {
     try {
         const prices = await fetchLivePrices();
         const results = checkAlerts(allAlerts, prices);
-        self.postMessage({ type: "TRIGGERED", results: results });
+        self.postMessage({ type: "TRIGGERED", results: results,livePrices:prices });
     } catch (err) {
         self.postMessage({
             type: "ERROR",
