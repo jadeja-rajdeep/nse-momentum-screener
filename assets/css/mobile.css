@@ -1,3 +1,17 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   mobile.css — consolidated
+   Loaded only at (max-width: 767px) via <link media>, so the shared + phone
+   sections are now a single block.
+
+   Modal class groups used below (kept in sync with index.html):
+     overlays : ss · ind · help · tv · settings · author · peer  (-modal-overlay)
+     modals   : ss · ind · fib · help · tv · settings · author · peer (-modal)
+     headers  : ss · ind · help · tv · settings · author · peer  (-modal-header)
+     bodies   : ss · ind · help · tv · settings · author · peer  (-modal-body)
+   If you add a new modal, add its classes to the :is() lists in sections 1-3.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+
 /* ── 0 · TOKENS ──────────────────────────────────────────────────────────── */
 :root {
     --m-safe-t: env(safe-area-inset-top, 0px);
@@ -6,47 +20,52 @@
     --m-safe-r: env(safe-area-inset-right, 0px);
 
     --m-dock-h: calc(58px + var(--m-safe-b)); /* phone bottom dock            */
-    --m-head-h: calc(56px + var(--m-safe-t)); /* tablet top header            */
-    --m-bar-h: 44px;                          /* stats bar / sort rail / pager */
-    --m-id-w: clamp(116px, 33vw, 148px);      /* pinned identity column       */
+    --m-bar-h: 44px;                          /* stats bar / pager             */
 
-    --m-radius: 14px;
-    --m-tint: rgba(0, 212, 170, 0.07);
     --m-hair: rgba(148, 163, 184, 0.16);
     --m-shadow-up: 0 -14px 44px rgba(0, 0, 0, 0.5);
 }
 [data-theme="light"] {
-    --m-tint: rgba(10, 167, 135, 0.09);
     --m-hair: rgba(26, 34, 51, 0.1);
     --m-shadow-up: 0 -14px 40px rgba(26, 34, 51, 0.18);
 }
 
 
-/* ── 1 · SHARED (phones + tablets) ───────────────────────────────────────── */
+/* ── 1 · PHONE ───────────────────────────────────────────────────────────── */
 @media screen and (max-width: 767px) {
+
     html {
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* App shell: header / bars / list / pager are stacked, only the list scrolls.
-       (index.html sets overflow:auto !important below 768px and 665px tall; the
-       list itself is the scroller here, so the page must not scroll.) */
-    body {
-        height: 100vh;
+    /* App shell: stats bar / list / pager / dock are stacked, only the list
+       scrolls. `html body` (not `body`) so this beats index.html's
+       `@media (max-height:665px) { body { overflow:auto !important } }`
+       regardless of stylesheet order. Side padding keeps content clear of a
+       notch when the phone is in landscape (0px in portrait). */
+    html body {
+        height: 100vh;               /* fallback */
         height: 100dvh;
         min-height: 0;
         overflow: hidden !important;
         overscroll-behavior: none;
+        box-sizing: border-box;
+        padding-left: var(--m-safe-l);
+        padding-right: var(--m-safe-r);
     }
 
-    /* — stats bar (top app bar) — */
+    /* — stats bar (top app bar); leaves room for the fixed date chip — */
     .stats-bar {
-        padding: 6px 12px;
-        gap: 14px;
-        min-height: var(--m-bar-h);
+        order: 1;
         flex: 0 0 auto;
+        gap: 14px;
+        margin-right: 118px;
+        padding: calc(6px + var(--m-safe-t)) 12px 6px 12px;
+        min-height: calc(var(--m-bar-h) + var(--m-safe-t));
+        background: var(--surface);
+        box-shadow: 118px 0 0 0 var(--surface); /* fills the strip under the date chip */
         scrollbar-width: none;
     }
     .stats-bar::-webkit-scrollbar { display: none; }
@@ -74,14 +93,64 @@
     .stats-bar .rows-select { padding: 0 6px !important; font-size: 16px !important; }
     .stats-bar > .ms-auto > span[style*="color: var(--border)"] { display: none; }
 
-    #multiBanner { padding: 8px 12px; flex: 0 0 auto; }
+    /* Perf: index.html pulses these buttons forever with an animated
+       box-shadow (main-thread repaint on every frame while the list scrolls). */
+    .btn-tv-watchlist { animation: none; }
+
+    #multiBanner { order: 2; flex: 0 0 auto; padding: 8px 12px; }
+    #error-msg   { order: 2; margin: 12px; padding: 14px 16px; }
+    #tableWrapper { order: 3; }
+    #pagBar { order: 4; }
+    footer { display: none; }
+
     .toolbar-scroll.has-overflow::after {
         background: linear-gradient(to right, transparent, var(--surface) 60%);
         color: var(--muted);
     }
-
     #loading { padding: 72px 20px; }
-    #error-msg { margin: 12px; padding: 14px 16px; }
+
+    /* — tables — only Code (col 1) stays frozen on the main table. Name
+       (col 2) scrolls away so more data columns fit. The header cell stays
+       sticky (top) but loses its left pin. — */
+    #mainTable th:nth-child(2) {
+        z-index: 10 !important;
+        left: auto !important;
+        width: auto !important;
+        min-width: 90px !important;
+        max-width: 200px !important;
+        border-right: none !important;
+    }
+    #mainTable #tableBody td:nth-child(2),
+    .name-cell {
+        width: auto !important;
+        min-width: 90px !important;
+        max-width: 200px !important;
+        border-right: none !important;
+    }
+    /* col 2 is never pinned, in any table */
+    #mainTable #tableBody td:nth-child(2),
+    .name-cell,
+    .peer-table td:nth-child(2),
+    .ind-table td:nth-child(2) {
+        position: static !important;
+        left: auto !important;
+    }
+    .peer-table td:nth-child(2),
+    .ind-table td:nth-child(2) { z-index: auto !important; }
+
+    /* peer + industry tables: col 1 pinned, width differs per table */
+    .peer-table { --m-col1-w: 90px; }
+    .ind-table  { --m-col1-w: 30px; }
+    .peer-table th:nth-child(1),
+    .peer-table td:nth-child(1),
+    .ind-table th:nth-child(1),
+    .ind-table td:nth-child(1) {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        background: var(--surface);
+        min-width: var(--m-col1-w);
+    }
 
     /* — pagination bar — */
     .pag-bar {
@@ -111,6 +180,7 @@
     .filter-group-title { font-size: 13px; letter-spacing: 0; text-transform: none; }
     .filter-label { font-size: 12px; margin-bottom: 5px; }
 
+    /* 16px stops iOS zooming into fields */
     .filter-panel input:not([type="checkbox"]):not([type="radio"]),
     .filter-panel select,
     .filter-panel textarea,
@@ -120,7 +190,7 @@
     .filter-panel .adv-value-input,
     .filter-panel .adv-select,
     .modal-input-touch {
-        font-size: 16px !important; /* stops iOS zooming into fields */
+        font-size: 16px !important;
     }
     .filter-panel .form-control,
     .filter-panel .form-select,
@@ -157,15 +227,37 @@
     .msel-action-btn { min-height: 36px; }
     .msel-options { max-height: 46dvh; overflow-y: auto; }
 
-    /* saved searches / watchlists */
-    .saved-panel { padding: 12px 14px 16px; }
+    /* two fields per row inside a sheet (ranges keep the full width) */
+    .filter-group-body .row > .col-sm-6 {
+        flex: 0 0 auto;
+        width: 50%;
+    }
+    .filter-group-body .row > .col-sm-6:has(.range-group),
+    .filter-group-body .row > .col-sm-6:has(.adv-query-box) { width: 100%; }
+
+    /* dropdown lists become their own sheet, so they are never clipped */
+    .msel.open .msel-panel {
+        position: fixed;
+        left: 8px;
+        right: 8px;
+        top: auto;
+        bottom: calc(var(--m-dock-h) + 8px);
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        max-height: 62dvh;
+        z-index: 200;
+        border-radius: 16px;
+    }
+    .setup-preset-panel { max-width: calc(100vw - 32px); }
+
+    /* — saved searches / watchlists — */
     .saved-panel-header .btn-page,
     .saved-panel-header button { min-height: 36px; border-radius: 10px; }
     .saved-list { gap: 8px; }
     .ss-card { min-height: 44px; border-radius: 10px; padding: 6px 10px; }
 
-    /* toast / popovers */
-    /* The input may shrink; the Add button can never leave the popover. */
+    /* — watchlist popover: the input may shrink, the Add button never leaves — */
     .wl-popover {
         width: min(300px, calc(100vw - 16px));
         max-width: calc(100vw - 16px);
@@ -178,59 +270,8 @@
     .wl-popover-new { flex: 0 0 auto; }
     .wl-popover-new input { width: 0; min-width: 0; font-size: 16px; }
     .wl-popover-new button { flex: 0 0 auto; min-height: 32px; }
-
-    /* Chart remains above; its controls are permanently reachable below it. */
-    #chartModal > .settings-modal {
-        display: flex;
-        flex-direction: column;
-        height: 100dvh;
-        max-height: none !important;
-        border-radius: 0 !important;
-        overflow: hidden !important;
-    }
-    #chartModal .settings-modal-body {
-        order: 1;
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
-        padding: 5px 8px !important;
-    }
-    #chartModal .settings-modal-header {
-        order: 2;
-        position: relative;
-        flex: 0 0 auto;
-        padding: 8px 10px calc(8px + var(--m-safe-b));
-        border-top: 1px solid rgba(148, 163, 184, .15);
-        border-bottom: 0;
-        border-radius: 0;
-        gap: 6px;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-    #chartModal .settings-modal-header .settings-modal-title,
-    #chartModal .settings-modal-header .tv-modal-meta { display: none; }
-    #chartModal .settings-modal-header .peer-modal-close,
-    #chartModal .settings-modal-header .btn { flex: 0 0 auto; }
-}
-
-
-/* ── 2 · PHONE (≤767px) ──────────────────────────────────────────────────── */
-@media screen and (max-width: 767px) {
-
-    /* — stats bar sits on top; leaves room for the fixed date chip — */
-    .stats-bar {
-        order: 1;
-        margin-right: 118px;
-        padding: calc(6px + var(--m-safe-t)) 12px 6px 12px;
-        min-height: calc(var(--m-bar-h) + var(--m-safe-t));
-        background: var(--surface);
-        box-shadow: 118px 0 0 0 var(--surface); /* fills the strip under the date chip */
-    }
-    #multiBanner { order: 2; }
-    #error-msg { order: 2; }
-    #tableWrapper { order: 3; }
-    #pagBar { order: 4; }
-    footer { display: none; }
+    /* per-row element: animate only what actually changes, not `all` */
+    .wl-star { transition: color 0.15s, transform 0.15s; }
 
     /* — dock: the old header becomes the bottom navigation — */
     .site-header {
@@ -318,29 +359,16 @@
     .site-header .btn-theme-toggle { width: 66px; height: 100%; border-radius: 12px; }
     .alert-bell-count { top: 4px; right: 12px; }
 
-    /* dock order: what you open most comes first */
-    #toggleFiltersBtn                                { order: 1; }
-    #toggleSavedBtn                                  { order: 2; }
-    #toggleWatchlistBtn                              { order: 3; }
-    .site-header button[onclick^="openIndustryModal"] { order: 4; }
-    #alertBellBtn                                    { order: 5; }
-    .site-header button[onclick^="openHelpModal"]     { order: 6; }
-    .site-header button[onclick^="openSettingsModal"] { order: 7; }
-    #themeToggleBtn                                  { order: 8; }
-    .site-header button[onclick^="openAuthorModal"]   { order: 9; }
-
     /* the open panel lights up its dock item */
-    body:has(#filterPanel[style*="display: block"]) #toggleFiltersBtn,
-    body:has(#savedPanel:not([style*="none"])) #toggleSavedBtn,
-    body:has(#watchlistPanel:not([style*="none"])) #toggleWatchlistBtn {
-        background: rgba(0, 212, 170, 0.14) !important;
-    }
+    body.filter-panel-open #toggleFiltersBtn,
+    body.saved-panel-open #toggleSavedBtn,
+    body.watchlist-panel-open #toggleWatchlistBtn { background: rgba(0, 212, 170, 0.14) !important; }
 
     /* data date: pinned top-right over the stats bar */
     .site-header .data-date-badge {
         position: fixed;
         top: calc(var(--m-safe-t) + 8px);
-        right: 10px;
+        right: calc(10px + var(--m-safe-r));
         z-index: 130;
         order: 10;
         padding: 5px 10px;
@@ -352,14 +380,13 @@
     .filter-panel,
     .saved-panel {
         position: fixed;
-        left: 0;
-        right: 0;
+        left: var(--m-safe-l);
+        right: var(--m-safe-r);
         bottom: var(--m-dock-h);
         z-index: 90;
         max-height: min(80dvh, calc(100dvh - var(--m-dock-h) - var(--m-bar-h) - var(--m-safe-t) - 16px));
         overflow-y: auto;
         overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
         border: 1px solid var(--border);
         border-bottom: 0;
         border-radius: 20px 20px 0 0;
@@ -367,6 +394,7 @@
         background: var(--surface);
     }
     .filter-panel { padding: 0 12px 20px; }
+    .saved-panel  { padding: 12px 14px 16px; }
     .filter-panel .filter-top-actions {
         position: sticky;
         top: 0;
@@ -380,38 +408,26 @@
     .filter-panel .filter-top-actions > button { flex: 1 1 0; }
     .filter-panel .filter-bottom-actions { display: none; }
 
-    /* two fields per row inside a sheet (ranges keep the full width) */
-    .filter-group-body .row > .col-sm-6 {
-        flex: 0 0 auto;
-        width: 50%;
-    }
-    .filter-group-body .row > .col-sm-6:has(.range-group),
-    .filter-group-body .row > .col-sm-6:has(.adv-query-box) { width: 100%; }
-
-    /* dropdown lists become their own sheet, so they are never clipped */
-    .msel.open .msel-panel {
+    /* Perf: instead of fading the whole table (opacity forces a full-layer
+       repaint of every cell while the sheet animates), a fixed scrim sits
+       between the table and the sheet/dock. It stops at the stats bar and
+       the dock so both stay usable, and blocks touches to the list. */
+    body.filter-panel-open::after,
+    body.saved-panel-open::after,
+    body.watchlist-panel-open::after {
+        content: "";
         position: fixed;
-        left: 8px;
-        right: 8px;
-        top: auto;
-        bottom: calc(var(--m-dock-h) + 8px);
-        width: auto;
-        min-width: 0;
-        max-width: none;
-        max-height: 62dvh;
-        z-index: 200;
-        border-radius: 16px;
+        left: 0;
+        right: 0;
+        top: calc(var(--m-bar-h) + var(--m-safe-t));
+        bottom: var(--m-dock-h);
+        z-index: 80;
+        background: rgba(0, 0, 0, 0.45);
+        touch-action: none;
     }
-    .setup-preset-panel { max-width: calc(100vw - 32px); }
-
-    /* dim + freeze the list while a sheet is open */
-    body:has(#filterPanel[style*="display: block"]) #tableWrapper,
-    body:has(#savedPanel:not([style*="none"])) #tableWrapper,
-    body:has(#watchlistPanel:not([style*="none"])) #tableWrapper {
-        opacity: 0.35;
-        pointer-events: none;
-        transition: opacity 0.15s;
-    }
+    body.filter-panel-open #tableWrapper,
+    body.saved-panel-open #tableWrapper,
+    body.watchlist-panel-open #tableWrapper { pointer-events: none; }
 
     /* — toasts sit above the dock — */
     .pwa-toast {
@@ -422,13 +438,21 @@
     }
 
     /* — modals: bottom sheets (chart modal: full screen) — */
-    [class*="-modal-overlay"] {
-        padding: 0 !important;
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay) {
+        padding: 0 var(--m-safe-r) 0 var(--m-safe-l) !important;
         align-items: flex-end !important;
         justify-content: center !important;
         overflow: hidden !important;
+        /* Perf: a live blur behind a sheet is expensive on phones */
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+        background-color: rgba(0, 0, 0, 0.72);
     }
-    [class*="-modal-overlay"] > [class$="-modal"] {
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay)
+    > :is(.ss-modal, .ind-modal, .fib-modal, .help-modal, .tv-modal,
+          .settings-modal, .author-modal, .peer-modal) {
         width: 100% !important;
         max-width: none !important;
         margin: 0 !important;
@@ -436,45 +460,111 @@
         max-height: calc(100dvh - var(--m-safe-t) - 10px) !important;
         overflow-y: auto;
         overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
         padding-bottom: var(--m-safe-b);
     }
-    [class*="-modal-overlay"] [class$="-modal-header"] {
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay)
+    :is(.ss-modal-header, .ind-modal-header, .help-modal-header, .tv-modal-header,
+        .settings-modal-header, .author-modal-header, .peer-modal-header) {
         position: sticky;
         top: 0;
         z-index: 20;
         padding: 14px 16px;
         border-radius: 20px 20px 0 0;
     }
-    [class*="-modal-overlay"] [class$="-modal-body"] { padding: 16px; }
-    [class*="-modal-overlay"] button[class*="close"],
-    [class*="-modal-overlay"] [class$="-modal-header"] button {
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay)
+    :is(.ss-modal-body, .ind-modal-body, .help-modal-body, .tv-modal-body,
+        .settings-modal-body, .author-modal-body, .peer-modal-body) { padding: 16px; }
+    /* denser data modals. Same specificity as the generic body rule above and
+       placed after it — previously a plain `.peer-modal-body{padding:12px}`
+       lost to the generic 16px and never applied. */
+    :is(.ind-modal-overlay, .peer-modal-overlay)
+    :is(.ind-modal-body, .peer-modal-body) { padding: 12px; }
+
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay) button[class*="close"],
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay)
+    :is(.ss-modal-header, .ind-modal-header, .help-modal-header, .tv-modal-header,
+        .settings-modal-header, .author-modal-header, .peer-modal-header) button {
         min-width: 40px;
         min-height: 40px;
         border-radius: 10px;
     }
-    [class*="-modal-overlay"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
-    [class*="-modal-overlay"] select,
-    [class*="-modal-overlay"] textarea { font-size: 16px !important; min-height: 44px; }
-    [class*="-modal-overlay"] input[type="checkbox"] { width: 20px; height: 20px; }
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay)
+    input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay) select,
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay) textarea {
+        font-size: 16px !important;
+        min-height: 44px;
+    }
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay)
+    input[type="checkbox"] { width: 20px; height: 20px; }
 
+    /* — chart modal: full screen, chart on top, controls docked below — */
     #chartModal > .settings-modal {
+        display: flex;
+        flex-direction: column;
         height: 100dvh;
         max-height: none !important;
         border-radius: 0 !important;
         overflow: hidden !important;
         padding-bottom: 0;
     }
-    .settings-section { padding: 14px; }
-    .help-modal { max-height: calc(100dvh - var(--m-safe-t) - 10px) !important; }
-    .help-tabs { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-    .help-tab { white-space: nowrap; min-height: 40px; }
-    .peer-modal-body,
-    .ind-modal-body { padding: 12px; }
+    #chartModal .settings-modal-body {
+        order: 1;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        padding: 5px 8px !important;
+    }
+    #chartModal .settings-modal-header {
+        order: 2;
+        position: relative;
+        flex: 0 0 auto;
+        padding: 8px 10px calc(8px + var(--m-safe-b));
+        border-top: 1px solid rgba(148, 163, 184, .15);
+        border-bottom: 0;
+        border-radius: 0;
+        gap: 6px;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    #chartModal .settings-modal-header .settings-modal-title,
+    #chartModal .settings-modal-header .tv-modal-meta { display: none; }
+    #chartModal .settings-modal-header .peer-modal-close,
+    #chartModal .settings-modal-header .btn { flex: 0 0 auto; }
 
-    /* sheets rise instead of popping */
+    .settings-section { padding: 14px; }
+
+    /* — help modal — (max-height comes from the generic modal rule above) */
+    .help-modal-body { flex-direction: column; }
+    .help-tabs {
+        width: 100%;
+        display: flex;
+        overflow-x: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 6px;
+        gap: 4px;
+        scrollbar-width: none;
+    }
+    .help-tab { margin-bottom: 0; white-space: nowrap; min-height: 40px; }
+    .help-content { padding: 18px 16px; }
+
+    /* sheets rise instead of popping.
+       Perf: transform + opacity only (was animating margin-bottom, which
+       forced layout on every frame). */
     @media (prefers-reduced-motion: no-preference) {
-        [class*="-modal-overlay"].open > [class$="-modal"] {
+        :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+            .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay).open
+        > :is(.ss-modal, .ind-modal, .fib-modal, .help-modal, .tv-modal,
+              .settings-modal, .author-modal, .peer-modal) {
             animation: m-sheet-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .filter-panel[style*="display: block"],
@@ -484,19 +574,23 @@
     }
 }
 
+@media screen and (max-width: 432px) {
+    #chartModal .detail-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
 @keyframes m-sheet-up {
-    from { opacity: 0.4; margin-bottom: -28px; }
-    to   { opacity: 1;   margin-bottom: 0; }
+    from { opacity: 0.4; transform: translateY(28px); }
+    to   { opacity: 1;   transform: none; }
 }
 
 
-/* ── 4 · SHORT LANDSCAPE (phones on their side) ──────────────────────────── */
+/* ── 2 · SHORT LANDSCAPE (phones on their side) ──────────────────────────── */
 @media screen and (orientation: landscape) and (max-height: 520px) {
     :root {
         --m-dock-h: calc(44px + var(--m-safe-b));
-        --m-head-h: calc(44px + var(--m-safe-t));
         --m-bar-h: 36px;
-        --m-id-w: 128px;
     }
     footer { display: none; }
     .stats-bar { padding-top: 4px; padding-bottom: 4px; min-height: var(--m-bar-h); }
@@ -512,7 +606,7 @@
 }
 
 
-/* ── 5 · TOUCH / MOTION / LIGHT-THEME POLISH ─────────────────────────────── */
+/* ── 3 · TOUCH ───────────────────────────────────────────────────────────── */
 @media (hover: none) and (pointer: coarse) {
     button,
     .btn-page,
@@ -533,10 +627,51 @@
         color: var(--muted);
         background: var(--surface2);
     }
-    * { scrollbar-width: none; }
-    *::-webkit-scrollbar { display: none; }
+    .wl-star:hover { transform: none; }
+    .wl-star:hover:not(.in-watchlist) { color: var(--muted); }
+
+    /* row hover: a tapped row stayed highlighted and repainted every cell
+       (including the sticky ones). Rows have no base background, tradable
+       rows a faint tint — restore exactly those. */
+    #mainTable tbody > tr:hover,
+    .ind-table tbody tr:hover,
+    .peer-table tbody tr:hover { background: transparent; }
+    #mainTable tbody > tr.tradable-row:hover { background: rgba(0, 212, 170, 0.04); }
+    #mainTable > tbody > tr:not(.chart-row):hover > td:nth-child(1),
+    #mainTable > tbody > tr:not(.chart-row):hover > td:nth-child(2) { background: var(--surface); }
+
+    /* hide scrollbars on the known scroll containers (was `*`, which made
+       every element in a large table carry the rule) */
+    :where(html, body, .pa-list, .toolbar-scroll, .stats-bar, .pag-bar, .table-wrapper,
+           .filter-panel, .saved-panel, .msel-options, .wl-popover-list, .ss-preview,
+           .ind-table-wrap, .peer-table-wrap, .all-index-wrap, .chart-ma-table,
+           .compare-removed-list, .help-tabs, .help-content, .detail-grid,
+           .chart-financial-data, .chart-watchlist-drawer-list,
+           .ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+           .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay,
+           .ss-modal, .ind-modal, .fib-modal, .help-modal, .tv-modal,
+           .settings-modal, .author-modal, .peer-modal,
+           .ss-modal-body, .ind-modal-body, .help-modal-body, .tv-modal-body,
+           .settings-modal-body, .author-modal-body, .peer-modal-body) {
+        scrollbar-width: none;
+    }
+    :where(html, body, .pa-list, .toolbar-scroll, .stats-bar, .pag-bar, .table-wrapper,
+           .filter-panel, .saved-panel, .msel-options, .wl-popover-list, .ss-preview,
+           .ind-table-wrap, .peer-table-wrap, .all-index-wrap, .chart-ma-table,
+           .compare-removed-list, .help-tabs, .help-content, .detail-grid,
+           .chart-financial-data, .chart-watchlist-drawer-list,
+           .ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+           .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay,
+           .ss-modal, .ind-modal, .fib-modal, .help-modal, .tv-modal,
+           .settings-modal, .author-modal, .peer-modal,
+           .ss-modal-body, .ind-modal-body, .help-modal-body, .tv-modal-body,
+           .settings-modal-body, .author-modal-body, .peer-modal-body)::-webkit-scrollbar {
+        display: none;
+    }
 }
 
+
+/* ── 4 · MOTION / LIGHT-THEME POLISH ─────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
     #tableWrapper.table-wrapper { scroll-behavior: auto; }
     *, *::before, *::after {

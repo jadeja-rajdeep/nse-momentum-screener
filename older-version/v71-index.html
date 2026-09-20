@@ -292,6 +292,9 @@
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
+                transition:
+                    background 0.2s,
+                    color 0.2s;
             }
 
             /* Theme toggle button */
@@ -308,7 +311,7 @@
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s;
+                transition: all 0.2s;
             }
             .btn-theme-toggle:hover {
                 border-color: var(--accent);
@@ -801,6 +804,17 @@
             }
             .filter-group.open > .filter-group-body {
                 display: block;
+                animation: filterGroupOpen 0.15s ease;
+            }
+            @keyframes filterGroupOpen {
+                from {
+                    opacity: 0;
+                    transform: translateY(-4px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
             .filter-group .setup-preset-wrap {
                 margin-bottom: 0;
@@ -940,7 +954,7 @@
                 border-radius: 4px;
                 cursor: pointer;
                 font-family: var(--sans);
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
             }
             .msel-action-btn:hover {
                 border-color: var(--accent);
@@ -1010,7 +1024,7 @@
                 height: 32px;
                 border-radius: 6px;
                 cursor: pointer;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s;
+                transition: all 0.2s;
                 font-family: var(--sans);
             }
             .btn-filter-clear:hover {
@@ -1170,6 +1184,7 @@
                 z-index: 10;
                 cursor: pointer;
                 user-select: none;
+                transition: color 0.15s;
             }
             thead th:hover {
                 color: var(--accent);
@@ -1245,6 +1260,7 @@
                 font-weight: 700;
                 color: var(--accent2);
                 font-size: 11px;
+                transition: color 0.15s;
             }
             .code-cell:hover {
                 color: var(--accent);
@@ -1256,6 +1272,7 @@
                 max-width: 180px;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                transition: color 0.15s;
             }
             .name-cell:hover {
                 color: var(--accent);
@@ -1417,7 +1434,7 @@
                 border: 1px solid rgba(0, 212, 170, 0.3);
                 padding: 6px 14px;
                 border-radius: 8px;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s;
+                transition: all 0.2s;
             }
             .tradable-check-item:hover {
                 background: rgba(0, 212, 170, 0.14);
@@ -1446,7 +1463,7 @@
                 font-size: 13px;
                 font-weight: 700;
                 cursor: pointer;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s;
+                transition: all 0.2s;
             }
             .btn-setup-preset:hover {
                 background: rgba(0, 212, 170, 0.16);
@@ -1513,7 +1530,7 @@
                 color: inherit;
                 text-align: left;
                 width: 100%;
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
             }
             .setup-pill:hover {
                 background: color-mix(
@@ -1735,7 +1752,7 @@
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s;
+                transition: all 0.2s;
             }
             .btn-save-search:hover {
                 background: rgba(0, 212, 170, 0.2);
@@ -1784,7 +1801,7 @@
                 border: 1px solid var(--border);
                 border-radius: 8px;
                 padding: 5px 10px 5px 7px;
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
                 max-width: 300px;
             }
             .ss-card.selected {
@@ -1824,7 +1841,7 @@
                 padding: 2px 5px;
                 border-radius: 4px;
                 flex-shrink: 0;
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
                 line-height: 1;
             }
             .ss-run-one:hover {
@@ -1837,7 +1854,7 @@
                 border-radius: 5px;
                 cursor: pointer;
                 font-family: var(--sans);
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
                 border: 1px solid var(--border);
                 background: var(--surface2);
                 color: var(--muted);
@@ -1890,7 +1907,7 @@
                 border-radius: 4px;
                 cursor: pointer;
                 white-space: nowrap;
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
             }
             .multi-banner button:hover {
                 background: rgba(59, 130, 246, 0.15);
@@ -1912,6 +1929,7 @@
                 line-height: 1;
                 cursor: pointer;
                 color: var(--muted);
+                transition: all 0.15s;
                 vertical-align: middle;
             }
             .wl-star:hover {
@@ -2008,7 +2026,7 @@
                 border-radius: 5px;
                 cursor: pointer;
                 white-space: nowrap;
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
             }
             .wl-popover-new button:hover {
                 background: rgba(251, 191, 36, 0.22);
@@ -2056,7 +2074,7 @@
                 padding: 4px 12px;
                 border-radius: 6px;
                 cursor: pointer;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s;
+                transition: all 0.2s;
                 white-space: nowrap;
             }
             .btn-add-watchlist:hover {
@@ -2099,10 +2117,11 @@
                 display: none;
                 position: fixed;
                 inset: 0;
-                background: rgba(0, 0, 0, 0.75);
+                background: rgba(0, 0, 0, 0.6);
                 z-index: 9999;
                 align-items: center;
                 justify-content: center;
+                backdrop-filter: blur(3px);
             }
             .ss-modal-overlay.open {
                 display: flex;
@@ -2114,7 +2133,7 @@
                 width: 100%;
                 max-width: 500px;
                 margin: 20px;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
             }
             .ss-modal-header {
                 background: #0d1421;
@@ -2167,7 +2186,7 @@
                 cursor: pointer;
                 font-family: var(--sans);
                 font-weight: 600;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s;
+                transition: all 0.2s;
             }
             .btn-save-confirm:hover {
                 background: rgba(0, 212, 170, 0.22);
@@ -2182,6 +2201,7 @@
                 z-index: 10000;
                 align-items: flex-start;
                 justify-content: center;
+                backdrop-filter: blur(3px);
                 padding: 16px;
                 overflow-y: auto;
             }
@@ -2195,7 +2215,7 @@
                 width: 100%;
                 max-width: 1000px;
                 margin: auto;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
             }
             .ind-modal-header {
                 background: linear-gradient(135deg, #0d1421, #130d1a);
@@ -2235,7 +2255,7 @@
                 width: 100%;
                 max-width: 1300px;
                 margin: auto;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
             }
             .fib-table-wrap {
                 border-radius: 8px;
@@ -2277,6 +2297,7 @@
                 z-index: 10000;
                 align-items: flex-start;
                 justify-content: center;
+                backdrop-filter: blur(3px);
                 padding: 16px;
                 overflow-y: auto;
             }
@@ -2290,7 +2311,7 @@
                 width: 100%;
                 max-width: 1080px;
                 margin: auto;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
                 display: flex;
                 flex-direction: column;
                 max-height: calc(100vh - 32px);
@@ -2340,7 +2361,7 @@
                 font-size: 12px;
                 color: var(--muted);
                 cursor: pointer;
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
                 margin-bottom: 2px;
                 white-space: nowrap;
             }
@@ -2368,6 +2389,17 @@
             }
             .help-section.active {
                 display: block;
+                animation: help-fade-in 0.15s ease-out;
+            }
+            @keyframes help-fade-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(4px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
             .help-section h2 {
                 font-family: var(--mono);
@@ -2604,12 +2636,23 @@
                 padding: 4px 12px;
                 border-radius: 6px;
                 cursor: pointer;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s;
+                transition: all 0.2s;
                 white-space: nowrap;
+                animation: tv-pulse 2s ease-in-out infinite;
             }
             .btn-tv-watchlist:hover {
                 background: rgba(245, 158, 11, 0.2);
                 border-color: var(--accent3);
+                animation: none;
+            }
+            @keyframes tv-pulse {
+                0%,
+                100% {
+                    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+                }
+                50% {
+                    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+                }
             }
 
             /* ---- COMPARE WATCHLIST CHIP ---- */
@@ -2773,10 +2816,11 @@
                 display: none;
                 position: fixed;
                 inset: 0;
-                background: rgba(0, 0, 0, 0.75);
+                background: rgba(0, 0, 0, 0.7);
                 z-index: 9999;
                 align-items: flex-start;
                 justify-content: center;
+                backdrop-filter: blur(3px);
                 padding: 20px;
                 overflow-y: auto;
             }
@@ -2790,7 +2834,7 @@
                 width: 100%;
                 max-width: 680px;
                 margin: auto;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
             }
             .tv-modal-header {
                 background: linear-gradient(135deg, #0d1421, #1a1500);
@@ -2843,7 +2887,7 @@
                 border-radius: 8px;
                 padding: 6px 12px;
                 cursor: pointer;
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
                 font-size: 12px;
             }
             .tv-chunk-opt:has(input:checked) {
@@ -2945,7 +2989,7 @@
                 padding: 5px 0;
                 border-radius: 5px;
                 cursor: pointer;
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
                 font-weight: 600;
             }
             .tv-copy-btn:hover {
@@ -2995,10 +3039,11 @@
                 display: none;
                 position: fixed;
                 inset: 0;
-                background: rgba(0, 0, 0, 0.75);
+                background: rgba(0, 0, 0, 0.7);
                 z-index: 10000;
                 align-items: flex-start;
                 justify-content: center;
+                backdrop-filter: blur(3px);
                 padding: 16px;
                 overflow-y: auto;
             }
@@ -3012,7 +3057,7 @@
                 width: 100%;
                 max-width: 520px;
                 margin: auto;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
             }
             .settings-modal-header {
                 background: linear-gradient(135deg, #0d1421, #111827);
@@ -3068,7 +3113,7 @@
                 padding: 11px 14px;
                 cursor: pointer;
                 font-family: var(--sans);
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
                 text-align: left;
                 margin-bottom: 8px;
             }
@@ -3248,6 +3293,7 @@
                 z-index: 10000;
                 align-items: flex-start;
                 justify-content: center;
+                backdrop-filter: blur(3px);
                 padding: 16px;
                 overflow-y: auto;
             }
@@ -3261,7 +3307,7 @@
                 width: 100%;
                 max-width: 720px;
                 margin: auto;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
             }
             .author-modal-header {
                 background: linear-gradient(135deg, #0d1421, #0a1622);
@@ -3303,7 +3349,7 @@
                 padding: 14px 16px;
                 margin-bottom: 22px;
                 text-decoration: none;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s;
+                transition: all 0.2s;
             }
             .x-follow-card:hover {
                 border-color: #1d9bf0;
@@ -3374,7 +3420,7 @@
                 border-radius: 8px;
                 padding: 12px 14px;
                 text-decoration: none;
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
             }
             .indicator-card:hover {
                 border-color: var(--accent2);
@@ -3425,6 +3471,7 @@
                 z-index: 9999;
                 padding: 16px;
                 overflow-y: auto;
+                backdrop-filter: blur(3px);
             }
             .peer-modal-overlay.open {
                 display: flex;
@@ -3439,7 +3486,7 @@
                 max-width: 1100px;
                 margin: auto;
                 overflow: hidden;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
             }
             .peer-modal-header {
                 background: linear-gradient(135deg, #0d1421 0%, #111827 100%);
@@ -3474,7 +3521,7 @@
                 align-items: center;
                 justify-content: center;
                 flex-shrink: 0;
-                transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s, transform 0.15s;
+                transition: all 0.15s;
             }
             .peer-modal-close:hover {
                 background: rgba(244, 63, 94, 0.25);
@@ -3754,7 +3801,7 @@
                 outline: none;
                 cursor: pointer;
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+                transition: all 0.2s ease;
             }
 
             .thumb-chart .financial-btn{

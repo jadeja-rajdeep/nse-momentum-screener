@@ -336,7 +336,7 @@
         renderTriggeredAlertsList();
         renderCustomAlertsList();
         refreshStatusLine();
-        document.getElementById("priceAlertModal").classList.add("open");
+        document.getElementById("priceAlertModal").classList.add("open");  // same for saved-open, watchlist-open
         markAllSeen();
     };
     window.closePriceAlertModal = function () {
