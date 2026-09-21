@@ -15655,6 +15655,7 @@
             }
 
             function saveChartSettings() {
+                const oldSettings = loadChartSettings();          // ← NEW: snapshot before overwrite
                 const settings = defaultChartSettings();
                 document
                     .querySelectorAll("#chartSettingsModal [data-cpath]")
@@ -15672,6 +15673,9 @@
                     });
                 saveChartSettingsToStorage(settings);
                 closeChartSettingsModal();
+                if (typeof window.onChartSettingsSaved === "function") {   // ← NEW
+                    window.onChartSettingsSaved(oldSettings, settings);
+                }
                 if (typeof applyChartSettings === "function") {
                     applyChartSettings(settings);
                 }

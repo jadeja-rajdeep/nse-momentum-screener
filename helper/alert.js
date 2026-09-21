@@ -1142,6 +1142,34 @@
         else schedulerTick(); // evaluate immediately instead of waiting up to 30s
     };
 
+    // ==================================================================
+    // Chart settings changed → rebuild only the indicator alert lists whose
+    // inputs (enabled / length / atrLength / factor) actually changed.
+    // Colours etc. are ignored.
+    // ==================================================================
+    const CHART_ALERT_DEPS = {
+        awayFromHighAlerts: (cs) => (cs.afh || []).map((a) => [a.enabled, a.length]),
+        pivotTrendLineAlerts: (cs) => (cs.pivottrendline || []).map((p) => [p.enabled, p.length]),
+        superTrendAlerts: (cs) => (cs.supertrend || []).map((s) => [s.enabled, s.atrLength, s.factor]),
+    };
+
+    window.onChartSettingsSaved = function (oldSettings, newSettings) {
+        // Not running (market closed / alerts off): startCycle() rebuilds from
+        // the saved chart settings anyway, so nothing to do.
+        if (!cycleRunning) return;
+        const enabled = getAlertSettings();
+        const changed = Object.keys(CHART_ALERT_DEPS).filter(
+            (type) =>
+                enabled[type] &&
+                JSON.stringify(CHART_ALERT_DEPS[type](oldSettings || {})) !==
+                    JSON.stringify(CHART_ALERT_DEPS[type](newSettings || {})),
+        );
+        if (!changed.length) return;
+        // rebuildList replaces the whole list (latest build wins), so removed
+        // or re-parameterised targets disappear automatically.
+        Promise.all(changed.map(rebuildList)).then(() => runAlertCheck());
+    };
+
     // Re-evaluate the instant the user flips a setting on/off, and grab
     // notification permission right away (this fires from a direct user click,
     // so the permission prompt is allowed).
