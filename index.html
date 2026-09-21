@@ -21359,7 +21359,7 @@
               return result;
             }
 
-            function calculateTrendlinePoints(data, length, mode = 'high') {
+            function calculateTrendlinePoints(data, length, mode = 'high', skipWindows = 1) {
                 if (!Array.isArray(data) || data.length === 0) {
                     throw new Error('data must be a non-empty array');
                 }
@@ -21369,18 +21369,18 @@
                 if (mode !== 'high' && mode !== 'low') {
                     throw new Error("mode must be 'high' or 'low'");
                 }
+                if (!Number.isInteger(skipWindows) || skipWindows < 0) {
+                    throw new Error('skipWindows must be a non-negative integer');
+                }
 
-                // find the extreme candle in data.slice(start, end), returning its
-                // *array index* (bar count) along with time/price so the slope can be
-                // calculated in "number of candles" rather than calendar days.
                 function findExtreme(start, end) {
                     let best = null;
                     for (let i = start; i < end; i++) {
                         const candle = data[i];
                         const price = mode === 'high' ? candle.high : candle.low;
                         if (
-                        best === null ||
-                        (mode === 'high' ? price > best.price : price < best.price)
+                            best === null ||
+                            (mode === 'high' ? price > best.price : price < best.price)
                         ) {
                             best = { index: i, time: candle.time, price };
                         }
@@ -21390,31 +21390,27 @@
 
                 const n = data.length;
 
-                // window1: most recent `length` candles
-                const w1Start = Math.max(0, n - length);
-                // window2: the `length` candles before window1
+                // The most recent `skipWindows` blocks are ignored for pivot detection.
+                const w1End = n - length * skipWindows;
+                if (w1End <= 0) {
+                    throw new Error('Not enough data after skipping recent window(s)');
+                }
+                const w1Start = Math.max(0, w1End - length);
+
                 const w2End = w1Start;
                 const w2Start = Math.max(0, w2End - length);
-                // window3: the `length` candles before window2
+
                 const w3End = w2Start;
                 const w3Start = Math.max(0, w3End - length);
 
-                if (w1Start >= n) {
-                throw new Error('No data available for window1');
-                }
-
-                const P1 = findExtreme(w1Start, n);
+                const P1 = findExtreme(w1Start, w1End);
                 const P2 = w2End - w2Start > 0 ? findExtreme(w2Start, w2End) : null;
                 const P3 = w3End - w3Start > 0 ? findExtreme(w3Start, w3End) : null;
 
+                // Lines still extend to the very latest bar (covers the skipped window).
                 const latestIndex = n - 1;
                 const latestTime = data[latestIndex].time;
 
-                // Extends the line through pA -> pB out to the target bar index, using
-                // the NUMBER OF DATA POINTS (bar count) between pivots as the slope's
-                // x-step, rather than actual calendar-day gaps. This way weekends and
-                // holidays (which simply don't appear as rows in the data) don't distort
-                // the slope.
                 function extrapolate(pA, pB, targetIndex, targetTime) {
                     const barsAB = pB.index - pA.index;
                     if (barsAB === 0) {
@@ -21422,8 +21418,7 @@
                     }
                     const slopePerBar = (pB.price - pA.price) / barsAB;
                     const barsToTarget = targetIndex - pB.index;
-                    const value = pB.price + slopePerBar * barsToTarget;
-                    return { time: targetTime, value };
+                    return { time: targetTime, value: pB.price + slopePerBar * barsToTarget };
                 }
 
                 function dedupeByTime(points) {
@@ -21435,25 +21430,23 @@
                     });
                 }
 
-                // Line A: P3 -> P2 -> extended to latest bar (needs both P3 and P2)
                 const lineA =
-                P3 && P2
-                    ? dedupeByTime([
-                        { time: P3.time, value: P3.price },
-                        { time: P2.time, value: P2.price },
-                        extrapolate(P3, P2, latestIndex, latestTime),
-                    ])
-                    : null;
+                    P3 && P2
+                        ? dedupeByTime([
+                              { time: P3.time, value: P3.price },
+                              { time: P2.time, value: P2.price },
+                              extrapolate(P3, P2, latestIndex, latestTime),
+                          ])
+                        : null;
 
-                // Line B: P2 -> P1 -> extended to latest bar (needs both P2 and P1)
                 const lineB =
-                P2 && P1
-                    ? dedupeByTime([
-                        { time: P2.time, value: P2.price },
-                        { time: P1.time, value: P1.price },
-                        extrapolate(P2, P1, latestIndex, latestTime),
-                    ])
-                    : null;
+                    P2 && P1
+                        ? dedupeByTime([
+                              { time: P2.time, value: P2.price },
+                              { time: P1.time, value: P1.price },
+                              extrapolate(P2, P1, latestIndex, latestTime),
+                          ])
+                        : null;
 
                 return { lineA, lineB, pivots: { P1, P2, P3 } };
             }
