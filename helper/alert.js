@@ -36,11 +36,33 @@
     const alertSound = new Audio('./assets/audio/nse_screener_alert.wav');
     alertSound.preload = 'auto';
 
+    // Browsers have no "audio permission" prompt - autoplay is unlocked by playing
+    // something once inside a user gesture. Called from ensureNotificationPermission()
+    // (which only runs from clicks), so alerts can make sound later with no click.
+    let audioUnlocked = false;
+    let audioUnlocking = false;
+    function unlockAlertSound() {
+        if (audioUnlocked || audioUnlocking) return;
+        audioUnlocking = true;
+        alertSound.muted = true; // silent: the user shouldn't hear a sound just for ticking a box
+        let p;
+        try { p = alertSound.play(); } catch (e) { p = null; }
+        const finish = (ok) => {
+        try { alertSound.pause(); alertSound.currentTime = 0; } catch (e) {}
+        alertSound.muted = false;
+        audioUnlocked = ok;   // if it failed, the next click tries again
+        audioUnlocking = false;
+        };
+        if (p && typeof p.then === "function") p.then(() => finish(true), () => finish(false));
+        else finish(false);
+    }
+
     function playAlertSound() {
-      alertSound.currentTime = 0; // restart if it's already playing
-      alertSound.play().catch(err => {
+        alertSound.muted = false;
+        alertSound.currentTime = 0; // restart if it's already playing
+        alertSound.play().catch(err => {
         console.warn('Alert sound blocked or failed:', err);
-      });
+        });
     }
 
     // ------------------------------------------------------------------
@@ -50,20 +72,36 @@
     let cycleInterval = null; // the 5-min "run a check" interval, only active in market hours
     let schedulerInterval = null; // the 30s "should the cycle be running?" interval
     let cycleRunning = false;
-    window.cycleRunning = cycleRunning;
+    // index.html reads `cycleRunning` as a bare global. `window.cycleRunning = cycleRunning`
+    // only copies the boolean ONCE (always false), so use a live getter instead.
+    Object.defineProperty(window, "cycleRunning", {
+        configurable: true,
+        get: function () { return cycleRunning; },
+    });
+    let cycleToken = 0;          // bumped on every start/stop so async work can tell it is stale
     let checkInFlight = false;
+    let recheckQueued = false;   // a check was requested while one was running
+    let activeRequestId = 0;     // matches worker replies to the request that caused them
+    let watchdogTimer = null;
     let notifPermissionAsked = false;
-    let allAlertStocksList = [];
+    // type -> [alert, ...]. Same object identity for the page's lifetime because
+    // index.html (window.allAlertStocksList) holds a reference to it.
+    const allAlertStocksList = {};
     window.allAlertStocksList = allAlertStocksList;
-    // Code -> row lookup, so we don't scan allData for every alert
+    // Code -> row lookup, rebuilt lazily whenever allData is (re)loaded
     let rowByCode = null;
+    let rowByCodeSource = null;
     const alertType = {
       "customAlerts": "Custom Alert",
       "awayFromHighAlerts": "Away From High",
       "pivotTrendLineAlerts": "Pivot Trend Line",
       "superTrendAlerts": "Super Trend",
     };
-    let livePrices = null;
+    let livePrices = null; // Map<SYMBOL, number> from the last worker reply
+
+    const CHECK_TIMEOUT_MS = 75 * 1000;        // must stay above the worker's first-call timeout (60s)
+    const DATA_WAIT_TIMEOUT_MS = 2 * 60 * 1000; // how long startCycle waits for allData
+    const CHART_FETCH_CONCURRENCY = 6;
 
     // ==================================================================
     // Small date/time helpers (IST-aware, independent of the visitor's
@@ -148,11 +186,8 @@
     function saveCustomAlerts(list) {
         safeSet(CUSTOM_ALERTS_KEY, list);
 
-        const settings = getAlertSettings();
-        const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts || settings.pivotTrendLineAlerts || settings.superTrendAlerts);
-
-        if (anyEnabled && isMarketOpenIST() && cycleRunning) {
-            allAlertStocksList['customAlerts'] = buildCustomAlertStocks();
+        if (anyAlertEnabled(getAlertSettings()) && isMarketOpenIST() && cycleRunning) {
+            rebuildList("customAlerts");
         }
     }
 
@@ -209,6 +244,7 @@
         }
         return store;
     }
+    window.getTriggeredStore = getTriggeredStore; // used by the chart popup "Today's Alerts" list
     function saveTriggeredStore(store) {
         safeSet(TRIGGERED_ALERTS_KEY, store);
     }
@@ -224,45 +260,66 @@
 
     function recordTriggeredAlerts(results) {
         if (!results || !results.length) return;
+        const settings = getAlertSettings();
         const store = getTriggeredStore();
+        const fired = new Set(store.items.map((i) => i.alertId));
+        let customList = null;
+        let customChanged = false;
+        const accepted = [];
+        allowRenderTriggeredAlertChartwatchlistDrawer = true;
+
         results.forEach((r) => {
+            if (!r || !r.type) return;
+            const id = r.alertId || r.id;
+            // Drop replies for alerts that were switched off / deleted / already
+            // fired while the request was in flight.
+            if (!id || fired.has(id) || !settings[r.type]) return;
+
+            // Auto-disable the custom alert that fired so it doesn't spam the
+            // user again every 5 minutes for the rest of the day.
+            if (r.type === "customAlerts") {
+                customList = customList || getCustomAlerts();
+                const item = customList.find((a) => a.id === id);
+                if (!item || !item.enabled) return;
+                item.enabled = false;
+                customChanged = true;
+            }
+
+            fired.add(id);
+            r.alertId = id;
+            accepted.push(r);
             store.items.push({
                 id: "t" + Date.now() + Math.random().toString(36).slice(2, 7),
-                alertId: r.id,
+                alertId: id,
                 code: r.code,
                 name: r.name,
+                isin: r.isin,
                 condition: r.condition,
                 target: r.value,
                 ltp: r.ltp,
                 prevClose: r.prevClose,
-                type:r.type,
+                type: r.type,
                 pct:
                     r.prevClose > 0
                         ? ((r.ltp - r.prevClose) / r.prevClose) * 100
                         : null,
                 triggeredAt: new Date().toISOString(),
             });
-
-            // Auto-disable the custom alert that fired so it doesn't spam the
-            // user again every 5 minutes for the rest of the day.
-            //{ customAlerts: false, awayFromHighAlerts: false,pivotTrendLineAlerts:false,superTrendAlerts:false };
-            if (r.type == "customAlerts") {
-                const list = getCustomAlerts();
-                const item = list.find((a) => a.id === r.id);
-                if (item) {
-                    item.enabled = false;
-                    saveCustomAlerts(list);
-                }
-            }
-            allAlertStocksList[r.type]= allAlertStocksList[r.type].filter(item => item.id !== r.id);
-
+            dropFromList(r.type, id);
         });
+
+        if (!accepted.length) return;
+        // Written directly (not via saveCustomAlerts) so we don't trigger a
+        // pointless rebuild of the list we just pruned.
+        if (customChanged) safeSet(CUSTOM_ALERTS_KEY, customList);
         saveTriggeredStore(store);
         updateBellBadge();
-        renderTriggeredAlertsList();
-        renderCustomAlertsList();
+        if (isAlertModalOpen()) {
+            renderTriggeredAlertsList();
+            renderCustomAlertsList();
+        }
         playAlertSound();
-        results.forEach(notifyUser);
+        accepted.forEach(notifyUser);
     }
 
     // ==================================================================
@@ -294,6 +351,10 @@
     // Browser notifications
     // ==================================================================
     function ensureNotificationPermission() {
+        // Sound first, synchronously, so it stays inside the click gesture -
+        // and even on browsers that have no Notification API.
+        unlockAlertSound();
+
         if (!("Notification" in window)) return;
         if (Notification.permission === "default" && !notifPermissionAsked) {
             notifPermissionAsked = true;
@@ -313,7 +374,7 @@
                   ).toFixed(2)}% vs prev close ₹${r.prevClose})`
                 : "";
         try {
-            const n = new Notification(`🔔 ${r.code} ${dir} ₹${r.value}`, {
+            const n = new Notification(`🔔 ${r.code} ${dir} ₹${r.value.toFixed(2)}`, {
                 body: `LTP ₹${r.ltp}${pctTxt}\n${alertType[r.type]}`,
                 tag: "nse-alert-" + r.alertId,
                 icon: "./assets/img/icon-192.png",
@@ -470,6 +531,7 @@
             .join("");
     }
 
+    let triggeredAlertItemClickHandler = null;
     function renderTriggeredAlertsList() {
         const el = document.getElementById("paTriggeredList");
         if (!el) return;
@@ -488,10 +550,10 @@
                 const pctTxt =
                     t.pct == null
                         ? ""
-                        : ` · <span class="${pctCls}">${t.pct >= 0 ? "+" : ""}${t.pct.toFixed(2)}%</span> vs prev close &#8377;${t.prevClose}`;
-                return `<div class="pa-triggered-item">
+                        : ` · <span class="${pctCls}">${t.pct >= 0 ? "+" : ""}${t.pct.toFixed(2)}%</span> vs prev close &#8377;${t.prevClose.toFixed(2)}`;
+                return `<div class="pa-triggered-item" data-isin="${t.isin}" data-code="${t.code}" data-name="${t.name}">
                     <div class="pa-tt-head">
-                        <span>${escapeHtml(t.code)} ${symbol} &#8377;${t.target}</span>
+                        <span>${escapeHtml(t.code)} ${symbol} &#8377;${t.target.toFixed(2)}</span>
                         <span class="pa-tt-time">${istTimeLabel(new Date(t.triggeredAt))}</span>
                     </div>
                     <div class="pa-tt-meta">LTP &#8377;${t.ltp}${pctTxt}</div>
@@ -499,6 +561,18 @@
                 </div>`;
             })
             .join("");
+
+        requestAnimationFrame(() => {
+            if (!triggeredAlertItemClickHandler) {
+                triggeredAlertItemClickHandler = (event) => {
+                    const stockButton = event.target.closest(
+                        ".pa-triggered-item",
+                    );
+                    if (stockButton) openChartModal(stockButton);
+                };
+                el.addEventListener("click", triggeredAlertItemClickHandler);
+            }
+        })
     }
 
     function escapeHtml(s) {
@@ -515,15 +589,150 @@
         );
     }
 
+    // ==================================================================
+    // Async helpers (keep heavy work off the main thread's critical path)
+    // ==================================================================
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    // Hand control back to the browser so input/paint can run between chunks.
+    function yieldToMain() {
+        if (window.scheduler && typeof window.scheduler.yield === "function") {
+            return window.scheduler.yield();
+        }
+        return new Promise((r) => setTimeout(r, 0));
+    }
+
+    function once(fn) {
+        let p;
+        return () => p || (p = fn());
+    }
+
+    // Run `task(item)` over `items` with at most `limit` in flight, yielding
+    // to the main thread after every item. One failing item never aborts the rest.
+    async function runPool(items, limit, task) {
+        let next = 0;
+        const runners = Array.from(
+            { length: Math.min(limit, items.length) },
+            async () => {
+                while (next < items.length) {
+                    const item = items[next++];
+                    try {
+                        await task(item);
+                    } catch (e) {
+                        console.warn("[alert.js] task failed", e);
+                    }
+                    await yieldToMain();
+                }
+            },
+        );
+        await Promise.all(runners);
+    }
+
+    function anyAlertEnabled(s) {
+        return !!(s && (s.customAlerts || s.awayFromHighAlerts || s.pivotTrendLineAlerts || s.superTrendAlerts));
+    }
+    function hasData() {
+        return typeof allData !== "undefined" && allData.length > 0;
+    }
+    function isAlertModalOpen() {
+        const m = document.getElementById("priceAlertModal");
+        return !!(m && m.classList.contains("open"));
+    }
+
+    // allData is loaded asynchronously by the main script, AFTER this file has
+    // already run - so the lookup must be (re)built lazily, never once at startup.
+    function getRowByCode() {
+        if (typeof allData === "undefined") return new Map();
+        if (!rowByCode || rowByCodeSource !== allData) {
+            rowByCode = new Map(allData.map((r) => [r.Code, {Code:r.Code,Name:r.Name,ISIN:r.ISIN,Close:r.Close}]));
+            rowByCodeSource = allData;
+        }
+        return rowByCode;
+    }
+
+    async function waitForData() {
+        const t0 = Date.now();
+        while (!hasData()) {
+            if (Date.now() - t0 > DATA_WAIT_TIMEOUT_MS) return false;
+            await sleep(500);
+        }
+        return true;
+    }
+
+    function livePriceOf(code) {
+        if (!livePrices) return null;
+        const v = livePrices.get(String(code).toUpperCase());
+        return Number.isFinite(v) ? v : null;
+    }
+
+    function getFiredIdsToday() {
+        return new Set(getTriggeredStore().items.map((i) => i.alertId));
+    }
+
+    function getWatchlistCodes() {
+        const lists = typeof loadWatchlists === "function" ? loadWatchlists() : [];
+        return [
+            ...new Set(
+                lists
+                    .flatMap((w) => (Array.isArray(w.codes) ? w.codes : []))
+                    .map((c) => (typeof c === "string" ? c : c && c.code))
+                    .filter(Boolean),
+            ),
+        ];
+    }
+
+    // One in-flight request per ISIN, shared by all three indicator builders
+    // (they run at the same time in startCycle) instead of 3 identical downloads.
+    const inflightChart = new Map();
+    function fetchChartData(isin) {
+        let p = inflightChart.get(isin);
+        if (!p) {
+            p = fetch(`data/chart/${isin}.json`)
+                .then((res) => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status} for ${isin}`);
+                    return res.json();
+                })
+                .finally(() => inflightChart.delete(isin));
+            inflightChart.set(isin, p);
+        }
+        return p;
+    }
+
+    // Cache-first indicator lookup (same IndexedDB keys the charts use). Never
+    // throws: any failure just means "no target for this indicator".
+    async function getIndicator(isin, key, compute, loadData) {
+        const db = typeof IndicatorCacheDB !== "undefined" ? IndicatorCacheDB : null; // indicator-db.js loads async
+        const date = typeof CURRENT_DATA_DATE !== "undefined" ? CURRENT_DATA_DATE : "";
+        try {
+            if (db) {
+                const hit = await db.get(isin, key, date);
+                if (hit) return hit;
+            }
+            const result = compute(await loadData());
+            if (db && result) await db.set(isin, key, date, result);
+            return result;
+        } catch (e) {
+            console.warn("[alert.js] indicator failed", key, isin, e && e.message);
+            return null;
+        }
+    }
+
+    const lastLineValue = (line) =>
+        Array.isArray(line) && line.length ? parseFloat(line[line.length - 1].value) : NaN;
+
+    // ==================================================================
+    // Alert list builders
+    // ==================================================================
     function buildCustomAlertStocks() {
         const alertSettings = getAlertSettings();
         if (!alertSettings.customAlerts) return [];
         const enabledAlerts = getStoredAlerts(true);
-        if (!enabledAlerts.length) return [];
-        if (typeof allData === "undefined" || !allData.length) return [];
-        const stocks = enabledAlerts
+        if (!enabledAlerts.length || !hasData()) return [];
+        const rows = getRowByCode();
+
+        return enabledAlerts
             .map((alert) => {
-                const row = rowByCode.get(alert.code);
+                const row = rows.get(alert.code);
                 if (!row) return null; // stock not in allData
 
                 const close = parseFloat(row.Close);
@@ -531,286 +740,225 @@
                 if (isNaN(close) || isNaN(target)) return null;
 
                 // Keep only alerts whose condition matches your rule
-                if (livePrices) {
-                    const livePrice = livePrices.get(alert.code);
-                    if (livePrice) {
-                        const ltp = parseFloat(livePrice.lastPrice);
-                        const matchedLive =
-                            (alert.condition === ">=" && ltp < target) ||
-                            (alert.condition === "<=" && ltp > target);
-                        if (!matchedLive) return null;
-                    }
+                const ltp = livePriceOf(alert.code);
+                if (ltp !== null) {
+                    const matchedLive =
+                        (alert.condition === ">=" && ltp < target) ||
+                        (alert.condition === "<=" && ltp > target);
+                    if (!matchedLive) return null;
                 }
 
-                // Keep only alerts whose condition matches your rule
                 const matched =
                     (alert.condition === ">=" && close < target) ||
                     (alert.condition === "<=" && close > target);
                 if (!matched) return null;
 
                 return {
-                    id:alert.id,
+                    id: alert.id,
                     code: row.Code,
                     name: row.Name,
+                    isin: row.ISIN,
                     prevClose: close,
                     condition: alert.condition,
                     value: target,
-                    type:'customAlerts'
+                    type: "customAlerts",
                 };
             })
             .filter(Boolean);
+    }
 
-        if (!stocks.length) return [];
+    // Shared engine for the three watchlist/indicator alert types.
+    // collectTargets(row, chartSettings, loadData) -> [{ id, target }]
+    // Ids are DETERMINISTIC (type:code:params) so an alert that already fired
+    // today is not re-created (and re-fired) when the lists are rebuilt.
+    async function buildIndicatorAlertStocks(type, collectTargets) {
+        if (!getAlertSettings()[type]) return [];
+        const codes = getWatchlistCodes();
+        if (!codes.length || !hasData()) return [];
 
-        return stocks; // send to your worker from here
+        const rows = getRowByCode();
+        const chartSettings = getChartSettings();
+        const fired = getFiredIdsToday();
+        const out = [];
+
+        await runPool(codes, CHART_FETCH_CONCURRENCY, async (code) => {
+            const row = rows.get(code);
+            if (!row) return; // stock not in allData
+            const close = parseFloat(row.Close);
+            if (isNaN(close)) return;
+
+            const loadData = once(() => fetchChartData(row.ISIN)); // only fetched on a cache miss
+            const targets = await collectTargets(row, chartSettings, loadData);
+
+            for (const t of targets) {
+                if (fired.has(t.id)) continue;
+                if (!(close < t.target)) continue; // not below the level yet
+                const ltp = livePriceOf(row.Code);
+                if (ltp !== null && !(ltp < t.target)) continue;
+                out.push({
+                    id: t.id,
+                    code: row.Code,
+                    name: row.Name,
+                    isin: row.ISIN,
+                    prevClose: close,
+                    condition: ">=",
+                    value: t.target,
+                    type: type,
+                });
+            }
+        });
+        return out;
     }
 
     function buildAwayFromHighAlertStocks() {
-        const alertSettings = getAlertSettings();
-        const chartSettings = getChartSettings();
-        if (!alertSettings.awayFromHighAlerts) return [];
-        const watchLists = loadWatchlists();
-        if (!watchLists.length) return [];
-        if (typeof allData === "undefined" || !allData.length) return [];
-
-        const allCodes = [
-            ...new Set(
-                watchLists.flatMap(watchlist =>
-                    Array.isArray(watchlist.codes) ? watchlist.codes : []
-                )
-            )
-        ];
-
-        const stocks = allCodes
-            .map((alert) => {
-                const row = rowByCode.get(alert.code);
-                if (!row) return null; // stock not in allData
-
-                const close = parseFloat(row.Close);
-                if (isNaN(close)) return null;
-                chartSettings.afh.forEach(async (afh) => {
-                    if (afh.enabled && afh.length >= 15) {
-                        const indicatorKey = 'afh_' + afh.length;
-                        let result = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                        if (!result) {
-                            result = calculateHighestHighResistance(data, { length: afh.length });
-                            await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, result);
-                        }
-
-                        if (result) {
-                            const target = parseFloat(result.price);
-                            if (isNaN(target)) return null;
-
-                            // Keep only alerts whose condition matches your rule
-                            const matched = close < target;
-                            if (!matched) return null;
-
-                            // Keep only alerts whose condition matches your rule
-                            if (livePrices) {
-                                const livePrice = livePrices.get(alert.code);
-                                if (livePrice) {
-                                    const ltp = parseFloat(livePrice.lastPrice);
-                                    const matchedLive = ltp < target
-                                    if (!matchedLive) return null;
-                                }
-                            }
-
-                            return {
-                                id: "afh" + Date.now() + Math.random().toString(36).slice(2, 7),
-                                code: row.Code,
-                                name: row.Name,
-                                prevClose: close,
-                                condition: '>=',
-                                value: target,
-                                type:'awayFromHighAlerts'
-                            };
-                        }
-                    }
-                });
-            })
-            .filter(Boolean);
-
-        if (!stocks.length) return [];
-
-        return stocks; // send to your worker from here
+        return buildIndicatorAlertStocks("awayFromHighAlerts", async (row, cs, loadData) => {
+            const targets = [];
+            for (const afh of cs.afh || []) {
+                if (!(afh.enabled && afh.length >= 15)) continue;
+                const res = await getIndicator(
+                    row.ISIN,
+                    "afh_" + afh.length,
+                    (d) => calculateHighestHighResistance(d, { length: afh.length }),
+                    loadData,
+                );
+                const target = res ? parseFloat(res.price) : NaN;
+                if (Number.isFinite(target)) targets.push({ id: `afh:${row.Code}:${afh.length}`, target });
+            }
+            return targets;
+        });
     }
     window.buildAwayFromHighAlertStocks = buildAwayFromHighAlertStocks;
 
     function buildPivotTrendLineAlertStocks() {
-        const alertSettings = getAlertSettings();
-        const chartSettings = getChartSettings();
-        if (!alertSettings.pivotTrendLineAlerts) return [];
-        const watchLists = loadWatchlists();
-        if (!watchLists.length) return [];
-        if (typeof allData === "undefined" || !allData.length) return [];
-
-        const allCodes = [
-            ...new Set(
-                watchLists.flatMap(watchlist =>
-                    Array.isArray(watchlist.codes) ? watchlist.codes : []
-                )
-            )
-        ];
-
-        const stocks = allCodes
-            .map((alert) => {
-                const row = rowByCode.get(alert.code);
-                if (!row) return null; // stock not in allData
-
-                const close = parseFloat(row.Close);
-                if (isNaN(close)) return null;
-
-                chartSettings.pivottrendline.forEach(async (pivot) => {
-                    if (pivot.enabled && pivot.length>1) {
-                        const indicatorKey='pivottrendline_' + pivot.length+'_high';
-                        let result = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                        if (!result){
-                            result = calculateTrendlinePoints(data, pivot.length,'high');
-                            await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, result);
-                        }
-
-                        if (result) {
-                            if (result.lineA) {
-                                const target = parseFloat(result.lineA[result.lineA.length - 1].value);
-                                if (isNaN(target)) return null;
-
-                                // Keep only alerts whose condition matches your rule
-                                const matched = close < target;
-                                if (!matched) return null;
-
-                                // Keep only alerts whose condition matches your rule
-                                if (livePrices) {
-                                    const livePrice = livePrices.get(alert.code);
-                                    if (livePrice) {
-                                        const ltp = parseFloat(livePrice.lastPrice);
-                                        const matchedLive = ltp < target
-                                        if (!matchedLive) return null;
-                                    }
-                                }
-
-                                return {
-                                    id:'',
-                                    code: row.Code,
-                                    name: row.Name,
-                                    prevClose: close,
-                                    condition: '>=',
-                                    value: target,
-                                    type:'pivotTrendLineAlerts'
-                                };
-                            }
-
-                            if (result.lineB) {
-                                const target = parseFloat(result.lineA[result.lineB.length - 1].value);
-                                if (isNaN(target)) return null;
-
-                                // Keep only alerts whose condition matches your rule
-                                const matched = close < target;
-                                if (!matched) return null;
-
-                                // Keep only alerts whose condition matches your rule
-                                if (livePrices) {
-                                    const livePrice = livePrices.get(alert.code);
-                                    if (livePrice) {
-                                        const ltp = parseFloat(livePrice.lastPrice);
-                                        const matchedLive = ltp < target
-                                        if (!matchedLive) return null;
-                                    }
-                                }
-
-                                return {
-                                    id: "ptl" + Date.now() + Math.random().toString(36).slice(2, 7),
-                                    code: row.Code,
-                                    name: row.Name,
-                                    prevClose: close,
-                                    condition: '>=',
-                                    value: target,
-                                    type:'pivotTrendLineAlerts'
-                                };
-                            }
-
-                        }
-                    }
-                });
-            })
-            .filter(Boolean);
-
-        if (!stocks.length) return [];
-
-        return stocks; // send to your worker from here
+        return buildIndicatorAlertStocks("pivotTrendLineAlerts", async (row, cs, loadData) => {
+            const targets = [];
+            for (const pivot of cs.pivottrendline || []) {
+                if (!(pivot.enabled && pivot.length > 1)) continue;
+                const res = await getIndicator(
+                    row.ISIN,
+                    "pivottrendline_" + pivot.length + "_high",
+                    (d) => calculateTrendlinePoints(d, pivot.length, "high"),
+                    loadData,
+                );
+                if (!res) continue;
+                // Both trend lines are independent alerts (the old code returned
+                // after lineA, and read lineB's value from lineA's array).
+                const a = lastLineValue(res.lineA);
+                const b = lastLineValue(res.lineB);
+                if (Number.isFinite(a)) targets.push({ id: `ptl:${row.Code}:${pivot.length}:A`, target: a });
+                if (Number.isFinite(b)) targets.push({ id: `ptl:${row.Code}:${pivot.length}:B`, target: b });
+            }
+            return targets;
+        });
     }
     window.buildPivotTrendLineAlertStocks = buildPivotTrendLineAlertStocks;
 
     function buildSuperTrendAlertStocks() {
-        const alertSettings = getAlertSettings();
-        const chartSettings = getChartSettings();
-        if (!alertSettings.superTrendAlerts) return [];
-        const watchLists = loadWatchlists();
-        if (!watchLists.length) return [];
-        if (typeof allData === "undefined" || !allData.length) return [];
-
-        const allCodes = [
-            ...new Set(
-                watchLists.flatMap(watchlist =>
-                    Array.isArray(watchlist.codes) ? watchlist.codes : []
-                )
-            )
-        ];
-
-        const stocks = allCodes
-            .map((alert) => {
-                const row = rowByCode.get(alert.code);
-                if (!row) return null; // stock not in allData
-
-                const close = parseFloat(row.Close);
-                if (isNaN(close)) return null;
-
-                chartSettings.supertrend.forEach(async (supertrend) => {
-                    if (supertrend.enabled) {
-                        const indicatorKey="supertrend_"+supertrend.atrLength +"_"+ supertrend.factor;
-                        let calculation = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                        if (!calculation){
-                            calculation = calculateSupertrend(data,supertrend);
-                            await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, calculation);
-                        }
-
-                        if (calculation) {
-                            const target = parseFloat(calculation[calculation.length - 1].value);
-                            if (isNaN(target)) return null;
-
-                            // Keep only alerts whose condition matches your rule
-                            const matched = close < target;
-                            if (!matched) return null;
-
-                            // Keep only alerts whose condition matches your rule
-                            if (livePrices) {
-                                const livePrice = livePrices.get(alert.code);
-                                if (livePrice) {
-                                    const ltp = parseFloat(livePrice.lastPrice);
-                                    const matchedLive = ltp < target
-                                    if (!matchedLive) return null;
-                                }
-                            }
-
-                            return {
-                                id: "supt" + Date.now() + Math.random().toString(36).slice(2, 7),
-                                code: row.Code,
-                                name: row.Name,
-                                prevClose: close,
-                                condition: '>=',
-                                value: target,
-                                type:'superTrendAlerts'
-                            };
-                        }
-                    }
-                });
-            })
-            .filter(Boolean);
-
-        if (!stocks.length) return [];
-
-        return stocks; // send to your worker from here
+        return buildIndicatorAlertStocks("superTrendAlerts", async (row, cs, loadData) => {
+            const targets = [];
+            for (const st of cs.supertrend || []) {
+                if (!st.enabled) continue;
+                const calc = await getIndicator(
+                    row.ISIN,
+                    "supertrend_" + st.atrLength + "_" + st.factor,
+                    (d) => calculateSupertrend(d, st),
+                    loadData,
+                );
+                const target = Array.isArray(calc) && calc.length ? parseFloat(calc[calc.length - 1].value) : NaN;
+                if (Number.isFinite(target)) {
+                    targets.push({ id: `supt:${row.Code}:${st.atrLength}:${st.factor}`, target });
+                }
+            }
+            return targets;
+        });
     }
     window.buildSuperTrendAlertStocks = buildSuperTrendAlertStocks;
+
+    // ==================================================================
+    // List management: builds are async, so "latest build wins" - a slow,
+    // older build can never overwrite the result of a newer one.
+    // ==================================================================
+    const LIST_BUILDERS = {
+        customAlerts: buildCustomAlertStocks,
+        awayFromHighAlerts: buildAwayFromHighAlertStocks,
+        pivotTrendLineAlerts: buildPivotTrendLineAlertStocks,
+        superTrendAlerts: buildSuperTrendAlertStocks,
+    };
+    const buildGen = {};
+    const pendingBuilds = new Map();
+
+    function rebuildList(type) {
+        const builder = LIST_BUILDERS[type];
+        if (!builder) return Promise.resolve([]);
+        const gen = (buildGen[type] = (buildGen[type] || 0) + 1);
+
+        let out;
+        try {
+            out = builder();
+        } catch (e) {
+            console.warn("[alert.js] build failed", type, e);
+            out = [];
+        }
+        if (!out || typeof out.then !== "function") {
+            // sync builder (custom alerts): apply immediately so a check that
+            // is requested right after sees the new list
+            allAlertStocksList[type] = Array.isArray(out) ? out : [];
+            pendingBuilds.delete(type);
+            return Promise.resolve(allAlertStocksList[type]);
+        }
+        const p = out
+            .then((stocks) => {
+                if (buildGen[type] === gen && cycleRunning) {
+                    allAlertStocksList[type] = Array.isArray(stocks) ? stocks : [];
+                }
+                return stocks;
+            })
+            .catch((e) => {
+                console.warn("[alert.js] build failed", type, e);
+                return [];
+            })
+            .finally(() => {
+                if (pendingBuilds.get(type) === p) pendingBuilds.delete(type);
+            });
+        pendingBuilds.set(type, p);
+        return p;
+    }
+
+    function rebuildAllLists() {
+        return Promise.all(Object.keys(LIST_BUILDERS).map(rebuildList));
+    }
+
+    function clearList(type) {
+        buildGen[type] = (buildGen[type] || 0) + 1; // invalidate any build still running
+        pendingBuilds.delete(type);
+        allAlertStocksList[type] = [];
+    }
+
+    function dropFromList(type, id) {
+        const cur = allAlertStocksList[type];
+        if (Array.isArray(cur)) allAlertStocksList[type] = cur.filter((i) => i.id !== id);
+    }
+
+    // index.html's saveWatchlists() still does
+    //   allAlertStocksList[type] = buildXxxAlertStocks();
+    // which now stores a Promise. Settle any such entries into plain arrays
+    // before they are posted to the worker (Promises can't be structured-cloned).
+    async function resolveAlertLists() {
+        await Promise.all(
+            Object.keys(allAlertStocksList).map(async (type) => {
+                const v = allAlertStocksList[type];
+                if (Array.isArray(v)) return;
+                let arr = [];
+                try {
+                    const r = await v;
+                    arr = Array.isArray(r) ? r : [];
+                } catch (e) {
+                    console.warn("[alert.js] build failed", type, e);
+                }
+                if (allAlertStocksList[type] === v) allAlertStocksList[type] = arr;
+            }),
+        );
+    }
 
     // ==================================================================
     // Worker lifecycle + the 5-minute check cycle
@@ -821,17 +969,24 @@
             worker = new Worker("./helper/alert-worker.js");
             worker.onmessage = function (e) {
                 const msg = e.data || {};
-                if (msg.type === "TRIGGERED") {
-                    livePrices = msg.livePrices;
-                    recordTriggeredAlerts(msg.results);
-                } else if (msg.type === "ERROR") {
-                    console.warn("[alert-worker] ", msg.error);
+                // A reply for a request we already gave up on / cancelled.
+                if (msg.requestId !== undefined && msg.requestId !== activeRequestId) return;
+                try {
+                    if (msg.type === "TRIGGERED") {
+                        if (msg.livePrices instanceof Map) livePrices = msg.livePrices;
+                        recordTriggeredAlerts(msg.results);
+                    } else if (msg.type === "ERROR") {
+                        console.warn("[alert-worker] ", msg.error);
+                    }
+                } catch (err) {
+                    console.warn("[alert.js] failed to process worker reply", err);
+                } finally {
+                    finishCheck(); // ALWAYS release the lock, even if processing threw
                 }
-                checkInFlight = false;
             };
             worker.onerror = function (err) {
                 console.warn("[alert.js] worker error", err.message || err);
-                checkInFlight = false;
+                finishCheck();
             };
         } catch (e) {
             console.warn("[alert.js] could not start alert-worker.js", e);
@@ -840,44 +995,115 @@
         return worker;
     }
 
-    function runAlertCheck() {
-        if (checkInFlight) return; // don't overlap a slow check with the next tick
-        const allAlerts = Object.values(allAlertStocksList).flat();
-        if (typeof allAlerts === "undefined" || !allAlerts.length) return;
-        if (typeof allData === "undefined" || !allData.length) return;
-
-        const w = ensureWorker();
-        if (!w) return;
-
-        checkInFlight = true;
-        w.postMessage({
-            type: "CHECK_ALERTS",
-            allAlerts: allAlerts,
-        });
+    function finishCheck() {
+        checkInFlight = false;
+        if (watchdogTimer) {
+            clearTimeout(watchdogTimer);
+            watchdogTimer = null;
+        }
+        if (recheckQueued) {
+            recheckQueued = false;
+            if (cycleRunning) setTimeout(runAlertCheck, 0);
+        }
     }
 
-    function startCycle() {
+    // A worker that never answers must not freeze alerts for the rest of the day.
+    function onCheckTimeout(requestId) {
+        if (requestId !== activeRequestId || !checkInFlight) return;
+        console.warn("[alert.js] alert check timed out - restarting worker");
+        activeRequestId++; // ignore a late reply from the old request
+        if (worker) {
+            worker.terminate();
+            worker = null;
+        }
+        finishCheck();
+    }
+
+    async function runAlertCheck() {
+        if (!cycleRunning) return;
+        if (checkInFlight) {
+            recheckQueued = true; // e.g. a just-added alert: run again right after this one
+            return;
+        }
+        checkInFlight = true; // reserved BEFORE any await so two callers can't both pass
+        const myToken = cycleToken;
+        let posted = false;
+        try {
+            if (pendingBuilds.size) await Promise.all([...pendingBuilds.values()]);
+            await resolveAlertLists();
+            if (!cycleRunning || myToken !== cycleToken || !hasData()) return;
+
+            const fired = getFiredIdsToday();
+            const allAlerts = Object.values(allAlertStocksList)
+                .flat()
+                .filter((a) => a && typeof a === "object" && a.id && !fired.has(a.id));
+            if (!allAlerts.length) return;
+
+            const w = ensureWorker();
+            if (!w) return;
+
+            const requestId = ++activeRequestId;
+            w.postMessage({ type: "CHECK_ALERTS", requestId, allAlerts });
+            posted = true;
+            watchdogTimer = setTimeout(() => onCheckTimeout(requestId), CHECK_TIMEOUT_MS);
+        } catch (e) {
+            console.warn("[alert.js] alert check failed", e);
+        } finally {
+            if (!posted) finishCheck();
+        }
+    }
+
+    async function startCycle() {
         if (cycleRunning) return;
         cycleRunning = true;
+        const token = ++cycleToken;
         ensureWorker();
-        allAlertStocksList['customAlerts'] = buildCustomAlertStocks();
-        allAlertStocksList['awayFromHighAlerts'] = buildAwayFromHighAlertStocks();
-        allAlertStocksList['pivotTrendLineAlerts'] = buildPivotTrendLineAlertStocks();
-        allAlertStocksList['superTrendAlerts'] = buildSuperTrendAlertStocks();
-        runAlertCheck(); // don't wait 5 min for the first check of the day
+        refreshStatusLine();
+
+        // allData is fetched asynchronously by the main script - wait for it
+        // instead of building empty lists against an empty dataset.
+        const ready = await waitForData();
+        if (token !== cycleToken) return; // stopped while waiting
+        if (!ready) {
+            cycleRunning = false; // scheduler retries on its next 30s tick
+            refreshStatusLine();
+            return;
+        }
+
+        await rebuildAllLists();
+        if (token !== cycleToken) return;
+
         cycleInterval = setInterval(runAlertCheck, CHECK_INTERVAL_MS);
+        runAlertCheck(); // don't wait 5 min for the first check of the day
         refreshStatusLine();
     }
 
     function stopCycle() {
         if (!cycleRunning) return;
         cycleRunning = false;
+        cycleToken++;
         if (cycleInterval) clearInterval(cycleInterval);
         cycleInterval = null;
+
+        // terminate() drops the pending reply, so release the lock ourselves -
+        // otherwise every check tomorrow would be skipped as "already in flight".
+        activeRequestId++;
+        checkInFlight = false;
+        recheckQueued = false;
+        if (watchdogTimer) {
+            clearTimeout(watchdogTimer);
+            watchdogTimer = null;
+        }
         if (worker) {
             worker.terminate();
             worker = null;
         }
+
+        // Yesterday's prices/lists must not leak into tomorrow's session.
+        livePrices = null;
+        Object.keys(buildGen).forEach((k) => buildGen[k]++);
+        pendingBuilds.clear();
+        Object.keys(allAlertStocksList).forEach((k) => delete allAlertStocksList[k]);
         refreshStatusLine();
     }
 
@@ -885,84 +1111,77 @@
     // alerts are enabled at all — it starts/stops the actual 5-min cycle as
     // the market opens/closes, so the worker never runs outside 9:15–15:30 IST.
     function schedulerTick() {
-        const settings = getAlertSettings();
-        const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts || settings.pivotTrendLineAlerts || settings.superTrendAlerts);
-        if (anyEnabled && isMarketOpenIST()) {
-            startCycle();
+        if (anyAlertEnabled(getAlertSettings()) && isMarketOpenIST()) {
+            startCycle().catch((e) => console.warn("[alert.js] startCycle failed", e));
         } else {
             stopCycle();
         }
     }
 
-    // ==================================================================
-    // Public entry point — called by the main script after allData loads
-    // ==================================================================
-    window.initPriceAlertSystem = function () {
-        rowByCode = new Map(allData.map((r) => [r.Code, r]));
-        updateBellBadge();
-
-        const settings = getAlertSettings();
-        const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts || settings.pivotTrendLineAlerts || settings.superTrendAlerts);
-
-        if (!anyEnabled) {
-            refreshStatusLine();
-            return; // nothing to monitor — don't even start the scheduler/worker
-        }
-
+    function ensureScheduler() {
         if (!schedulerInterval) {
             schedulerInterval = setInterval(schedulerTick, SCHEDULER_TICK_MS);
         }
-        schedulerTick(); // evaluate immediately instead of waiting up to 30s
+    }
+
+    // ==================================================================
+    // Public entry point — safe to call any time (at load, or again after
+    // allData is refreshed)
+    // ==================================================================
+    window.initPriceAlertSystem = function () {
+        rowByCode = null; // allData may have been (re)loaded - rebuild lookup lazily
+        updateBellBadge();
+
+        if (!anyAlertEnabled(getAlertSettings())) {
+            stopCycle(); // nothing to monitor
+            refreshStatusLine();
+            return;
+        }
+        ensureScheduler();
+        if (cycleRunning) rebuildAllLists(); // data refreshed while running
+        else schedulerTick(); // evaluate immediately instead of waiting up to 30s
     };
 
-    // Re-evaluate the scheduler the instant the user flips a setting on/off,
-    // and grab notification permission right away (this fires from a direct
-    // user click, so the permission prompt is allowed).
+    // Re-evaluate the instant the user flips a setting on/off, and grab
+    // notification permission right away (this fires from a direct user click,
+    // so the permission prompt is allowed).
+    // NOTE: index.html's inline onchange="onAlertSettingChange()" always runs
+    // BEFORE this listener, so the new settings are already saved here - no
+    // artificial 1-second delay is needed.
+    const SETTING_BY_CHECKBOX = {
+        alertEnableCustom: "customAlerts",
+        alertEnableAwayFromHigh: "awayFromHighAlerts",
+        alertEnablePivotTrendLine: "pivotTrendLineAlerts",
+        alertEnableSuperTrend: "superTrendAlerts",
+    };
     document.addEventListener("DOMContentLoaded", function () {
-        ["alertEnableCustom", "alertEnableAwayFromHigh","alertEnablePivotTrendLine","alertEnableSuperTrend"].forEach((id) => {
+        Object.keys(SETTING_BY_CHECKBOX).forEach((id) => {
             const el = document.getElementById(id);
-            if (el)
-                el.addEventListener("change", function (event) {
-                    ensureNotificationPermission();
+            if (!el) return;
+            el.addEventListener("change", function (event) {
+                ensureNotificationPermission();
+                const type = SETTING_BY_CHECKBOX[id];
+                const settings = getAlertSettings();
 
-                    requestAnimationFrame(() => {
-                        setTimeout(() => {
-                            const settings = getAlertSettings();
-                            const anyEnabled = !!(settings.customAlerts || settings.awayFromHighAlerts || settings.pivotTrendLineAlerts || settings.superTrendAlerts);
+                if (!anyAlertEnabled(settings)) {
+                    stopCycle();
+                    refreshStatusLine();
+                    return;
+                }
+                ensureScheduler();
 
-                            if (anyEnabled && isMarketOpenIST() && cycleRunning) {
-                                const isChecked = event.target.checked;
-                                const chkID = event.target.id;
-                                if (chkID == "alertEnableCustom" && isChecked) {
-                                    allAlertStocksList['customAlerts'] = buildCustomAlertStocks();
-                                } else if (chkID == "alertEnableCustom" && !isChecked) {
-                                    allAlertStocksList['customAlerts'] = [];
-                                }else if (chkID == "alertEnableAwayFromHigh" && isChecked) {
-                                    allAlertStocksList['awayFromHighAlerts'] = buildAwayFromHighAlertStocks();
-                                }else if (chkID == "alertEnableAwayFromHigh" && !isChecked) {
-                                    allAlertStocksList['awayFromHighAlerts'] = [];
-                                }else if (chkID == "alertEnablePivotTrendLine" && isChecked) {
-                                    allAlertStocksList['pivotTrendLineAlerts'] = buildPivotTrendLineAlertStocks();
-                                }else if (chkID == "alertEnablePivotTrendLine" && !isChecked) {
-                                    allAlertStocksList['pivotTrendLineAlerts'] = [];
-                                }else if (chkID == "alertEnableSuperTrend" && isChecked) {
-                                    allAlertStocksList['superTrendAlerts'] = buildSuperTrendAlertStocks();
-                                }else if (chkID == "alertEnableSuperTrend" && !isChecked) {
-                                    allAlertStocksList['superTrendAlerts'] = [];
-                                }
-                            }
-                        }, 1000);
-                    });
-
-                    if (typeof initPriceAlertSystem === "function")
-                        initPriceAlertSystem();
-                    else
-                        schedulerTick();
-                });
+                if (cycleRunning && isMarketOpenIST()) {
+                    if (event.target.checked) rebuildList(type).then(() => runAlertCheck());
+                    else clearList(type);
+                } else {
+                    schedulerTick();
+                }
+                refreshStatusLine();
+            });
         });
 
         requestAnimationFrame(() => {
             initPriceAlertSystem();
-        })
+        });
     });
 })();

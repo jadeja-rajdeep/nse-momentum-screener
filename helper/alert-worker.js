@@ -7,54 +7,75 @@
 
      postMessage({
        type: "CHECK_ALERTS",
-       stocks: [{ code, name, prevClose }, ...],   // prevClose = previous day
-                                                     // Close, pulled from allData
-                                                     // by alert.js (a worker has
-                                                     // no access to the page's
-                                                     // globals/DOM)
-       alerts: [{ id, code, condition, value, enabled }, ...]
+       requestId: <number>,            // echoed back so alert.js can ignore
+                                       // stale / late replies
+       allAlerts: [{ id, code, name, condition, value, prevClose, type }, ...]
      })
 
-   It fetches ONE live-price API call for every stock that has at least one
-   enabled alert, compares each alert's condition against the live price, and
-   posts back only the alerts that fired:
+   It makes ONE live-price API call, compares every alert's condition against
+   the live price, and posts back:
 
-     postMessage({ type: "TRIGGERED", results: [{ alertId, code, name,
-                    condition, value, ltp, prevClose }, ...] })
+     postMessage({ type: "TRIGGERED", requestId,
+                   results: [{ ...alert, alertId, ltp }, ...],   // fired only
+                   livePrices: Map<SYMBOL, number> })            // compact LTP map
 
    or, on any failure:
 
-     postMessage({ type: "ERROR", error: "<message>" })
+     postMessage({ type: "ERROR", requestId, error: "<message>" })
 
-   ----------------------------------------------------------------------------
-   LIVE PRICE API
-   ----------------------------------------------------------------------------
-   This defaults to Yahoo Finance's public quote endpoint, which accepts many
-   symbols in a single request (NSE symbols use the ".NS" suffix) - matching
-   "call the one api which get all the live price data". It's free and needs
-   no key, but it's a third-party endpoint outside your control (rate limits/
-   CORS behaviour can change over time).
-
-   If you'd rather use your own PHP backend for a live-quotes endpoint, that's
-   the more "rock solid" long-term option - just point LIVE_PRICE_API_URL at
-   it and adjust parseLivePriceResponse() to match its JSON shape. Everything
-   else in this file (the alert-matching logic) stays the same.
+   EVERY CHECK_ALERTS message gets exactly ONE reply (TRIGGERED or ERROR),
+   including empty batches - alert.js relies on that to release its
+   "check in flight" lock.
    ========================================================================= */
 
 const LIVE_PRICE_API_URL = "https://nse-momentum-screener-api.vercel.app/api/get-live-data-proxy";
+// Vercel cold start: the very first call after the worker starts can be slow
+// while the serverless function boots, so it gets a bigger timeout.
+// Every call after that uses the normal timeout.
+const FIRST_CALL_TIMEOUT_MS = 60 * 1000;
+const NORMAL_TIMEOUT_MS = 35 * 1000;
+let isFirstCall = true;
 
 async function fetchLivePrices() {
-    const res = await fetch(LIVE_PRICE_API_URL, { headers: { Accept: "application/json" } });
-    if (!res.ok) throw new Error("Live price API HTTP " + res.status);
-    const json = await res.json();
-    /*
-    for testing purpose.
-    const json = [
-        { "identifier": "TMPVQN", "symbol": "TMPV", "series": "EQ", "marketType": "N", "pchange": 2.52, "change": 18, "basePrice": 0, "previousClose": 300, "lastPrice": 305, "totalTradedVolume": 394.0071, "issuedCap": 15414179062, "totalTradedValue": 2868.371688, "totalMarketCap": 1126776.4894322 },
-    ];
-     */
-    const list = Array.isArray(json) ? json : (json.data || []);
-    return new Map(list.map((r) => [String(r.symbol).toUpperCase(), r]));
+    const timeoutMs = isFirstCall ? FIRST_CALL_TIMEOUT_MS : NORMAL_TIMEOUT_MS;
+    isFirstCall = false;
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+        const res = await fetch(LIVE_PRICE_API_URL, {
+            headers: { Accept: "application/json" },
+            cache: "no-store", // a cached response would mean a stale "live" price
+            signal: ctrl.signal,
+        });
+        if (!res.ok) throw new Error("Live price API HTTP " + res.status);
+        const json = await res.json();
+        /*
+        for testing purpose.
+        const json = [
+            { "identifier": "TMPVQN", "symbol": "TMPV", "series": "EQ", "marketType": "N", "pchange": 2.52, "change": 18, "basePrice": 0, "previousClose": 300, "lastPrice": 305, "totalTradedVolume": 394.0071, "issuedCap": 15414179062, "totalTradedValue": 2868.371688, "totalMarketCap": 1126776.4894322 },
+        ];
+         */
+        const list = Array.isArray(json) ? json : (json.data || []);
+
+        // symbol -> last traded price (number). Only finite prices are kept, and
+        // only this compact map is posted back to the page (not ~2000 full rows).
+        const ltpMap = new Map();
+        list.forEach((r) => {
+            const ltp = parseFloat(r.lastPrice);
+            if (r && r.symbol != null && Number.isFinite(ltp)) {
+                ltpMap.set(String(r.symbol).toUpperCase(), ltp);
+            }
+        });
+        return ltpMap;
+    } catch (err) {
+        if (err && err.name === "AbortError") {
+            throw new Error("Live price API timed out after " + timeoutMs / 1000 + "s");
+        }
+        throw err;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 // Sanity guard: if the live price is wildly off from yesterday's close
@@ -70,17 +91,24 @@ function isSanePrice(ltp, prevClose) {
 
 function checkAlerts(allAlerts, prices) {
     const results = [];
+    const seen = new Set(); // one fire per alert id per batch
     allAlerts.forEach((a) => {
-        const row = prices.get((a.code || "").toUpperCase());
-        if (!row) return;                       // no live price this round
-        const ltp = parseFloat(row.lastPrice);
-        if (!Number.isFinite(ltp)) return;      // catches NaN
+        if (!a || seen.has(a.id)) return;
+        const ltp = prices.get((a.code || "").toUpperCase());
+        if (ltp === undefined) return;           // no live price this round
         if (!isSanePrice(ltp, a.prevClose)) return;
 
+        const value = parseFloat(a.value);
+        if (!Number.isFinite(value)) return;
+
         const hit =
-            (a.condition === ">=" && ltp >= a.value) ||
-            (a.condition === "<=" && ltp <= a.value);
-        if (hit) results.push({ ...a, ltp });
+            (a.condition === ">=" && ltp >= value) ||
+            (a.condition === "<=" && ltp <= value);
+        if (hit) {
+            seen.add(a.id);
+            // alertId is what the page's notification/dedupe code keys on
+            results.push({ ...a, alertId: a.id, ltp });
+        }
     });
     return results;
 }
@@ -88,17 +116,22 @@ function checkAlerts(allAlerts, prices) {
 self.onmessage = async function (e) {
     const msg = e.data || {};
     if (msg.type !== "CHECK_ALERTS") return;
-
-    const allAlerts = msg.allAlerts || [];
-    if (!allAlerts.length) return;
+    const requestId = msg.requestId;
 
     try {
+        const allAlerts = Array.isArray(msg.allAlerts) ? msg.allAlerts : [];
+        if (!allAlerts.length) {
+            // Still reply: otherwise the page's in-flight lock never releases.
+            self.postMessage({ type: "TRIGGERED", requestId, results: [], livePrices: new Map() });
+            return;
+        }
         const prices = await fetchLivePrices();
         const results = checkAlerts(allAlerts, prices);
-        self.postMessage({ type: "TRIGGERED", results: results,livePrices:prices });
+        self.postMessage({ type: "TRIGGERED", requestId, results, livePrices: prices });
     } catch (err) {
         self.postMessage({
             type: "ERROR",
+            requestId,
             error: (err && err.message) || String(err),
         });
     }
