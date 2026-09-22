@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v89";
+const CACHE_VERSION = "nse-screener-v90";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
@@ -46,6 +46,14 @@ const STATIC_ASSETS = [
     "./helper/alert.js",
     "./helper/alert-worker.js"
 ];
+
+// Assets that should always be served whole, ignoring any Range header
+// the browser attaches (e.g. <audio preload="auto"> issuing byte-range
+// requests) — Range requests get 206 responses from the network, and
+// 206s can't be stored via cache.put(). Stripping Range here means we
+// always deal in plain 200 responses, so this file gets cached once at
+// install time and reliably served from cache on every later request.
+const NO_RANGE_ASSETS = ["./assets/audio/nse_screener_alert.wav"];
 
 // The Bootstrap CSS + Google Fonts CSS URLs, precached into FONT_CACHE at
 // install time. The actual .woff2 files referenced by that CSS have
@@ -165,6 +173,11 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
+    if (NO_RANGE_ASSETS.some((path) => url.pathname.endsWith(path))) {
+        event.respondWith(cacheFirstNoRange(event.request, CACHE_VERSION));
+        return;
+    }
+
     // Everything else → Cache-first, fall back to network
     event.respondWith(cacheFirst(event.request, CACHE_VERSION));
 });
@@ -213,8 +226,12 @@ async function cacheFirst(request, cacheName = CACHE_VERSION) {
         // is always false for these even on success — so we explicitly
         // allow type "opaque" through as well, or fonts would never
         // actually get cached here.
+        // Range/partial responses (206) can't be stored in the Cache API and
+        // will throw if you try — e.g. Range requests for the alert .wav file
+        // (see alert.js's `new Audio(...).preload = 'auto'`). Let those pass
+        // straight through without attempting to cache them.
         const cacheable =
-            response.ok || response.type === "opaque";
+            (response.ok || response.type === "opaque") && response.status !== 206;
         if (cacheable && request.url.startsWith("http")) {
             await cache.put(request, response.clone());
         }
@@ -226,4 +243,18 @@ async function cacheFirst(request, cacheName = CACHE_VERSION) {
             statusText: "Service Unavailable",
         });
     }
+}
+
+// Same as cacheFirst(), but rebuilds the request without a Range header
+// first, so we always deal in whole-file 200 responses.
+async function cacheFirstNoRange(request, cacheName = CACHE_VERSION) {
+    if (request.headers.has("range")) {
+        request = new Request(request.url, {
+            method: "GET",
+            headers: new Headers(
+                [...request.headers].filter(([k]) => k.toLowerCase() !== "range")
+            ),
+        });
+    }
+    return cacheFirst(request, cacheName);
 }
