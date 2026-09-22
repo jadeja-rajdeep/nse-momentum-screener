@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v88";
+const CACHE_VERSION = "nse-screener-v89";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
@@ -57,6 +57,10 @@ const FONT_ASSETS = [
     "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
     "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;600;700&display=swap",
     "https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"
+];
+
+const LIVE_URL_HOSTS = [
+  "nse-momentum-screener-api.vercel.app"
 ];
 
 // ── Message: allow page to trigger SW update ─────────────────────────────────
@@ -152,6 +156,12 @@ self.addEventListener("fetch", (event) => {
     // → Cache-first into FONT_CACHE, which survives app version bumps.
     if (FONT_HOSTS.includes(url.hostname)) {
         event.respondWith(cacheFirst(event.request, FONT_CACHE));
+        return;
+    }
+
+    //ALL LIVE API DATA HOST SERVE NETWORK FIRST.
+    if (LIVE_URL_HOSTS.includes(url.hostname)) {
+        event.respondWith(networkFirstData(event.request));
         return;
     }
 
