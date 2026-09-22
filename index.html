@@ -22646,6 +22646,9 @@
                 if(isInAnyWatchlist(code)){
                     wlbtn.textContent='★';
                     wlbtn.classList.add("in-watchlist");
+                }else{
+                    wlbtn.textContent='☆';
+                    wlbtn.classList.remove("in-watchlist");
                 }
                 document.querySelector("#chartModal .tv-modal-meta").textContent = name;
 
