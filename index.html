@@ -22356,10 +22356,9 @@
                 let btns = getAllFullscreenBtns();
                 let idx = btns.indexOf(currentFullScreenBtn);
                 let newIdx = 0;
-                if(idx===-1 && currentFullScreenBtn.classList.contains('chart-watchlist-stock')){
-                    //idx = btns.indexOf(btns[0]);
-                    //newIdx = idx;
+                if(idx===-1 && (currentFullScreenBtn.classList.contains('chart-watchlist-stock') || currentFullScreenBtn.classList.contains('pa-triggered-item'))){
                     idx = btns.indexOf(lastFullScreenBtn);
+                    if (idx === -1) idx = btns.indexOf(btns[0]); //fallback to the first fullscreen button if no previouse refrence is found.
                     if (idx === -1) return;
                     newIdx = idx + direction;
                 }else{
