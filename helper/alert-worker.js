@@ -62,9 +62,9 @@ async function fetchLivePrices() {
         // only this compact map is posted back to the page (not ~2000 full rows).
         const ltpMap = new Map();
         list.forEach((r) => {
-            const ltp = parseFloat(r.lastPrice);
-            if (r && r.symbol != null && Number.isFinite(ltp)) {
-                ltpMap.set(String(r.symbol).toUpperCase(), ltp);
+            const ltp = parseFloat(r.l);
+            if (r && r.s != null && Number.isFinite(ltp)) {
+                ltpMap.set(String(r.s).toUpperCase(), ltp);
             }
         });
         return ltpMap;
