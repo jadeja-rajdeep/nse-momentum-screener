@@ -7979,6 +7979,13 @@
                         <div class="help-tab" data-help-tab="livecharts">
                             <span class="help-tab-icon">🕯</span> Live Charts
                         </div>
+                        <div class="help-tab" data-help-tab="financial">
+                            <span class="help-tab-icon">🧾</span> Financial
+                            Info
+                        </div>
+                        <div class="help-tab" data-help-tab="alerts">
+                            <span class="help-tab-icon">🔔</span> Alerts
+                        </div>
                         <div class="help-tab" data-help-tab="industry">
                             <span class="help-tab-icon">📊</span> Industry
                             Performance
@@ -8272,8 +8279,8 @@
                                     </li>
                                     <li>
                                         <strong
-                                            >1M / 2M / 4M / 6M Chng%
-                                            Min-Max</strong
+                                            >1D / 5D / 1M / 2M / 4M / 6M
+                                            Chng% Min-Max</strong
                                         >
                                         &mdash; absolute price-change filters
                                         for each period. Use a tight min/max
@@ -8285,6 +8292,22 @@
                                         keeps stocks trading near their 6-month
                                         base, often useful for spotting
                                         flat-base or base-breakout candidates.
+                                    </li>
+                                    <li>
+                                        <strong>Debt (Min-Max)</strong> —
+                                        filter by the company's reported debt
+                                        level.
+                                    </li>
+                                    <li>
+                                        <strong>Cash Flow (Min-Max)</strong> —
+                                        filter by the company's latest reported
+                                        cash flow figure.
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >Book Val (P/B) (Min-Max)</strong
+                                        >
+                                        — filter by Price-to-Book ratio.
                                     </li>
                                     <li>
                                         <strong>Market Cap (₹ Cr)</strong> —
@@ -9184,6 +9207,18 @@
                                         that stock's live chart on TradingView
                                         in a new tab.
                                     </li>
+                                    <li>
+                                        <strong>🧾 Financial button</strong> —
+                                        appears on the thumbnail chart row (and
+                                        inside the full-screen chart modal);
+                                        click it to open that stock's
+                                        <strong>Financial Information</strong>
+                                        modal. See the
+                                        <span class="help-kbd"
+                                            >🧾 Financial Info</span
+                                        >
+                                        tab for details.
+                                    </li>
                                 </ul>
                             </div>
                             <div class="help-block">
@@ -9465,6 +9500,15 @@
                                     <li>
                                         <strong>PE / ROE % / Debt</strong> —
                                         standard fundamental metrics.
+                                    </li>
+                                    <li>
+                                        <strong>Cash Flow</strong> — the
+                                        company's latest reported cash flow
+                                        figure.
+                                    </li>
+                                    <li>
+                                        <strong>Book Val (P/B)</strong> — the
+                                        stock's Price-to-Book ratio.
                                     </li>
                                     <li>
                                         <strong>EPS Q1% / Q2%</strong> — YoY EPS
@@ -10150,6 +10194,49 @@
                             </div>
                             <div class="help-block">
                                 <div class="help-block-title">
+                                    🔖 Watchlist Panel (In-Chart)
+                                </div>
+                                <p>
+                                    Inside the full-screen chart modal, click
+                                    the
+                                    <span class="help-kbd">🔖</span> button to
+                                    open a side drawer listing all your
+                                    watchlists as collapsible groups, each
+                                    stock shown with its latest close price
+                                    and day change%. Click any stock in the
+                                    drawer to jump the chart straight to it
+                                    without closing the modal.
+                                </p>
+                                <ul>
+                                    <li>
+                                        A <strong>Today's Alerts</strong> group
+                                        always sits at the top of the drawer,
+                                        listing every stock that has triggered
+                                        a price alert so far today (one entry
+                                        per stock) — a quick way to jump
+                                        straight to a chart for something that
+                                        just fired. See the
+                                        <span class="help-kbd">🔔 Alerts</span>
+                                        tab for how alerts are triggered.
+                                    </li>
+                                    <li>
+                                        A stock greyed out and disabled in the
+                                        drawer means it's saved in that
+                                        watchlist but isn't present in the
+                                        current data scan.
+                                    </li>
+                                    <li>
+                                        The <span class="help-kbd">← →</span>
+                                        step buttons and keys move through
+                                        stocks in drawer order once a
+                                        watchlist stock is selected, keeping
+                                        that stock's group expanded and
+                                        scrolled into view as you navigate.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
                                     📊 Volume &amp; Moving Averages
                                 </div>
                                 <ul>
@@ -10226,6 +10313,51 @@
                                     fast, medium, and slow SuperTrend) to spot
                                     multi-timeframe trend agreement at a
                                     glance.
+                                </div>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📌 Pivot Trend Lines (3)
+                                </div>
+                                <p>
+                                    Three independently configurable Pivot
+                                    Trend Line overlays, based on the
+                                    <a
+                                        href="https://www.tradingview.com/script/NIuGTgAO-Pivot-Point-Trend-Line/"
+                                        target="_blank"
+                                        rel="noopener"
+                                        >Pivot Point Trend Line</a
+                                    >
+                                    concept, which auto-draws and connects
+                                    recent swing pivots into trend lines. For
+                                    each of the three you can set:
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong>Length</strong> — the pivot
+                                        lookback period used to detect swing
+                                        highs/lows.
+                                    </li>
+                                    <li>
+                                        <strong>High Color</strong> — the color
+                                        of the trend line drawn connecting
+                                        successive pivot highs.
+                                    </li>
+                                    <li>
+                                        <strong>Low Color</strong> — the color
+                                        of the trend line drawn connecting
+                                        successive pivot lows.
+                                    </li>
+                                </ul>
+                                <div class="help-tip" style="margin-top: 10px">
+                                    When enabled, the last plotted point of
+                                    each high/low trend line is also used as a
+                                    live level for
+                                    <strong>Pivot Trend Line Alerts</strong> —
+                                    see the 🔔 Alerts tab. Results are cached
+                                    per-stock for the trading day, so switching
+                                    between stocks and reopening the same
+                                    chart is instant.
                                 </div>
                             </div>
                             <div class="help-block">
@@ -10319,6 +10451,234 @@
                                     you if you move to a new browser or
                                     device.
                                 </p>
+                            </div>
+                        </div>
+
+                        <!-- FINANCIAL INFORMATION -->
+                        <div class="help-section" data-help-section="financial">
+                            <h2>🧾 Financial Information</h2>
+                            <div class="help-tagline">
+                                A quick quarterly Sales/EPS trend table for any
+                                stock, opened from the
+                                <span class="help-kbd">🧾</span> button without
+                                leaving the screener.
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🔛 Opening It
+                                </div>
+                                <p>
+                                    The <span class="help-kbd">🧾</span>
+                                    Financial button appears in two places:
+                                </p>
+                                <ul>
+                                    <li>
+                                        On the
+                                        <strong>thumbnail chart</strong> row
+                                        underneath any stock in the main table
+                                        (when charts are enabled — see the
+                                        <span class="help-kbd">🕯 Live Charts</span>
+                                        tab).
+                                    </li>
+                                    <li>
+                                        Inside the
+                                        <strong>full-screen chart modal</strong>
+                                        — click the
+                                        <span class="help-kbd">🧾</span> icon
+                                        in the modal's toolbar to slide the
+                                        same financial table open beneath the
+                                        chart without closing it.
+                                    </li>
+                                </ul>
+                                <p>
+                                    Either entry point opens the same data for
+                                    that stock.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📋 Reading the Table
+                                </div>
+                                <p>
+                                    Each row is one reported quarter, most
+                                    recent first:
+                                </p>
+                                <ul>
+                                    <li>
+                                        <strong>Time</strong> — the quarter
+                                        label.
+                                    </li>
+                                    <li>
+                                        <strong>Sales / EPS</strong> — the
+                                        reported figures for that quarter.
+                                    </li>
+                                    <li>
+                                        <strong>Sales % / EPS %</strong> — YoY
+                                        growth vs. the same quarter a year
+                                        earlier. Green = positive, red =
+                                        negative.
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >Sales % QoQ / EPS % QoQ</strong
+                                        >
+                                        — sequential growth vs. the
+                                        immediately preceding quarter.
+                                    </li>
+                                </ul>
+                                <div class="help-tip" style="margin-top: 10px">
+                                    Look for consecutive quarters where both
+                                    YoY and QoQ growth are positive — that
+                                    combination (accelerating, not just
+                                    growing) is generally the strongest
+                                    fundamental confirmation behind a momentum
+                                    setup.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PRICE ALERTS -->
+                        <div class="help-section" data-help-section="alerts">
+                            <h2>🔔 Alerts</h2>
+                            <div class="help-tagline">
+                                Get notified when a stock's live price crosses
+                                a level you care about — a manual target, or a
+                                level pulled straight from your chart
+                                indicators. Click the
+                                <span class="help-kbd">🔔</span> bell in the
+                                header to open it.
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🔛 Turning Alerts On
+                                </div>
+                                <p>
+                                    Open
+                                    <span class="help-kbd">⚙ Settings</span> in
+                                    the header and, under the
+                                    <strong>🔔 Alerts</strong> section, tick
+                                    whichever of the four alert types you want
+                                    monitored, then
+                                    <span class="help-kbd">✓ Apply</span>.
+                                    Nothing is checked by default. Once at
+                                    least one type is enabled, the app checks
+                                    live prices every
+                                    <strong>5 minutes</strong> during NSE
+                                    market hours (9:15 AM – 3:30 PM IST,
+                                    weekdays) — no monitoring happens outside
+                                    that window or on holidays the app isn't
+                                    aware of.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    🧭 The Four Alert Types
+                                </div>
+                                <ul>
+                                    <li>
+                                        <strong>Custom Alerts</strong> — a
+                                        manual price target you set yourself
+                                        (see below), e.g. "notify me when
+                                        RELIANCE ≥ ₹3000".
+                                    </li>
+                                    <li>
+                                        <strong>Away From High Alerts</strong>
+                                        — fires when the live price reaches
+                                        one of the Away From High reference
+                                        levels enabled in your
+                                        <span class="help-kbd">📈 Charts</span>
+                                        settings, for every stock in your
+                                        watchlists.
+                                    </li>
+                                    <li>
+                                        <strong>Pivot Trend Line Alerts</strong>
+                                        — fires when the live price reaches
+                                        the latest plotted level of an enabled
+                                        Pivot Trend Line, for every stock in
+                                        your watchlists.
+                                    </li>
+                                    <li>
+                                        <strong>Super Trend Alerts</strong> —
+                                        fires when the live price reaches an
+                                        enabled SuperTrend line's current
+                                        level, for every stock in your
+                                        watchlists.
+                                    </li>
+                                </ul>
+                                <div class="help-tip" style="margin-top: 10px">
+                                    The last three types reuse whatever
+                                    Away From High / Pivot Trend Line /
+                                    SuperTrend overlays you've already
+                                    configured in
+                                    <span class="help-kbd">📈 Charts</span> —
+                                    there's nothing extra to set up for them
+                                    beyond ticking the box and having the
+                                    stock in a watchlist. Only stocks saved to
+                                    one of your
+                                    <span class="help-kbd">⭐ Watchlists</span>
+                                    are monitored for these three; Custom
+                                    Alerts work on any stock code regardless
+                                    of watchlist.
+                                </div>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    ➕ Adding a Custom Alert
+                                </div>
+                                <p>
+                                    Open the bell, switch to the
+                                    <strong>⚙ Manage Custom Alerts</strong>
+                                    tab, then enter a script code, choose
+                                    <span class="help-kbd">≥</span> or
+                                    <span class="help-kbd">≤</span>, type a
+                                    target price, and click
+                                    <span class="help-kbd">+ Add</span>. A
+                                    custom alert automatically
+                                    <strong>disables itself</strong> once it
+                                    fires, so it won't fire again every 5
+                                    minutes for the rest of the day — re-enable
+                                    or delete it from the same list.
+                                </p>
+                            </div>
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    📋 Today's Alerts &amp; Notifications
+                                </div>
+                                <p>
+                                    When an alert fires:
+                                </p>
+                                <ul>
+                                    <li>
+                                        It's added to the
+                                        <strong>📋 Today's Alerts</strong> tab
+                                        in the bell modal, and to the same
+                                        <strong>Today's Alerts</strong> group
+                                        at the top of the in-chart watchlist
+                                        drawer (see the
+                                        <span class="help-kbd">🕯 Live Charts</span>
+                                        tab).
+                                    </li>
+                                    <li>
+                                        A number badge appears on the 🔔 bell
+                                        icon showing how many alerts you
+                                        haven't seen yet; opening the bell
+                                        marks them all as seen.
+                                    </li>
+                                    <li>
+                                        A sound plays and, if you've granted
+                                        browser notification permission
+                                        (asked the first time you interact
+                                        with the alerts panel), a desktop
+                                        notification pops up — click it to
+                                        jump straight to the bell modal.
+                                    </li>
+                                </ul>
+                                <div class="help-tip" style="margin-top: 10px">
+                                    The status line at the top of the bell
+                                    modal tells you exactly what's happening:
+                                    off, waiting for market hours, or live and
+                                    checking every 5 minutes.
+                                </div>
                             </div>
                         </div>
 
