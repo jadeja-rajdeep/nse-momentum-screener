@@ -13787,6 +13787,144 @@
 
             var CURRENT_DATA_DATE="";
 
+            // ------------------------------------------------------------------
+            // Case-insensitive de-duplication for classification fields.
+            //
+            // m.json sometimes contains the "same" category value under
+            // different letter-casing (e.g. "Financial Services" vs
+            // "financial services"). Every dropdown, group/rank computation,
+            // and filter in this app keys off the RAW string value of these
+            // fields, so two different-case spellings of the same category
+            // were previously treated as two separate categories everywhere:
+            // dropdown lists, Industry/Basic Industry group stats, group
+            // ranking, and both basic + advanced query filtering.
+            //
+            // Fix: right after the raw rows are parsed (before anything else
+            // touches them), collapse every case-variant of a value to a
+            // single canonical spelling (the most frequently occurring
+            // casing for that value). This runs ONCE per data load and every
+            // downstream consumer (which all read from `allData`) then sees
+            // one unified value automatically — no other call site needs to
+            // change.
+            //
+            // Fields covered: Macro Economic Sector, Sector, Industry,
+            // Basic Industry, and All Index (a newline-separated multi-value
+            // field, normalized token-by-token).
+            // ------------------------------------------------------------------
+            const CASE_DEDUPE_FIELDS = [
+                "Macro Economic Sector",
+                "Sector",
+                "Industry",
+                "Basic Industry",
+            ];
+
+            function buildCaseCanonicalMap(rows, field) {
+                // lowerKey -> Map(exactVariant -> occurrenceCount)
+                const variantCounts = new Map();
+                for (const r of rows) {
+                    const raw = r ? r[field] : undefined;
+                    if (raw === undefined || raw === null) continue;
+                    const s = String(raw).trim();
+                    if (!s) continue;
+                    const key = s.toLowerCase();
+                    let variants = variantCounts.get(key);
+                    if (!variants) {
+                        variants = new Map();
+                        variantCounts.set(key, variants);
+                    }
+                    variants.set(s, (variants.get(s) || 0) + 1);
+                }
+                // Pick the most frequent exact-case spelling as canonical for
+                // each lower-cased key (ties -> first one encountered).
+                const canonical = new Map(); // lowerKey -> canonical exact string
+                for (const [key, variants] of variantCounts) {
+                    let bestVariant = null;
+                    let bestCount = -1;
+                    for (const [variant, count] of variants) {
+                        if (count > bestCount) {
+                            bestVariant = variant;
+                            bestCount = count;
+                        }
+                    }
+                    canonical.set(key, bestVariant);
+                }
+                return canonical;
+            }
+
+            function canonicalizeCategoricalFields(rows) {
+                if (!rows || !rows.length) return;
+
+                // Build one canonical-casing map per single-value field.
+                const canonMaps = {};
+                for (const field of CASE_DEDUPE_FIELDS) {
+                    canonMaps[field] = buildCaseCanonicalMap(rows, field);
+                }
+
+                // "All Index" holds MULTIPLE values per row, newline-separated
+                // (see getAllIndexValues / formatAllIndex). Build the
+                // canonical map over individual tokens, not whole-row strings.
+                const allIndexVariantCounts = new Map();
+                for (const r of rows) {
+                    const raw = r ? r["All Index"] : undefined;
+                    if (!raw) continue;
+                    const tokens = String(raw).split("\n");
+                    for (const tok of tokens) {
+                        const s = tok.trim();
+                        if (!s || s === "-" || s === "—") continue;
+                        const key = s.toLowerCase();
+                        let variants = allIndexVariantCounts.get(key);
+                        if (!variants) {
+                            variants = new Map();
+                            allIndexVariantCounts.set(key, variants);
+                        }
+                        variants.set(s, (variants.get(s) || 0) + 1);
+                    }
+                }
+                const allIndexCanon = new Map();
+                for (const [key, variants] of allIndexVariantCounts) {
+                    let bestVariant = null;
+                    let bestCount = -1;
+                    for (const [variant, count] of variants) {
+                        if (count > bestCount) {
+                            bestVariant = variant;
+                            bestCount = count;
+                        }
+                    }
+                    allIndexCanon.set(key, bestVariant);
+                }
+
+                // Apply canonical spellings in place, on every row, for
+                // every affected field, BEFORE any dropdown/grouping/ranking/
+                // filtering code runs.
+                for (const r of rows) {
+                    if (!r) continue;
+
+                    for (const field of CASE_DEDUPE_FIELDS) {
+                        const raw = r[field];
+                        if (raw === undefined || raw === null) continue;
+                        const s = String(raw).trim();
+                        if (!s) continue;
+                        const canonVal = canonMaps[field].get(s.toLowerCase());
+                        if (canonVal !== undefined) r[field] = canonVal;
+                    }
+
+                    const rawAllIndex = r["All Index"];
+                    if (rawAllIndex) {
+                        const normalizedTokens = String(rawAllIndex)
+                            .split("\n")
+                            .map((tok) => {
+                                const s = tok.trim();
+                                if (!s || s === "-" || s === "—") return s;
+                                const canonVal = allIndexCanon.get(
+                                    s.toLowerCase(),
+                                );
+                                return canonVal !== undefined ? canonVal : s;
+                            });
+                        r["All Index"] = normalizedTokens.join("\n");
+                    }
+                }
+            }
+
             async function ensureIndicatorCacheFreshness(currentDataDate) {
               const storedDate = await IndicatorCacheDB.getAnyStoredDate();
               if (storedDate !== currentDataDate) {
@@ -13813,6 +13951,13 @@
                         }
                     }
                     if (!rows.length) throw new Error("No data found in JSON");
+
+                    // Collapse case-variant duplicates (e.g. "Financial
+                    // Services" vs "financial services") in the
+                    // classification fields BEFORE anything downstream
+                    // (dropdowns, group stats, ranking, filtering) reads
+                    // these rows.
+                    canonicalizeCategoricalFields(rows);
 
                     CURRENT_DATA_DATE = rows[0]?.Date;
                     //clear chart indicator data from indexdb if date is not same.
@@ -17137,8 +17282,6 @@
                 const lists = loadWatchlists();
                 const wl = lists.find((w) => w.id === id);
                 if (!wl) return;
-                document.getElementById("filterPanel").style.display = "";
-                filtersVisible = true;
                 mselSetSelected("f_watchlist", [wl.name]);
                 applyFilters();
             }
@@ -19808,9 +19951,6 @@
                 const search = list.find((s) => s.id === id);
                 if (!search) return;
                 clearMultiSearch(false); // clear any multi mode silently
-                // Open filter panel
-                //document.getElementById("filterPanel").style.display = "block";
-                //filtersVisible = true;
                 restoreFilters(search.state);
                 toggleSavedPanel();
             }
@@ -21570,6 +21710,25 @@
                 const chartSettings = getChartSettings();
                 let otherHeight = calculateChartHeight();
 
+                let chartDaysDataLength = -42;
+                if (screenWidth <= 360) {
+                    chartDaysDataLength = -42;   // small phones (iPhone SE, older Android)
+                } else if (screenWidth <= 414) {
+                    chartDaysDataLength = -63;   // standard phones (iPhone 12-15, Pixel)
+                } else if (screenWidth <= 480) {
+                    chartDaysDataLength = -84;   // large phones / phablets (landscape-ish)
+                } else if (screenWidth <= 768) {
+                    chartDaysDataLength = -105;   // small tablets portrait (iPad Mini portrait)
+                } else if (screenWidth <= 1024) {
+                    chartDaysDataLength = -126;  // tablets landscape / small laptops
+                } else if (screenWidth <= 1440) {
+                    chartDaysDataLength = -147;  // standard laptop/desktop
+                } else if (screenWidth <= 1920) {
+                    chartDaysDataLength = -168;  // full HD desktop monitors
+                } else {
+                    chartDaysDataLength = -189;  // 2K/4K/ultrawide monitors
+                }
+
                 document
                     .querySelectorAll(".thumb-chart")
                     .forEach(async (chartDiv, index) => {
@@ -21701,7 +21860,7 @@
                                     wickDownColor: "#ef5350",
                                 },
                             );
-                            chartSeries.setData(data.slice(-180));
+                            chartSeries.setData(data.slice(chartDaysDataLength));
 
                             if (chartSettings.volume.enabled == true) {
                                 let chartSeriesVolume = thumbCharts[isin].addSeries(LightweightCharts.HistogramSeries, {
@@ -21727,7 +21886,7 @@
                                             : "rgba(239, 83, 80, 0.6)",
                                 }));
                                 chartSeriesVolume.setData(
-                                    volumeData.slice(-180),
+                                    volumeData.slice(chartDaysDataLength),
                                 );
 
                                 chartSeriesVolume.priceScale().applyOptions({
@@ -21768,7 +21927,7 @@
                                         await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, volMaData);
                                     }
                                     if (isThumbChartStale(isin, myGeneration)) return;
-                                    chartSeriesVolumeSma.setData(volMaData.slice(-180));
+                                    chartSeriesVolumeSma.setData(volMaData.slice(chartDaysDataLength));
                                 }
                             }
 
@@ -21797,7 +21956,7 @@
                                         await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, maData);
                                     }
                                     if (isThumbChartStale(isin, myGeneration)) return;
-                                    maSeries[index].setData(maData.slice(-180));
+                                    maSeries[index].setData(maData.slice(chartDaysDataLength));
                                 }
                             });
 
@@ -21818,7 +21977,7 @@
                                         crosshairMarkerVisible: false,
                                         lastValueVisible: false,
                                         priceLineVisible: false,
-                                    }).setData(superTrendData.slice(-180));
+                                    }).setData(superTrendData.slice(chartDaysDataLength));
                                 }
                             });
 

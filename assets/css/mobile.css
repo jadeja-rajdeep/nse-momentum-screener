@@ -148,8 +148,12 @@
         position: sticky;
         left: 0;
         z-index: 5;
-        background: var(--surface);
+        /*background: var(--surface);*/
         min-width: var(--m-col1-w);
+    }
+    .peer-table td:nth-child(1),
+    .ind-table td:nth-child(1) {
+        background: var(--surface);
     }
 
     /* — pagination bar — */
