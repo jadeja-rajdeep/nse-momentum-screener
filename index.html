@@ -2132,6 +2132,14 @@
             .ss-modal-body {
                 padding: 18px;
             }
+            #stockSearchList .ss-preview-row {
+                cursor: pointer;
+                padding: 0 6px;
+                border-radius: 4px;
+            }
+            #stockSearchList .ss-preview-row:hover {
+                background: var(--surface);
+            }
             .ss-preview {
                 margin-top: 12px;
                 background: var(--surface2);
@@ -3990,6 +3998,15 @@
                     <button type="button" class="alert-bell-btn" id="alertBellBtn" title="Price alerts enabled" onclick="openPriceAlertModal()">
                         <span aria-hidden="true">🔔</span>
                         <span class="alert-bell-count" id="alertBellCount" style="display:none">0</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="btn-icon-only"
+                        id="stockSearchBtn"
+                        onclick="openStockSearchModal()"
+                        title="Search stock by code / name (S)"
+                    >
+                        <span>🔍</span>
                     </button>
                     <button
                         class="btn-toggle-filters"
@@ -6760,6 +6777,42 @@
                         <div class="pa-hint" id="paFormHint"></div>
                         <div class="pa-list" id="paCustomList"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUICK STOCK SEARCH MODAL (S / s) -->
+        <div
+            class="ss-modal-overlay"
+            id="stockSearchModal"
+            onclick="closeStockSearchModalOnOverlay(event)"
+            style="z-index: 2147483000"
+        >
+            <div class="ss-modal">
+                <div class="ss-modal-header">
+                    <span>🔍 Search Stock</span>
+                    <button class="peer-modal-close" onclick="closeStockSearchModal()">
+                        ✕
+                    </button>
+                </div>
+                <div class="ss-modal-body">
+                    <div class="filter-label" style="margin-bottom: 6px">
+                        Search Code / Name
+                    </div>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="stockSearchInput"
+                        placeholder="e.g. TATA, Reliance…"
+                        autocomplete="off"
+                        spellcheck="false"
+                        oninput="onStockSearchInput(this)"
+                    />
+                    <div
+                        id="stockSearchList"
+                        class="ss-preview"
+                        style="max-height: 45vh"
+                    ></div>
                 </div>
             </div>
         </div>
@@ -13340,7 +13393,17 @@
 
                     <button
                         type="button"
-                        class="wl-star peer-modal-close text-warning border-warning bg-warning ms-auto"
+                        class="peer-modal-close text-secondary border-secondary bg-secondary ms-auto"
+                        style="--bs-bg-opacity: 0.1"
+                        onclick="openStockSearchModal()"
+                        title="Search stock by code / name (S)"
+                        aria-label="Search stock by code / name (S)"
+                    >
+                        🔍
+                    </button>
+                    <button
+                        type="button"
+                        class="wl-star peer-modal-close text-warning border-warning bg-warning"
                         style="--bs-bg-opacity: 0.1"
                         id="chartWatchlist"
                         title="Add to watchlists"
@@ -14516,7 +14579,7 @@
                     const dates = rows.map((r) => r.Date).filter(Boolean);
                     if (dates.length) {
                         document.getElementById("data-date").textContent =
-                            "📅 " + dates[0] + (fromCache ? " (cached)" : "");
+                            "📅 " + dates[0] + (fromCache ? " (c)" : "");
                     }
 
                     document.getElementById("loading").style.display = "none";
@@ -23234,7 +23297,7 @@
                                     borderColor: "#3b4862",
                                     timeVisible: false,
                                     secondsVisible: false,
-                                    rightOffset: 0,
+                                    rightOffset: 1,
                                     fixLeftEdge: true,
                                     fixRightEdge: true,
                                     barSpacing: 8,
@@ -23779,96 +23842,87 @@
                         let zoomEndTimer = null;
                         const isLetter = /^[a-zA-Z]/;
                         const isNumber = /^\d/;
+                        let rangeChangeSource=null;
 
                         if (chartArray.length >= 1) {
                             chartArray.forEach((source, index) => {
                                 // Sync only the logical range to handle zoom and scroll together safely
                                 if (chartArray.length > 1) {
-                                    source
-                                        .timeScale()
-                                        .subscribeVisibleLogicalRangeChange(
-                                            (range) => {
-                                                setTimeout(() => {
-                                                    requestAnimationFrame(
-                                                        () => {
-                                                            if (
-                                                                !range ||
-                                                                syncingRange
-                                                            )
-                                                                return;
+                                    /*
+                                    source.timeScale().subscribeVisibleTimeRangeChange((range) => {
+                                        if(rangeChangeSource!==null && rangeChangeSource!==source) return;
+                                        setTimeout(() => {
+                                            requestAnimationFrame(() => {
+                                                if (!range || syncingRange) return;
+                                                    syncingRange = true;
+                                                    const visibleLogicalRnage =source.timeScale().getVisibleLogicalRange();
+                                                    chartArray.forEach((target,indexTarget) => {
+                                                        if (source !== target) {
+                                                            target.timeScale().setVisibleLogicalRange(visibleLogicalRnage);
+                                                            //target.timeScale().setVisibleRange(visibleRnage);
+                                                            target.timeScale().setVisibleRange(range);
+                                                        }
+                                                    });
 
-                                                            syncingRange = true;
-                                                            const visibleRnage =
-                                                                source
-                                                                    .timeScale()
-                                                                    .getVisibleRange();
+                                                    //debounce: once scrolling/zooming settles, force a clean resync
+                                                    clearTimeout(zoomEndTimer);
+                                                    zoomEndTimer =
+                                                        setTimeout(() => {
+                                                            const finalRange = source.timeScale().getVisibleRange();
+                                                            chartArray.forEach((target) => {
+                                                                if (source !== target)
+                                                                    target.timeScale().setVisibleRange(finalRange);
+                                                            });
+                                                        },150); // fires once wheel events stop coming in
 
-                                                            chartArray.forEach(
-                                                                (
-                                                                    target,
-                                                                    indexTarget,
-                                                                ) => {
-                                                                    if (
-                                                                        source !==
-                                                                        target
-                                                                    ) {
-                                                                        target
-                                                                            .timeScale()
-                                                                            .setVisibleLogicalRange(
-                                                                                range,
-                                                                            );
-                                                                        target
-                                                                            .timeScale()
-                                                                            .setVisibleRange(
-                                                                                visibleRnage,
-                                                                            );
-                                                                    }
-                                                                },
-                                                            );
+                                                    // Use setTimeout to let the chart cycles finish before releasing the lock
+                                                    setTimeout(() => {
+                                                        requestAnimationFrame(() => {
+                                                            syncingRange = false;
+                                                            rangeChangeSource=null;
+                                                        });
+                                                    }, 30);
+                                            });
+                                        }, 15);
+                                    });
+                                    */
 
-                                                            // Use setTimeout to let the chart cycles finish before releasing the lock
-                                                            setTimeout(() => {
-                                                                requestAnimationFrame(
-                                                                    () => {
-                                                                        syncingRange = false;
-                                                                    },
-                                                                );
-                                                            }, 15);
+                                    source.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+                                        if(rangeChangeSource!==null && rangeChangeSource!==source) return;
+                                        rangeChangeSource=source;
+                                        setTimeout(() => {
+                                            requestAnimationFrame(() => {
+                                                if (!range || syncingRange) return;
+                                                    syncingRange = true;
+                                                    const visibleRnage =source.timeScale().getVisibleRange();
+                                                    chartArray.forEach((target,indexTarget) => {
+                                                        if (source !== target) {
+                                                            target.timeScale().setVisibleLogicalRange(range);
+                                                            target.timeScale().setVisibleRange(visibleRnage);
+                                                        }
+                                                    });
 
-                                                            //debounce: once scrolling/zooming settles, force a clean resync
-                                                            clearTimeout(
-                                                                zoomEndTimer,
-                                                            );
-                                                            zoomEndTimer =
-                                                                setTimeout(
-                                                                    () => {
-                                                                        const finalRange =
-                                                                            source
-                                                                                .timeScale()
-                                                                                .getVisibleRange();
-                                                                        chartArray.forEach(
-                                                                            (
-                                                                                target,
-                                                                            ) => {
-                                                                                if (
-                                                                                    source !==
-                                                                                    target
-                                                                                )
-                                                                                    target
-                                                                                        .timeScale()
-                                                                                        .setVisibleRange(
-                                                                                            finalRange,
-                                                                                        );
-                                                                            },
-                                                                        );
-                                                                    },
-                                                                    150,
-                                                                ); // fires once wheel events stop coming in
-                                                        },
-                                                    );
-                                                }, 15);
-                                            },
-                                        );
+                                                    //debounce: once scrolling/zooming settles, force a clean resync
+                                                    clearTimeout(zoomEndTimer);
+                                                    zoomEndTimer =
+                                                        setTimeout(() => {
+                                                            const finalRange = source.timeScale().getVisibleRange();
+                                                            chartArray.forEach((target) => {
+                                                                if (source !== target)
+                                                                    target.timeScale().setVisibleRange(finalRange);
+                                                            });
+                                                        },500); // fires once wheel events stop coming in
+
+                                                    // Use setTimeout to let the chart cycles finish before releasing the lock
+                                                    setTimeout(() => {
+                                                        requestAnimationFrame(() => {
+                                                            syncingRange = false;
+                                                            rangeChangeSource=null;
+                                                        });
+                                                    }, 30);
+                                            });
+                                        }, 15);
+                                    });
                                 }
 
                                 // Sync corshair together safely
@@ -23994,6 +24048,7 @@
                         const lastItem = data[data.length - 1];
                         const fullFromDate = firstItem.time;
                         const fullToDate = lastItem.time;
+                        const mainChartDataLength=data.length;
 
                         // Calculate 6-month range
                         const endDate = new Date(lastItem.time);
@@ -24009,7 +24064,8 @@
 
                         // SECOND: Apply the 6-month zoom
                         chartArray.forEach((chart) => {
-                            chart.timeScale().setVisibleRange({
+                            const ts = chart.timeScale();
+                            ts.setVisibleRange({
                                 from: fromDate,
                                 to: toDate,
                             });
@@ -24021,17 +24077,11 @@
                             if (chartArray.length > 1) {
                                 if (syncingRange) return;
                                 syncingRange = true;
-                                const referenceRange = chartArray[0]
-                                    .timeScale()
-                                    .getVisibleLogicalRange();
+                                const referenceRange = chartArray[0].timeScale().getVisibleLogicalRange();
                                 if (referenceRange) {
                                     chartArray.forEach((chart) => {
                                         if (chart !== chartArray[0]) {
-                                            chart
-                                                .timeScale()
-                                                .setVisibleLogicalRange(
-                                                    referenceRange,
-                                                );
+                                            chart.timeScale().setVisibleLogicalRange(referenceRange);
                                         }
                                     });
                                 }
@@ -24085,11 +24135,21 @@
 
                                 // Reset to 6-month view
                                 chartArray.forEach((chart) => {
-                                    chart.timeScale().resetTimeScale();
-                                    chart.timeScale().setVisibleRange({
+                                    const ts = chart.timeScale();
+                                    ts.resetTimeScale();
+                                    ts.setVisibleRange({
                                         from: fromDate,
                                         to: toDate,
                                     });
+
+                                    const r = ts.getVisibleLogicalRange();
+                                    if (r) {
+                                        ts.setVisibleLogicalRange({
+                                            from: mainChartDataLength - 121,
+                                            to: mainChartDataLength,
+                                        });
+                                    }
+
                                     chart.priceScale("right").applyOptions({
                                         autoScale: true,
                                     });
@@ -24217,6 +24277,175 @@
                     resizeMainChart();
                 }, 120);
             }, { passive: true });
+
+            //hide the footer on first interaction.
+            document.querySelector("#pagBar").addEventListener("click", (e) => {
+                document.querySelector("footer").style.display="none";
+            },{passive:true,once:true});
+
+            // ============ QUICK STOCK SEARCH MODAL (S / s) ============
+            let stockSearchCleared = false;
+
+            function isStockSearchOpen() {
+                return document
+                    .getElementById("stockSearchModal")
+                    .classList.contains("open");
+            }
+
+            function openStockSearchModal() {
+                const input = document.getElementById("stockSearchInput");
+                input.value = "";
+                stockSearchCleared = false; // new session: clear filters again on first letter
+                document.getElementById("stockSearchModal").classList.add("open");
+                renderStockSearchList();
+                input.focus();
+            }
+
+            // Copies Code + Name (first two columns) of the rows currently in the main table.
+            function renderStockSearchList() {
+                const list = document.getElementById("stockSearchList");
+                list.textContent = "";
+                const rows = document.querySelectorAll("#tableBody tr:not(.chart-row)");
+                let count = 0;
+                rows.forEach((tr) => {
+                    const codeCell = tr.querySelector("td.code-cell");
+                    const nameCell = tr.querySelector("td.name-cell");
+                    if (!codeCell || !nameCell) return;
+                    const code = (codeCell.dataset.code || "").trim();
+                    // Only the name's own text node -- skips the alert badges appended in the cell.
+                    let name = "";
+                    nameCell.childNodes.forEach((n) => {
+                        if (n.nodeType === 3) name += n.nodeValue;
+                    });
+                    name = name.trim() || nameCell.textContent.trim();
+
+                    const row = document.createElement("div");
+                    row.className = "ss-preview-row";
+                    row.title = "Click to search this stock";
+                    const k = document.createElement("span");
+                    k.className = "ss-preview-key";
+                    k.textContent = code;
+                    const v = document.createElement("span");
+                    v.className = "ss-preview-val";
+                    v.textContent = name;
+                    row.append(k, v);
+                    row.addEventListener("click", () => {
+                        // Blank name or a dash placeholder -> search by the code instead.
+                        const isBlank = !name || /^[-\u2010-\u2015\u2212]+$/.test(name);
+                        const input = document.getElementById("stockSearchInput");
+                        input.value = isBlank ? code : name;
+                        onStockSearchInput(input); // run the filter with that text
+                        finishStockSearch(code); // close modal (+ reopen chart if it was open)
+                    });
+                    list.appendChild(row);
+                    count++;
+                });
+                if (!count) {
+                    const empty = document.createElement("div");
+                    empty.textContent = "No matching stocks";
+                    list.appendChild(empty);
+                }
+            }
+
+            function closeStockSearchModal() {
+                document.getElementById("stockSearchModal").classList.remove("open");
+                document.getElementById("stockSearchInput").blur();
+            }
+
+            function closeStockSearchModalOnOverlay(e) {
+                if (e.target === document.getElementById("stockSearchModal"))
+                    closeStockSearchModal();
+            }
+
+            function onStockSearchInput(input) {
+                // First letter typed: wipe every existing filter once.
+                // (applyFilters runs right after via the #f_search input event.)
+                if (!stockSearchCleared && input.value.length) {
+                    stockSearchCleared = true;
+                    clearFilters(false);
+                }
+                // Mimic typing in #f_search so its own oninput -> applyFilters() runs.
+                const f = document.getElementById("f_search");
+                f.value = input.value;
+                f.dispatchEvent(new Event("input", { bubbles: true }));
+                renderStockSearchList(); // table re-rendered synchronously by applyFilters
+            }
+
+            // Closes the search modal; if the chart modal is open, reopens the chart of
+            // the matching row (by code when given, else the first row of the table).
+            function finishStockSearch(code) {
+                const chartModal = document.getElementById("chartModal");
+                const chartWasOpen =
+                    chartModal && chartModal.classList.contains("open");
+
+                closeStockSearchModal();
+
+                if (!chartWasOpen) return;
+                const btns = getAllFullscreenBtns();
+                const want = String(code || "").toUpperCase();
+                const btn =
+                    (want &&
+                        btns.find(
+                            (b) => String(b.dataset.code || "").toUpperCase() === want,
+                        )) ||
+                    btns[0];
+                if (!btn) return; // no result -> keep the current chart
+                closeChartModal();
+                openChartModal(btn);
+            }
+
+            function confirmStockSearch() {
+                const hadQuery = document
+                    .getElementById("stockSearchInput")
+                    .value.trim().length > 0;
+                if (!hadQuery) {
+                    closeStockSearchModal();
+                    return;
+                }
+                finishStockSearch();
+            }
+
+            // Capture phase so Esc/Enter are handled here first and never reach the
+            // global Esc handler (which would also close the chart / other modals).
+            window.addEventListener(
+                "keydown",
+                (e) => {
+                    if (!isStockSearchOpen()) return;
+                    const input = document.getElementById("stockSearchInput");
+                    if (e.key === "Escape") {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        closeStockSearchModal();
+                    } else if (e.key === "Enter" && e.target === input) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        confirmStockSearch();
+                    } else if (e.target === input) {
+                        // Typing must not trigger chart shortcuts (d / i / f / w / arrows).
+                        e.stopPropagation();
+                    } else if (e.key !== "Tab" && e.key !== "Enter") {
+                        e.stopPropagation();
+                    }
+                },
+                true,
+            );
+
+            // Open with S / s when the filter panel is hidden.
+            document.addEventListener("keydown", (e) => {
+                if (e.key !== "s" && e.key !== "S") return;
+                if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || e.isComposing)
+                    return;
+                if (filtersVisible || isStockSearchOpen()) return;
+                const t = e.target;
+                if (
+                    t &&
+                    (t.isContentEditable ||
+                        ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))
+                )
+                    return;
+                e.preventDefault(); // keep the "s" out of the input
+                openStockSearchModal();
+            });
 
             // ============ INIT ============
             document
