@@ -8012,6 +8012,9 @@
                         <div class="help-tab" data-help-tab="filters">
                             <span class="help-tab-icon">⚙</span> Filters
                         </div>
+                        <div class="help-tab" data-help-tab="quicksearch">
+                            <span class="help-tab-icon">🔎</span> Quick Search
+                        </div>
                         <div class="help-tab" data-help-tab="cascade">
                             <span class="help-tab-icon">🔗</span> Sector Cascade
                         </div>
@@ -9112,6 +9115,185 @@
                                     metrics against each other rather than each
                                     against a fixed number.
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- QUICK SEARCH -->
+                        <div
+                            class="help-section"
+                            data-help-section="quicksearch"
+                        >
+                            <h2>🔎 Quick Stock Search</h2>
+                            <div class="help-tagline">
+                                Jump to any stock by
+                                <span class="help-kbd">Code</span> or
+                                <span class="help-kbd">Name</span> without
+                                opening the Filters panel — works from the main
+                                table and from inside the chart modal.
+                            </div>
+
+                            <div class="help-tip">
+                                <strong>⚠ Important:</strong> Quick Search runs
+                                through the same global search box as the
+                                Filters panel. The moment you type the first
+                                letter, <strong>all your current filters are
+                                cleared</strong>. Save your filter set under
+                                <span class="help-kbd">📌 Saved Searches</span>
+                                first if you want to come back to it.
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    How to open it
+                                </div>
+                                <ul>
+                                    <li>
+                                        Press <span class="help-kbd">S</span>
+                                        (or <span class="help-kbd">s</span>) on
+                                        your keyboard.
+                                    </li>
+                                    <li>
+                                        Click the
+                                        <span class="help-kbd">🔍</span> button
+                                        in the top menu, between
+                                        <span class="help-kbd">🔔 Alerts</span>
+                                        and
+                                        <span class="help-kbd">⚙ Filters</span>.
+                                    </li>
+                                    <li>
+                                        Inside the chart modal, click the
+                                        <span class="help-kbd">🔍</span> button
+                                        in the header (next to the close
+                                        button), or press
+                                        <span class="help-kbd">S</span>.
+                                    </li>
+                                </ul>
+                                <p>
+                                    The <span class="help-kbd">S</span> shortcut
+                                    only works when the Filters panel is
+                                    <strong>hidden</strong> and you are not
+                                    typing in another input box. If the Filters
+                                    panel is open, use its own Search box
+                                    instead.
+                                </p>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    How the search works
+                                </div>
+                                <ul>
+                                    <li>
+                                        Type part of a stock
+                                        <strong>Code</strong> or
+                                        <strong>Name</strong> — it is a wildcard
+                                        (partial) match, so
+                                        <span class="help-kbd">reliance</span>
+                                        finds every name containing it.
+                                    </li>
+                                    <li>
+                                        The table updates live as you type, and
+                                        your text is mirrored into the Filters
+                                        panel's Search box.
+                                    </li>
+                                    <li>
+                                        Under the input, a list shows the
+                                        <strong>Code</strong> and
+                                        <strong>Name</strong> of the matching
+                                        rows currently on screen in the main
+                                        table.
+                                    </li>
+                                    <li>
+                                        The list mirrors the table's current
+                                        page only. If a search returns more rows
+                                        than fit on one page, refine your text
+                                        to narrow it down.
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Picking one exact stock
+                                </div>
+                                <p>
+                                    Searching "reliance" may show several
+                                    companies but you only want one. Click that
+                                    row in the list:
+                                </p>
+                                <ul>
+                                    <li>
+                                        Its full <strong>Name</strong> is set as
+                                        the search text and the filter runs
+                                        again, leaving just that stock. If the
+                                        Name is blank or shown as
+                                        <span class="help-kbd">-</span>, its
+                                        <strong>Code</strong> is used instead.
+                                    </li>
+                                    <li>
+                                        The search modal closes right away.
+                                    </li>
+                                    <li>
+                                        If the chart modal was open, the chart
+                                        switches to the stock you clicked.
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Enter, Esc &amp; closing
+                                </div>
+                                <ul>
+                                    <li>
+                                        <span class="help-kbd">Enter</span> —
+                                        closes the modal and leaves all matches
+                                        in the table. If the chart modal is open,
+                                        the chart of the <strong>first
+                                        match</strong> is loaded.
+                                    </li>
+                                    <li>
+                                        <span class="help-kbd">Esc</span>,
+                                        <span class="help-kbd">✕</span> or a
+                                        click outside the box — closes only the
+                                        search modal. The chart modal (if open)
+                                        stays open, and the current search stays
+                                        applied if it found results.
+                                    </li>
+                                    <li>
+                                        <strong>No results?</strong> When you
+                                        close the modal (Enter, Esc, ✕ or
+                                        outside click), the search text is
+                                        cleared from both the modal and the
+                                        Filters panel and the full table comes
+                                        back. In the chart modal, the current
+                                        chart is left unchanged.
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="help-block">
+                                <div class="help-block-title">
+                                    Good to know
+                                </div>
+                                <ul>
+                                    <li>
+                                        The search modal always sits on top of
+                                        every other modal, including the chart
+                                        modal.
+                                    </li>
+                                    <li>
+                                        While the search box is focused, chart
+                                        shortcuts (like arrow keys) are paused so
+                                        typing never changes the chart.
+                                    </li>
+                                    <li>
+                                        Only the search text is cleared when you
+                                        close a no-result search — your earlier
+                                        filters do <strong>not</strong> come
+                                        back, so save them first if needed.
+                                    </li>
+                                </ul>
                             </div>
                         </div>
 
@@ -24111,6 +24293,44 @@
                                     });
                                 }
                             }
+                        }
+
+                        // ---- Align right price-scale widths across all stacked charts ----
+                        if (chartArray.length > 1) {
+                            let alignedWidth = 0;
+                            let alignRaf = null;
+
+                            const alignPriceScales = () => {
+                                let maxW = alignedWidth;
+                                chartArray.forEach((chart) => {
+                                    const w = chart.priceScale("right").width();
+                                    if (w > maxW) maxW = w;
+                                });
+                                // only touch the charts if something actually needs to change
+                                if (maxW !== alignedWidth) {
+                                    alignedWidth = maxW;
+                                    chartArray.forEach((chart) => {
+                                        chart.priceScale("right").applyOptions({
+                                            minimumWidth: alignedWidth,
+                                        });
+                                    });
+                                }
+                            };
+
+                            const scheduleAlign = () => {
+                                if (alignRaf) return;
+                                alignRaf = requestAnimationFrame(() => {
+                                    alignRaf = null;
+                                    alignPriceScales();
+                                });
+                            };
+
+                            setTimeout(alignPriceScales, 500);
+
+                            // Zooming/scrolling/autoscale can change label widths (e.g. 100 -> 1000)
+                            chartArray.forEach((chart) => {
+                                chart.timeScale().subscribeVisibleLogicalRangeChange(scheduleAlign);
+                            });
                         }
 
                         // Reset button handler.
