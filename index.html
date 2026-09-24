@@ -13421,6 +13421,7 @@
                         aria-label="Open watchlists"
                         aria-expanded="false"
                         onclick="toggleChartWatchlistDrawer()"
+                        title="Your Watchlist (W)"
                     >
                         🔖
                     </button>
@@ -13429,6 +13430,7 @@
                         style="--bs-bg-opacity: 0.1"
                         id="toggelChartFinancialDetail"
                         onclick="toggelChartFinancialDetail(this)"
+                        title="Financial (F)"
                     >
                         🧾
                     </button>
@@ -13436,26 +13438,29 @@
                         class="peer-modal-close text-info border-info bg-info"
                         style="--bs-bg-opacity: 0.1"
                         id="toggelChartDetail"
+                        title="Details (D/I)"
                         onclick="toggelChartDetail()"
                     >
                         ▤
                     </button>
 
                     <div class="btn-group btn-group-sm" role="group" aria-label="Pre Next">
-                      <button type="button" class="btn btn-outline-primary chartmodal-prev-btn">&larr;</button>
-                      <button type="button" class="btn btn-outline-primary chartmodal-next-btn">&rarr;</button>
+                      <button type="button" class="btn btn-outline-primary chartmodal-prev-btn" title="Previouse (<)">&larr;</button>
+                      <button type="button" class="btn btn-outline-primary chartmodal-next-btn" title="Previouse (>)">&rarr;</button>
                     </div>
 
                     <button
                         class="peer-modal-close text-success border-success bg-success"
                         style="--bs-bg-opacity: 0.1"
                         id="resetChart"
+                        title="Reset (R)"
                     >
                         ↺
                     </button>
                     <button
                         class="peer-modal-close text-green"
                         onclick="closeChartModal()"
+                        title="Close (Escp)"
                     >
                         ✕
                     </button>
@@ -23001,6 +23006,8 @@
                     toggelChartFinancialDetail(document.querySelector("#chartModal #toggelChartFinancialDetail"));
                 }else if (e.key === 'w' || e.key === 'W') {
                     toggleChartWatchlistDrawer();
+                }else if (e.key === 'r' || e.key === 'R') {
+                    resetChartHandler(e);
                 }
             });
 
@@ -24347,9 +24354,25 @@
                 }
             }
 
+            // True when the main table currently shows at least one stock row.
+            function stockSearchHasRows() {
+                return !!document.querySelector(
+                    "#tableBody tr:not(.chart-row) td.code-cell",
+                );
+            }
+
             function closeStockSearchModal() {
+                const input = document.getElementById("stockSearchInput");
+                // Nothing matched: drop the dead search text (here and in #f_search)
+                // and re-run the filter so the table returns to its original state.
+                if (input.value.trim() && !stockSearchHasRows()) {
+                    input.value = "";
+                    const f = document.getElementById("f_search");
+                    f.value = "";
+                    f.dispatchEvent(new Event("input", { bubbles: true }));
+                }
                 document.getElementById("stockSearchModal").classList.remove("open");
-                document.getElementById("stockSearchInput").blur();
+                input.blur();
             }
 
             function closeStockSearchModalOnOverlay(e) {
@@ -24377,10 +24400,11 @@
                 const chartModal = document.getElementById("chartModal");
                 const chartWasOpen =
                     chartModal && chartModal.classList.contains("open");
+                const hadRows = stockSearchHasRows(); // before a no-result reset runs
 
                 closeStockSearchModal();
 
-                if (!chartWasOpen) return;
+                if (!chartWasOpen || !hadRows) return; // no result -> keep the current chart
                 const btns = getAllFullscreenBtns();
                 const want = String(code || "").toUpperCase();
                 const btn =
