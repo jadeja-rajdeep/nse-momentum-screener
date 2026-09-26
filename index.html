@@ -24691,6 +24691,23 @@
                 openStockSearchModal();
             });
 
+            // clear the current filter with C / c when the filter panel is hidden.
+            document.addEventListener("keydown", (e) => {
+                if (e.key !== "c" && e.key !== "C") return;
+                if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || e.isComposing)
+                    return;
+                if (filtersVisible || isStockSearchOpen()) return;
+                const t = e.target;
+                if (
+                    t &&
+                    (t.isContentEditable ||
+                        ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))
+                )
+                    return;
+                e.preventDefault(); // keep the "s" out of the input
+                clearFilters();
+            });
+
             // ============ INIT ============
             document
                 .getElementById("tableBody")

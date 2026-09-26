@@ -28,34 +28,41 @@
    "check in flight" lock.
    ========================================================================= */
 
-const LIVE_PRICE_API_URL = "https://nse-momentum-screener-api.vercel.app/api/get-live-data-proxy";
-// Vercel cold start: the very first call after the worker starts can be slow
-// while the serverless function boots, so it gets a bigger timeout.
-// Every call after that uses the normal timeout.
+// Two independent backends serving the identical {s, l} JSON shape.
+// Cloudflare is tried first (higher free-tier ceiling); Vercel is the
+// fallback if Cloudflare errors, times out, or gets rate-limited.
+const CLOUDFLARE_URL = "https://nse-momentum-screener-api.jadeja-rajdeep.workers.dev";
+const VERCEL_URL = "https://nse-momentum-screener-api.vercel.app/api/get-live-data-proxy";
+
+// After this many CONSECUTIVE Cloudflare failures in this session, stop
+// trying Cloudflare at all and go straight to Vercel for every subsequent
+// call — until the page/worker is reloaded. Purely in-memory: not persisted
+// to localStorage/sessionStorage/anywhere, so a reload always resets it and
+// gives Cloudflare a fresh chance.
+const MAX_CONSECUTIVE_CLOUDFLARE_FAILURES = 5;
+let consecutiveCloudflareFailures = 0;
+let cloudflareDisabledForSession = false;
+
+// Cold start on either platform can be slow on the very first call, so that
+// one gets a bigger timeout. Every call after that uses the normal timeout.
 const FIRST_CALL_TIMEOUT_MS = 60 * 1000;
 const NORMAL_TIMEOUT_MS = 35 * 1000;
 let isFirstCall = true;
 
-async function fetchLivePrices() {
-    const timeoutMs = isFirstCall ? FIRST_CALL_TIMEOUT_MS : NORMAL_TIMEOUT_MS;
-    isFirstCall = false;
-
+async function fetchFromUrl(url, timeoutMs) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
-        const res = await fetch(LIVE_PRICE_API_URL, {
+        const res = await fetch(url, {
             headers: { Accept: "application/json" },
             cache: "no-store", // a cached response would mean a stale "live" price
             signal: ctrl.signal,
         });
-        if (!res.ok) throw new Error("Live price API HTTP " + res.status);
+        // Covers normal HTTP errors AND platform rate-limit responses
+        // (e.g. Cloudflare's 1015/1027 "you're rate limited" pages, which
+        // also come back with a non-2xx status).
+        if (!res.ok) throw new Error(url + " HTTP " + res.status);
         const json = await res.json();
-        /*
-        for testing purpose.
-        const json = [
-            { "identifier": "TMPVQN", "symbol": "TMPV", "series": "EQ", "marketType": "N", "pchange": 2.52, "change": 18, "basePrice": 0, "previousClose": 300, "lastPrice": 305, "totalTradedVolume": 394.0071, "issuedCap": 15414179062, "totalTradedValue": 2868.371688, "totalMarketCap": 1126776.4894322 },
-        ];
-         */
         const list = Array.isArray(json) ? json : (json.data || []);
 
         // symbol -> last traded price (number). Only finite prices are kept, and
@@ -70,12 +77,51 @@ async function fetchLivePrices() {
         return ltpMap;
     } catch (err) {
         if (err && err.name === "AbortError") {
-            throw new Error("Live price API timed out after " + timeoutMs / 1000 + "s");
+            throw new Error(url + " timed out after " + timeoutMs / 1000 + "s");
         }
         throw err;
     } finally {
         clearTimeout(timer);
     }
+}
+
+async function fetchLivePrices() {
+    const timeoutMs = isFirstCall ? FIRST_CALL_TIMEOUT_MS : NORMAL_TIMEOUT_MS;
+    isFirstCall = false;
+
+    const errors = [];
+
+    // Once Cloudflare has failed too many times in a row this session, skip
+    // straight to Vercel — don't even attempt Cloudflare.
+    if (!cloudflareDisabledForSession) {
+        try {
+            const result = await fetchFromUrl(CLOUDFLARE_URL, timeoutMs);
+            consecutiveCloudflareFailures = 0; // reset streak on success
+            return result;
+        } catch (err) {
+            errors.push((err && err.message) || String(err));
+            consecutiveCloudflareFailures++;
+            if (consecutiveCloudflareFailures >= MAX_CONSECUTIVE_CLOUDFLARE_FAILURES) {
+                cloudflareDisabledForSession = true;
+                console.warn(
+                    "[alert-worker] Cloudflare failed " + consecutiveCloudflareFailures +
+                    " times in a row — switching to Vercel for the rest of this session."
+                );
+            }
+        }
+    }
+
+    // Vercel fallback (also the only path taken once Cloudflare is disabled
+    // for this session).
+    try {
+        return await fetchFromUrl(VERCEL_URL, timeoutMs);
+    } catch (err) {
+        errors.push((err && err.message) || String(err));
+    }
+
+    // Every backend failed — surface all of them so the ERROR message
+    // posted back to the page is actually useful for debugging.
+    throw new Error("All live-price backends failed: " + errors.join(" | "));
 }
 
 // Sanity guard: if the live price is wildly off from yesterday's close
