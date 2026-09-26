@@ -24519,13 +24519,21 @@
                     .classList.contains("open");
             }
 
-            function openStockSearchModal() {
+            function openStockSearchModal(string="") {
                 const input = document.getElementById("stockSearchInput");
-                input.value = "";
+                input.value = string;
                 stockSearchCleared = false; // new session: clear filters again on first letter
                 document.getElementById("stockSearchModal").classList.add("open");
                 renderStockSearchList();
+                // 1. Focus the input element
                 input.focus();
+                // 2. Calculate the length of the current text string
+                const length = input.value.length;
+                if(length>0){
+                    // 3. Force the cursor selection range to the very end
+                    input.setSelectionRange(length, length);
+                    onStockSearchInput(input);
+                }
             }
 
             // Copies Code + Name (first two columns) of the rows currently in the main table.
@@ -24676,9 +24684,20 @@
 
             // Open with S / s when the filter panel is hidden.
             document.addEventListener("keydown", (e) => {
-                if (e.key !== "s" && e.key !== "S") return;
-                if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || e.isComposing)
-                    return;
+                if (
+                  e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.repeat || e.isComposing ||
+                  e.getModifierState('CapsLock') || e.getModifierState('AltGraph') || e.getModifierState('Fn') ||
+                  e.key === 'Tab' || e.key === 'Escape' || e.key === 'Enter' || e.key === 'Home' || e.key === 'End' ||
+                  e.key === 'Delete' || e.key === 'Backspace' || e.key === 'PageUp' || e.key === 'PageDown' ||
+                  e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+                  /^F([1-9]|1[0-2])$/.test(e.key)
+                )
+                  return;
+                if(/^[a-zA-Z0-9]$/.test(e.key)==false) return;
+
+                const isChartModalOpen=document.querySelector("#chartModal").classList.contains('open');
+                if (isChartModalOpen && e.key !== "s" && e.key !== "S") return;
+
                 if (filtersVisible || isStockSearchOpen()) return;
                 const t = e.target;
                 if (
@@ -24688,7 +24707,9 @@
                 )
                     return;
                 e.preventDefault(); // keep the "s" out of the input
-                openStockSearchModal();
+                let string=e.key;
+                if(isChartModalOpen) string="";
+                openStockSearchModal(string);
             });
 
             // clear the current filter with C / c when the filter panel is hidden.
