@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lightweight Charts – 3 Pane Demo</title>
+<style>
+:root{--bg:#ffffff;--fg:#1f2937;--muted:#6b7280;--grid:#e5e7eb;--panel:#f3f4f6;--up:#26a69a;--down:#ef5350;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#131722;--fg:#d1d5db;--muted:#8a94a6;--grid:#2a2e39;--panel:#1e222d}}
+:root[data-theme="dark"]{--bg:#131722;--fg:#d1d5db;--muted:#8a94a6;--grid:#2a2e39;--panel:#1e222d}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:13px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px;padding:8px 12px;flex-wrap:wrap}
+header h1{font-size:14px;margin:0}
+header span{color:var(--muted);flex:1;min-width:200px}
+button{background:var(--panel);color:var(--fg);border:1px solid var(--grid);border-radius:6px;padding:4px 12px;cursor:pointer}
+#wrap{position:relative;flex:1;min-height:0}
+#chart{position:absolute;inset:0}
+.tip{position:absolute;left:8px;z-index:5;pointer-events:none;background:color-mix(in srgb,var(--bg) 80%,transparent);padding:2px 6px;border-radius:4px;font-variant-numeric:tabular-nums;white-space:nowrap;max-width:calc(100% - 90px);overflow:hidden;text-overflow:ellipsis}
+.tip b{font-weight:600}.tip i{font-style:normal;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>3 panes · 1 chart · 1 time scale</h1>
+  <span>Scroll/zoom anywhere, drag into the empty space on either side. All panes stay locked, no sync code.</span>
+  <button id="reset">Reset view</button>
+</header>
+<div id="wrap">
+  <div id="chart"></div>
+  <div class="tip" id="tip0"></div><div class="tip" id="tip1"></div><div class="tip" id="tip2"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.2.1/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+const { createChart, CandlestickSeries, LineSeries, HistogramSeries, CrosshairMode, ColorType, LineStyle } = LightweightCharts;
+
+/* ---------- synthetic data (seeded, business days) ---------- */
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function genData(n){
+  const r=rng(7),out=[];let t=Date.UTC(2024,0,1)/1000,p=100;
+  while(out.length<n){
+    const wd=new Date(t*1000).getUTCDay();
+    if(wd!==0&&wd!==6){
+      const o=p,c=o*(1+0.0004+(r()-0.5)*0.03),h=Math.max(o,c)*(1+r()*0.008),l=Math.min(o,c)*(1-r()*0.008);
+      out.push({time:t,open:+o.toFixed(2),high:+h.toFixed(2),low:+l.toFixed(2),close:+c.toFixed(2)});p=c;
+    }
+    t+=86400;
+  }
+  return out;
+}
+
+/* ---------- indicators: every array has one entry per bar (null = warm-up) ---------- */
+function calcRSI(d,len=14){
+  const out=Array(d.length).fill(null);let g=0,l=0;
+  const val=()=>l===0?100:100-100/(1+g/l);
+  for(let i=1;i<d.length;i++){
+    const ch=d[i].close-d[i-1].close,u=Math.max(ch,0),dn=Math.max(-ch,0);
+    if(i<=len){g+=u;l+=dn;if(i===len){g/=len;l/=len;out[i]=val();}}
+    else{g=(g*(len-1)+u)/len;l=(l*(len-1)+dn)/len;out[i]=val();}
+  }
+  return out;
+}
+function ema(v,len){
+  const k=2/(len+1),out=Array(v.length).fill(null);let prev=null,sum=0,cnt=0;
+  for(let i=0;i<v.length;i++){
+    if(v[i]==null)continue;
+    if(prev==null){sum+=v[i];if(++cnt===len){prev=sum/len;out[i]=prev;}}
+    else{prev=v[i]*k+prev*(1-k);out[i]=prev;}
+  }
+  return out;
+}
+function calcMACD(d,f=12,s=26,sg=9){
+  const c=d.map(x=>x.close),ef=ema(c,f),es=ema(c,s);
+  const macd=c.map((_,i)=>ef[i]!=null&&es[i]!=null?ef[i]-es[i]:null);
+  const sig=ema(macd,sg);
+  const hist=macd.map((v,i)=>v!=null&&sig[i]!=null?v-sig[i]:null);
+  return {macd,sig,hist};
+}
+
+const data=genData(600),n=data.length;
+const rsi=calcRSI(data),{macd,sig,hist}=calcMACD(data);
+const vr=rng(11),vol=data.map(b=>Math.round(1e6*(0.6+vr()*0.8)*(1+Math.abs(b.close/b.open-1)*25)));
+function sma(v,len){const o=Array(v.length).fill(null);let s=0;for(let i=0;i<v.length;i++){s+=v[i];if(i>=len)s-=v[i-len];if(i>=len-1)o[i]=s/len;}return o;}
+const volMA=sma(vol,20);
+const byTime=new Map(data.map((b,i)=>[b.time,i]));
+// null -> whitespace ({time} only) so all panes keep identical bar indexes
+const line=a=>data.map((b,i)=>a[i]==null?{time:b.time}:{time:b.time,value:a[i]});
+const histData=()=>data.map((b,i)=>hist[i]==null?{time:b.time}:{time:b.time,value:hist[i],color:hist[i]>=0?'#26a69a':'#ef5350'});
+
+/* ---------- chart: ONE chart, panes 0/1/2 ---------- */
+const chart=createChart(document.getElementById('chart'),{
+  autoSize:true,
+  crosshair:{mode:CrosshairMode.Normal},
+  layout:{attributionLogo:false,panes:{enableResize:true}},
+  // no fixLeftEdge / fixRightEdge -> free scrolling into empty space
+  timeScale:{rightOffset:10,barSpacing:8,minBarSpacing:1,timeVisible:false}
+});
+
+const candle=chart.addSeries(CandlestickSeries,{upColor:'#26a69a',downColor:'#ef5350',borderVisible:false,wickUpColor:'#26a69a',wickDownColor:'#ef5350'},0);
+candle.setData(data);
+candle.priceScale().applyOptions({scaleMargins:{top:0.05,bottom:0.25}});   // keep candles above volume
+
+// volume + its moving average share an overlay scale at the bottom of pane 0
+const volSeries=chart.addSeries(HistogramSeries,{priceScaleId:'volume',priceFormat:{type:'volume'},priceLineVisible:false,lastValueVisible:false},0);
+volSeries.priceScale().applyOptions({scaleMargins:{top:0.8,bottom:0}});
+volSeries.setData(data.map((b,i)=>({time:b.time,value:vol[i],color:b.close>=b.open?'rgba(38,166,154,.5)':'rgba(239,83,80,.5)'})));
+const volMaSeries=chart.addSeries(LineSeries,{priceScaleId:'volume',color:'#f5a623',lineWidth:2,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false},0);
+volMaSeries.setData(line(volMA));
+
+const rsiSeries=chart.addSeries(LineSeries,{color:'#7e57c2',lineWidth:2,priceLineVisible:false,
+  autoscaleInfoProvider:()=>({priceRange:{minValue:0,maxValue:100}})},1);
+rsiSeries.setData(line(rsi));
+[70,30].forEach(p=>rsiSeries.createPriceLine({price:p,color:'#8a94a6',lineStyle:LineStyle.Dashed,lineWidth:1,axisLabelVisible:false}));
+
+const histSeries=chart.addSeries(HistogramSeries,{priceLineVisible:false,lastValueVisible:false},2);
+const macdSeries=chart.addSeries(LineSeries,{color:'#2962ff',lineWidth:2,priceLineVisible:false,lastValueVisible:false},2);
+const sigSeries=chart.addSeries(LineSeries,{color:'#ff6d00',lineWidth:2,priceLineVisible:false,lastValueVisible:false},2);
+histSeries.setData(histData());macdSeries.setData(line(macd));sigSeries.setData(line(sig));
+
+const panes=chart.panes();
+[5,2,2].forEach((f,i)=>panes[i].setStretchFactor(f));
+
+/* ---------- theme (reads CSS tokens) ---------- */
+function applyTheme(){
+  const s=getComputedStyle(document.documentElement),g=k=>s.getPropertyValue(k).trim();
+  chart.applyOptions({
+    layout:{background:{type:ColorType.Solid,color:g('--bg')},textColor:g('--muted'),panes:{separatorColor:g('--grid'),separatorHoverColor:g('--muted')}},
+    grid:{vertLines:{color:g('--grid')},horzLines:{color:g('--grid')}},
+    rightPriceScale:{borderColor:g('--grid')},timeScale:{borderColor:g('--grid')},
+    crosshair:{vertLine:{color:g('--muted')},horzLine:{color:g('--muted')}}
+  });
+}
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+/* ---------- one tooltip per pane, pinned to that pane's top-left ---------- */
+const wrap=document.getElementById('wrap'),tips=[0,1,2].map(i=>document.getElementById('tip'+i));
+const f2=v=>v==null?'–':v.toFixed(2);
+const fv=v=>v==null?'–':v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(1)+'K':String(Math.round(v));
+let cur=n-1;   // bar currently shown in the tooltips
+const col=(t,c)=>`<b style="color:${c}">${t}</b>`;
+
+function paneTop(i){
+  const el=panes[i].getHTMLElement&&panes[i].getHTMLElement();
+  if(el)return el.getBoundingClientRect().top-wrap.getBoundingClientRect().top;
+  let y=0;for(let k=0;k<i;k++)y+=panes[k].getHeight()+1;return y;
+}
+function place(){tips.forEach((t,k)=>t.style.top=(paneTop(k)+6)+'px');}
+function render(i){
+  cur=i;
+  const b=data[i],up=b.close>=b.open,c=up?'#26a69a':'#ef5350';
+  const pct=i>0?(b.close/data[i-1].close-1)*100:0;
+  tips[0].innerHTML=`<i>O</i> ${col(f2(b.open),c)} <i>H</i> ${col(f2(b.high),c)} <i>L</i> ${col(f2(b.low),c)} <i>C</i> ${col(f2(b.close),c)} ${col((pct>=0?'+':'')+pct.toFixed(2)+'%',pct>=0?'#26a69a':'#ef5350')}<br><i>Vol</i> ${col(fv(vol[i]),c)} <i>MA(20)</i> ${col(fv(volMA[i]),'#f5a623')}`;
+  tips[1].innerHTML=`<i>RSI(14)</i> ${col(f2(rsi[i]),'#7e57c2')}`;
+  tips[2].innerHTML=`<i>MACD(12,26,9)</i> ${col(f2(macd[i]),'#2962ff')} <i>Signal</i> ${col(f2(sig[i]),'#ff6d00')} <i>Hist</i> ${col(f2(hist[i]),hist[i]>=0?'#26a69a':'#ef5350')}`;
+  place();
+}
+chart.subscribeCrosshairMove(p=>{
+  const i=p.time!==undefined?byTime.get(p.time):undefined;
+  render(i!==undefined?i:n-1);   // over empty space / mouse out -> show last bar
+});
+
+/* ---------- view ---------- */
+function resetView(){chart.timeScale().setVisibleLogicalRange({from:n-120,to:n-1+10});}
+document.getElementById('reset').onclick=resetView;
+resetView();render(n-1);
+// re-pin tooltips whenever a pane changes size (separator drag, window resize)
+new ResizeObserver(place).observe(wrap);
+const paneEls=panes.map(p=>p.getHTMLElement&&p.getHTMLElement());
+if(paneEls.every(Boolean)){const ro=new ResizeObserver(place);paneEls.forEach(e=>ro.observe(e));}
+else{let last='';(function poll(){const h=panes.map(p=>p.getHeight()).join();if(h!==last){last=h;place();}requestAnimationFrame(poll);})();}
+</script>
+</body>
+</html>

@@ -3874,7 +3874,7 @@
             #chartModal .chart-watchlist-stock-change { font: 600 11px var(--mono); text-align: right; }
             #chartModal .chart-watchlist-empty { color: var(--muted); font-size: 13px; padding: 24px 12px; text-align: center; }
             #chartModal .tv-lightweight-charts table tr th:nth-child(1),
-            #chartModal .tv-lightweight-charts table tr td:nth-child(1):not([colspan="3"]) {
+            #chartModal .tv-lightweight-charts table tr td:nth-child(1) {
                 position: initial !important;
                 left: initial !important;
                 z-index: initial !important;
@@ -3893,7 +3893,6 @@
             }
 
             #chartModal .chart-tooltip {
-                pointer-events: none;
                 position: absolute;
                 z-index: 9991;
                 left: 0;
@@ -22229,7 +22228,6 @@
             // chartSeriesDataMap, indicator series) alive forever — this was the main
             // cause of RAM climbing into the GBs after browsing many charts.
             var resetChartHandler = null;
-            var chartPaneObserver = null;
 
             var screenWidth = window.innerWidth;
             var screenHeight = window.innerHeight;
@@ -23337,7 +23335,6 @@
                 // Dispose the old chart objects first; replacing body HTML alone
                 // would leave their canvas/rendering state alive in memory.
                 if (chartModal.classList.contains("open")) {
-                    if (chartPaneObserver) { chartPaneObserver.disconnect(); chartPaneObserver = null; }
                     Object.keys(charts).forEach((key) => {
                         charts[key].remove();
                         delete charts[key];
@@ -23354,39 +23351,65 @@
                     chartWatchlistState.selectedWatchlistId = Caller.dataset.watchlistId;
                     chartWatchlistState.selectedCode = code;
                 }
-                chartModal.querySelector(".settings-modal-body").innerHTML = `
-                    <div class="detail-grid" id="detailGrid"></div><div class="chart-financial-data" id="chartFinancialData"></div>
-
-                    <!-- Custom Empty State Overlay -->
-                    <div id="no-chart-data" style="
-                        position: absolute;
-                        bottom: -5px;
-                        left: 0px;
-                        display: none;
-                        pointer-events: none;
-                        z-index: 5555;
-                        text-align: center;
-                        flex-direction: column;
-                        justify-content: center;
-                        align-items: center;
-                    ">
-                        <div style="font-size:18px;margin-bottom:0px;color:#ff1e90;font-weight:700;">बस कर भाई</div>
-                        <div style="font-size: 36px;">🤷‍♂️</div>
-                    </div>
-                `;
+                chartModal.querySelector(".settings-modal-body").innerHTML = `<div class="detail-grid" id="detailGrid"></div><div class="chart-financial-data" id="chartFinancialData"></div>`;
 
                 generateChartDetails(Caller);
 
                 const chartMain = document.createElement("div");
                 chartMain.id = "chart-main";
                 chartMain.style.width = "100%";
-                chartMain.style.height = "calc(100vh - 85px)";
                 chartMain.style.position = "relative";
+
+                const toolTipDiv = document.createElement("div");
+                toolTipDiv.className = "chart-tooltip";
+                chartMain.appendChild(toolTipDiv);
 
                 chartModal
                     .querySelector(".settings-modal-body")
                     .appendChild(chartMain);
 
+                let otherChartHeight = 0;
+                const chartContainers = {
+                    main: { element: chartMain, height: 0 },
+                };
+
+                // Add RSI container if enabled
+                if (chartSettings.rsi.enabled) {
+                    const chartRsi = document.createElement("div");
+                    chartRsi.id = "chart-rsi";
+                    chartRsi.style.width = "100%";
+                    chartRsi.style.position = "relative";
+                    const toolTipDiv = document.createElement("div");
+                    toolTipDiv.className = "chart-tooltip";
+                    chartRsi.appendChild(toolTipDiv);
+                    chartModal
+                        .querySelector(".settings-modal-body")
+                        .appendChild(chartRsi);
+                    chartContainers.rsi = {
+                        element: chartRsi,
+                        height: screenHeight * 0.15,
+                    };
+                    otherChartHeight += screenHeight * 0.15;
+                }
+
+                // Add MACD container if enabled
+                if (chartSettings.macd.enabled) {
+                    const chartMacd = document.createElement("div");
+                    chartMacd.id = "chart-macd";
+                    chartMacd.style.width = "100%";
+                    chartMacd.style.position = "relative";
+                    const toolTipDiv = document.createElement("div");
+                    toolTipDiv.className = "chart-tooltip";
+                    chartMacd.appendChild(toolTipDiv);
+                    chartModal
+                        .querySelector(".settings-modal-body")
+                        .appendChild(chartMacd);
+                    chartContainers.macd = {
+                        element: chartMacd,
+                        height: screenHeight * 0.15,
+                    };
+                    otherChartHeight += screenHeight * 0.15;
+                }
 
                 document.querySelector("#chartModal .settings-modal-title").textContent = code;
                 const wlbtn=document.querySelector("#chartModal #chartWatchlist");
@@ -23413,13 +23436,13 @@
 
                         const data = await response.json();
 
-                        const chartWidth = screenWidth;
-                        const mainChartHeight = screenHeight - 85;
+                        const chartWidth = screenWidth-15;
+                        const mainChartHeight =
+                            screenHeight - (otherChartHeight + 85);
 
                         // Helper function to create chart with common options
                         const createChart = (container,height,options = {}) => {
                             return LightweightCharts.createChart(container, {
-                                autoSize: true,
                                 width: chartWidth,
                                 height: height,
                                 layout: {
@@ -23429,11 +23452,6 @@
                                     },
                                     textColor: "#6B7280",
                                     attributionLogo: false,
-                                    panes: {
-                                        enableResize: true,
-                                        separatorColor: "rgba(128, 128, 128, 0.28)",
-                                        separatorHoverColor: "rgba(128, 128, 128, 0.5)",
-                                    },
                                     padding: {
                                         top: 0,
                                         bottom: 0,
@@ -23452,7 +23470,8 @@
                                     horzLines: { visible: false },
                                 },
                                 crosshair: {
-                                    mode: LightweightCharts.CrosshairMode.Normal,
+                                    mode: LightweightCharts.CrosshairMode
+                                        .Normal,
                                     vertLine: {
                                         color: "#8a98b4",
                                         labelBackgroundColor: "#44506a",
@@ -23467,11 +23486,10 @@
                                     borderColor: "#3b4862",
                                     timeVisible: false,
                                     secondsVisible: false,
-                                    rightOffset: 5,
+                                    rightOffset: 1,
+                                    fixLeftEdge: true,
+                                    fixRightEdge: true,
                                     barSpacing: 8,
-                                    minBarSpacing: 1,
-                                    /*fixLeftEdge: true,
-                                    fixRightEdge: true,*/
                                 },
                                 ...options,
                             });
@@ -23482,7 +23500,7 @@
 
                         // Create main chart
                         charts.main = createChart(
-                            chartMain,
+                            chartContainers.main.element,
                             mainChartHeight,
                         );
 
@@ -23830,12 +23848,12 @@
                             }
                         });
 
-                        let nextPaneIndex = 1;
-                        const paneOfKey = { main: 0 };
-                        // Create RSI pane if enabled
+                        // Create RSI chart if enabled
                         if (chartSettings.rsi.enabled) {
-                            const rsiPaneIndex = nextPaneIndex++;
-                            paneOfKey.rsi = rsiPaneIndex;
+                            charts.rsi = createChart(
+                                chartContainers.rsi.element,
+                                chartContainers.rsi.height,
+                            );
 
                             const indicatorKey="rsi_"+chartSettings.rsi.length +"_"+ chartSettings.rsi.source+"_"+chartSettings.rsi.smoothingType+"_"+chartSettings.rsi.smoothingLength;
                             let rsiChartData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
@@ -23847,7 +23865,7 @@
                             chartSeries.rsi = {};
                             chartSeriesDataMap.rsi = {};
 
-                            chartSeries.rsi.rsi = charts.main.addSeries(
+                            chartSeries.rsi.rsi = charts.rsi.addSeries(
                                 LightweightCharts.LineSeries,
                                 {
                                     title2: "RSI",
@@ -23856,8 +23874,8 @@
                                     crosshairMarkerVisible: false,
                                     lastValueVisible: false,
                                     priceLineVisible: false,
-                                }, rsiPaneIndex
-                                );
+                                },
+                            );
                             chartSeries.rsi.rsi.setData(rsiChartData);
                             chartSeriesDataMap.rsi.rsi = Object.fromEntries(
                                 rsiChartData.map((bar, index) => [
@@ -23873,7 +23891,7 @@
                                 chartSettings.rsi.smoothingLength > 0 &&
                                 chartSettings.rsi.smoothingType !== "none"
                             ) {
-                                chartSeries.rsi.ma = charts.main.addSeries(
+                                chartSeries.rsi.ma = charts.rsi.addSeries(
                                     LightweightCharts.LineSeries,
                                     {
                                         title2: "MA",
@@ -23882,7 +23900,7 @@
                                         crosshairMarkerVisible: false,
                                         lastValueVisible: false,
                                         priceLineVisible: false,
-                                    }, rsiPaneIndex
+                                    },
                                 );
 
                                 const indicatorKey="rsi_sma_"+chartSettings.rsi.length +"_"+ chartSettings.rsi.source+"_"+chartSettings.rsi.smoothingType+"_"+chartSettings.rsi.smoothingLength;
@@ -23917,10 +23935,12 @@
                             }
                         }
 
-                        // Create MACD pane if enabled
+                        // Create MACD chart if enabled
                         if (chartSettings.macd.enabled) {
-                            const macdPaneIndex = nextPaneIndex++;
-                            paneOfKey.macd = macdPaneIndex;
+                            charts.macd = createChart(
+                                chartContainers.macd.element,
+                                chartContainers.macd.height,
+                            );
 
                             const indicatorKey="macd_"+chartSettings.macd.source +"_"+ chartSettings.macd.fastLength+"_"+chartSettings.macd.slowLength+"_"+chartSettings.macd.signalLength+"_"+chartSettings.macd.oscMaType+"_"+chartSettings.macd.signalMaType;
                             let macdChartData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
@@ -23931,15 +23951,15 @@
 
                             chartSeries.macd = {};
                             chartSeriesDataMap.macd = {};
-                            chartSeries.macd.histogram = charts.main.addSeries(
+                            chartSeries.macd.histogram = charts.macd.addSeries(
                                 LightweightCharts.HistogramSeries,
                                 {
                                     title2: "Histogram",
                                     crosshairMarkerVisible: false,
                                     lastValueVisible: false,
                                     priceLineVisible: false,
-                                }, macdPaneIndex
-                                );
+                                },
+                            );
                             chartSeries.macd.histogram.setData(
                                 macdChartData.histogram,
                             );
@@ -23950,7 +23970,7 @@
                                     ),
                                 );
 
-                            chartSeries.macd.macd = charts.main.addSeries(
+                            chartSeries.macd.macd = charts.macd.addSeries(
                                 LightweightCharts.LineSeries,
                                 {
                                     title2: "MACD",
@@ -23959,8 +23979,8 @@
                                     crosshairMarkerVisible: false,
                                     lastValueVisible: false,
                                     priceLineVisible: false,
-                                }, macdPaneIndex
-                                );
+                                },
+                            );
                             chartSeries.macd.macd.setData(
                                 macdChartData.macdLine,
                             );
@@ -23974,7 +23994,7 @@
                                 ]),
                             );
 
-                            chartSeries.macd.signal = charts.main.addSeries(
+                            chartSeries.macd.signal = charts.macd.addSeries(
                                 LightweightCharts.LineSeries,
                                 {
                                     title2: "Signal",
@@ -23983,8 +24003,8 @@
                                     crosshairMarkerVisible: false,
                                     lastValueVisible: false,
                                     priceLineVisible: false,
-                                }, macdPaneIndex
-                                );
+                                },
+                            );
                             chartSeries.macd.signal.setData(
                                 macdChartData.signalLine,
                             );
@@ -24000,130 +24020,318 @@
                             );
                         }
 
-                        // ---- Single chart with panes: layout + per-pane tooltips ----
-                        const panes = charts.main.panes();
-                        if (panes.length > 1) {
-                            // main pane gets the remaining height; each extra pane starts at 15% of screen
-                            const extraH = screenHeight * 0.15;
-                            const mainH = Math.max(screenHeight - 85 - extraH * (panes.length - 1), extraH);
-                            panes.forEach((p, i) => p.setStretchFactor(i === 0 ? mainH : extraH));
-                        }
+                        // Get all chart instances as array for synchronization
+                        const chartArray = Object.values(charts);
+                        const chartSeriesArray = Object.values(chartSeries);
+                        const chartArrayKey = Object.keys(charts);
+                        const chartSeriesArrayKey = Object.keys(chartSeries);
 
+                        let syncingRange = false;
+                        let syncingCrosshair = false;
+                        let zoomEndTimer = null;
                         const isLetter = /^[a-zA-Z]/;
                         const isNumber = /^\d/;
-                        const chartMainEl = chartMain;
-                        const paneTooltips = {};
-                        Object.keys(paneOfKey).forEach((key) => {
-                            const el = document.createElement("div");
-                            el.className = "chart-tooltip";
-                            el.dataset.pane = key;
-                            el.style.pointerEvents = "none";
-                            chartMainEl.appendChild(el);
-                            paneTooltips[key] = el;
-                        });
+                        let rangeChangeSource=null;
 
-                        // pin each tooltip to the top of its own pane (follows separator drags / resizes)
-                        const placeTooltips = () => {
-                            const base = chartMainEl.getBoundingClientRect().top;
-                            Object.keys(paneTooltips).forEach((key) => {
-                                const i = paneOfKey[key];
-                                const pane = panes[i];
-                                if (!pane) return;
-                                const pe = pane.getHTMLElement && pane.getHTMLElement();
-                                let top = 0;
-                                if (pe) {
-                                    top = pe.getBoundingClientRect().top - base;
-                                } else {
-                                    for (let k = 0; k < i; k++) top += panes[k].getHeight() + 1;
-                                }
-                                paneTooltips[key].style.top = (top + 2) + "px";
-                            });
-                        };
-                        if (chartPaneObserver) chartPaneObserver.disconnect();
-                        chartPaneObserver = new ResizeObserver(placeTooltips);
-                        chartPaneObserver.observe(chartMainEl);
-                        panes.forEach((p) => {
-                            const el = p.getHTMLElement && p.getHTMLElement();
-                            if (el) {
-                                chartPaneObserver.observe(el);
-                                // a pane is a table row: also watch its cells, they always report size changes
-                                Array.from(el.children).forEach((cell) => chartPaneObserver.observe(cell));
-                            }
-                        });
-                        placeTooltips();
+                        if (chartArray.length >= 1) {
+                            chartArray.forEach((source, index) => {
+                                // Sync only the logical range to handle zoom and scroll together safely
+                                if (chartArray.length > 1) {
+                                    /*
+                                    source.timeScale().subscribeVisibleTimeRangeChange((range) => {
+                                        if(rangeChangeSource!==null && rangeChangeSource!==source) return;
+                                        setTimeout(() => {
+                                            requestAnimationFrame(() => {
+                                                if (!range || syncingRange) return;
+                                                    syncingRange = true;
+                                                    const visibleLogicalRnage =source.timeScale().getVisibleLogicalRange();
+                                                    chartArray.forEach((target,indexTarget) => {
+                                                        if (source !== target) {
+                                                            target.timeScale().setVisibleLogicalRange(visibleLogicalRnage);
+                                                            //target.timeScale().setVisibleRange(visibleRnage);
+                                                            target.timeScale().setVisibleRange(range);
+                                                        }
+                                                    });
 
-                        charts.main.subscribeCrosshairMove((param) => {
-                            if (!param || !param.time || param.time === "undefined") return;
-                            Object.keys(chartSeriesDataMap).forEach((mainKey) => {
-                                let toolTipText = ``;
-                                if (mainKey != "main") {
-                                    toolTipText += `<div class="line"><span class="name">${mainKey.toUpperCase()} : </span>`;
+                                                    //debounce: once scrolling/zooming settles, force a clean resync
+                                                    clearTimeout(zoomEndTimer);
+                                                    zoomEndTimer =
+                                                        setTimeout(() => {
+                                                            const finalRange = source.timeScale().getVisibleRange();
+                                                            chartArray.forEach((target) => {
+                                                                if (source !== target)
+                                                                    target.timeScale().setVisibleRange(finalRange);
+                                                            });
+                                                        },150); // fires once wheel events stop coming in
+
+                                                    // Use setTimeout to let the chart cycles finish before releasing the lock
+                                                    setTimeout(() => {
+                                                        requestAnimationFrame(() => {
+                                                            syncingRange = false;
+                                                            rangeChangeSource=null;
+                                                        });
+                                                    }, 30);
+                                            });
+                                        }, 15);
+                                    });
+                                    */
+
+                                    source.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+                                        if(rangeChangeSource!==null && rangeChangeSource!==source) return;
+                                        rangeChangeSource=source;
+                                        setTimeout(() => {
+                                            requestAnimationFrame(() => {
+                                                if (!range || syncingRange) return;
+                                                    syncingRange = true;
+                                                    const visibleRnage =source.timeScale().getVisibleRange();
+                                                    chartArray.forEach((target,indexTarget) => {
+                                                        if (source !== target) {
+                                                            target.timeScale().setVisibleLogicalRange(range);
+                                                            target.timeScale().setVisibleRange(visibleRnage);
+                                                        }
+                                                    });
+
+                                                    //debounce: once scrolling/zooming settles, force a clean resync
+                                                    clearTimeout(zoomEndTimer);
+                                                    zoomEndTimer =
+                                                        setTimeout(() => {
+                                                            const finalRange = source.timeScale().getVisibleRange();
+                                                            chartArray.forEach((target) => {
+                                                                if (source !== target)
+                                                                    target.timeScale().setVisibleRange(finalRange);
+                                                            });
+                                                        },500); // fires once wheel events stop coming in
+
+                                                    // Use setTimeout to let the chart cycles finish before releasing the lock
+                                                    setTimeout(() => {
+                                                        requestAnimationFrame(() => {
+                                                            syncingRange = false;
+                                                            rangeChangeSource=null;
+                                                        });
+                                                    }, 30);
+                                            });
+                                        }, 15);
+                                    });
                                 }
-                                const subObject = chartSeriesDataMap[mainKey];
-                                Object.keys(subObject).forEach((subKey) => {
-                                    if (mainKey == "main") {
-                                        toolTipText += `<div class="line"><span class="name">${subKey.toUpperCase()} : </span>`;
-                                    }
-                                    const innerData =subObject[subKey];
-                                    if (isLetter.test(Object.keys(innerData)[0])) {
-                                        Object.keys(innerData).forEach((lastKey) => {
-                                            const lastData =innerData[lastKey];
-                                            const cdata =lastData[param.time];
-                                            if (cdata && cdata["value"]!="undefined" && cdata["value"]!=null) {
-                                                if (subKey =="volume" && lastKey =="volume") {
-                                                    const cprice =chartSeriesDataMap.main.price[param.time];
-                                                    toolTipText += `<span style="color:${cprice["bar"]["close"] >= cprice["bar"]["open"] ? "#26a69a" : "#ef5350"}">${fVol(cdata["value"])}</span>`;
-                                                } else if (subKey =="volume" && lastKey =="sma") {
-                                                    const cprice =chartSeriesDataMap.main.price[param.time];
-                                                    toolTipText += `<span style="color:${cdata["color"]}">${fVol(cdata["value"])}</span>`;
-                                                } else {
-                                                    toolTipText += `<span style="color:${cdata["color"]}">${cdata["value"].toFixed(2)}</span>`;
-                                                }
-                                            }
-                                        });
-                                    } else if (isNumber.test(Object.keys(innerData)[0])) {
-                                        const cdata = innerData[param.time];
-                                        if (cdata) {
-                                            if (subKey =="price") {
-                                                let chng = 0;
-                                                let chng_per = 0;
-                                                if (cdata["previous"]) {
-                                                    chng =cdata["bar"]["close"] - cdata["previous"]["close"];
-                                                    chng_per =((cdata["bar"]["close"] -cdata["previous"]["close"]) * 100) / cdata["previous"]["close"];
-                                                }
-                                                toolTipText += `<span style="color:${cdata["bar"]["close"] >= cdata["bar"]["open"] ? "#26a69a" : "#ef5350"}"><span class="text-secondary">O</span>${cdata["bar"]["open"].toFixed(2)} <span class="text-secondary">H</span>${cdata["bar"]["high"].toFixed(2)} <span class="text-secondary">L</span>${cdata["bar"]["low"].toFixed(2)} <span class="text-secondary">C</span>${cdata["bar"]["close"].toFixed(2)} ${chng.toFixed(2)} (${chng_per.toFixed(2)})</span>`;
-                                            } else if(cdata["value"]!="undefined" && cdata["value"]!=null){
-                                                toolTipText += `<span style="color:${cdata["color"]}">${cdata["value"].toFixed(2)}</span>`;
+
+                                // Sync corshair together safely
+                                source.subscribeCrosshairMove((param) => {
+                                    if (!param || syncingCrosshair || !param.time || param.time === "undefined")
+                                        return;
+
+                                    syncingCrosshair = true;
+                                    let maxSeries = null;
+                                    let maxDataLength = -1;
+                                    for (key in chartSeries[chartArrayKey[index]]) {
+                                        if (typeof chartSeries[chartArrayKey[index]][key].data === "function") {
+                                            //this is first level chart series which you can access.
+                                            if (chartSeries[chartArrayKey[index]][key].data().length > maxDataLength) {
+                                                maxSeries =chartSeries[chartArrayKey[index]][key];
+                                                maxDataLength = chartSeries[chartArrayKey[index]][key].data().length;
                                             }
                                         }
                                     }
-                                    if (mainKey == "main") {
-                                        toolTipText += `</div>`;
-                                    }
+
+                                    const dataPoint = param.seriesData.get(maxSeries);
+
+                                    chartArray.forEach((target, indexTarget) => {
+                                        if (source !== target) {
+                                            if (dataPoint) {
+                                                let maxSeries = null;
+                                                let maxDataLength = -1;
+                                                let maxSeriesValue=null;
+                                                for (key in chartSeries[chartArrayKey[indexTarget]]) {
+                                                    if (typeof chartSeries[chartArrayKey[indexTarget]][key].data === "function") {
+                                                        //this is first level chart series which you can access.
+                                                        if (chartSeries[chartArrayKey[indexTarget]][key].data().length > maxDataLength) {
+                                                            maxSeries =chartSeries[chartArrayKey[indexTarget]][key];
+                                                            maxDataLength = chartSeries[chartArrayKey[indexTarget]][key].data().length;
+                                                            maxSeriesValue=chartSeriesDataMap[chartArrayKey[indexTarget]][key][param.time];
+                                                        }
+                                                    }
+                                                }
+
+                                                let crosshairValue=0;
+                                                if(maxSeriesValue!="undefined"){
+                                                    if("value" in maxSeriesValue) crosshairValue=maxSeriesValue['value'];
+                                                    else if("close" in maxSeriesValue) crosshairValue=maxSeriesValue['close'];
+                                                }
+                                                target.setCrosshairPosition(
+                                                    crosshairValue,
+                                                    dataPoint.time,
+                                                    maxSeries,
+                                                );
+                                            } else {
+                                                target.clearCrosshairPosition();
+                                            }
+                                        }
+
+                                        //write tooltip code here.
+                                        Object.keys(chartSeriesDataMap).forEach((mainKey) => {
+                                            let toolTipText = ``;
+                                            if (mainKey != "main") {
+                                                toolTipText += `<div class="line"><span class="name">${mainKey.toUpperCase()} : </span>`;
+                                            }
+                                            const subObject = chartSeriesDataMap[mainKey];
+                                            Object.keys(subObject).forEach((subKey) => {
+                                                if (mainKey == "main") {
+                                                    toolTipText += `<div class="line"><span class="name">${subKey.toUpperCase()} : </span>`;
+                                                }
+                                                const innerData =subObject[subKey];
+                                                if (isLetter.test(Object.keys(innerData)[0])) {
+                                                    Object.keys(innerData).forEach((lastKey) => {
+                                                        const lastData =innerData[lastKey];
+                                                        const cdata =lastData[param.time];
+                                                        if (cdata && cdata["value"]!="undefined" && cdata["value"]!=null) {
+                                                            if (subKey =="volume" && lastKey =="volume") {
+                                                                const cprice =chartSeriesDataMap.main.price[param.time];
+                                                                toolTipText += `<span style="color:${cprice["bar"]["close"] >= cprice["bar"]["open"] ? "#26a69a" : "#ef5350"}">${fVol(cdata["value"])}</span>`;
+                                                            } else if (subKey =="volume" && lastKey =="sma") {
+                                                                const cprice =chartSeriesDataMap.main.price[param.time];
+                                                                toolTipText += `<span style="color:${cdata["color"]}">${fVol(cdata["value"])}</span>`;
+                                                            } else {
+                                                                toolTipText += `<span style="color:${cdata["color"]}">${cdata["value"].toFixed(2)}</span>`;
+                                                            }
+                                                        }
+                                                    });
+                                                } else if (isNumber.test(Object.keys(innerData)[0])) {
+                                                    const cdata = innerData[param.time];
+                                                    if (cdata) {
+                                                        if (subKey =="price") {
+                                                            let chng = 0;
+                                                            let chng_per = 0;
+                                                            if (cdata["previous"]) {
+                                                                chng =cdata["bar"]["close"] - cdata["previous"]["close"];
+                                                                chng_per =((cdata["bar"]["close"] -cdata["previous"]["close"]) * 100) / cdata["previous"]["close"];
+                                                            }
+                                                            toolTipText += `<span style="color:${cdata["bar"]["close"] >= cdata["bar"]["open"] ? "#26a69a" : "#ef5350"}"><span class="text-secondary">O</span>${cdata["bar"]["open"].toFixed(2)} <span class="text-secondary">H</span>${cdata["bar"]["high"].toFixed(2)} <span class="text-secondary">L</span>${cdata["bar"]["low"].toFixed(2)} <span class="text-secondary">C</span>${cdata["bar"]["close"].toFixed(2)} ${chng.toFixed(2)} (${chng_per.toFixed(2)})</span>`;
+                                                        } else if(cdata["value"]!="undefined" && cdata["value"]!=null){
+                                                            toolTipText += `<span style="color:${cdata["color"]}">${cdata["value"].toFixed(2)}</span>`;
+                                                        }
+                                                    }
+                                                }
+                                                if (mainKey == "main") {
+                                                    toolTipText += `</div>`;
+                                                }
+                                            });
+                                            if (mainKey != "main") {
+                                                toolTipText += `</div>`;
+                                            }
+                                            document.querySelector("#chart-" +mainKey +" .chart-tooltip",).innerHTML = toolTipText;
+                                        });
+                                    },
+                                    );
+
+                                    // Use setTimeout to let the chart cycles finish before releasing the lock
+                                    setTimeout(() => {
+                                        requestAnimationFrame(() => {
+                                            syncingCrosshair = false;
+                                        });
+                                    }, 15);
                                 });
-                                if (mainKey != "main") {
-                                    toolTipText += `</div>`;
-                                }
-                                if (paneTooltips[mainKey]) paneTooltips[mainKey].innerHTML = toolTipText;
+                            });
+                        }
+
+                        // Store the full date range for later use
+                        const firstItem = data[0];
+                        const lastItem = data[data.length - 1];
+                        const fullFromDate = firstItem.time;
+                        const fullToDate = lastItem.time;
+                        const mainChartDataLength=data.length;
+
+                        // Calculate 6-month range
+                        const endDate = new Date(lastItem.time);
+                        const startDate = new Date(endDate);
+                        startDate.setMonth(startDate.getMonth() - 6);
+                        const fromDate = startDate.toISOString().split("T")[0];
+                        const toDate = lastItem.time;
+
+                        // FIRST: Set the full range to show all data
+                        // chartArray.forEach(chart => {
+                        //     chart.timeScale().fitContent();
+                        // });
+
+                        // SECOND: Apply the 6-month zoom
+                        chartArray.forEach((chart) => {
+                            const ts = chart.timeScale();
+                            ts.setVisibleRange({
+                                from: fromDate,
+                                to: toDate,
                             });
                         });
 
-                        // Track the visible range to detect scrolling past history boundaries
-                        charts.main.timeScale().subscribeVisibleLogicalRangeChange((logicalRange) => {
-                            if (!logicalRange) return;
-
-                            // logicalRange.from roughly matches data indices.
-                            // 0 is the index of your first data point (chartData[0]).
-                            // If the user scrolls far back to the left, 'from' will go deep into negative numbers.
-                            const overlay=document.querySelector("#no-chart-data");
-                            if (logicalRange.from < -3) {
-                                overlay.style.display = 'flex';
-                            } else {
-                                overlay.style.display = 'none';
+                        // After setting initial ranges, ensure logical ranges are aligned
+                        // This is crucial for crosshair synchronization
+                        setTimeout(() => {
+                            if (chartArray.length > 1) {
+                                if (syncingRange) return;
+                                syncingRange = true;
+                                const referenceRange = chartArray[0].timeScale().getVisibleLogicalRange();
+                                if (referenceRange) {
+                                    chartArray.forEach((chart) => {
+                                        if (chart !== chartArray[0]) {
+                                            chart.timeScale().setVisibleLogicalRange(referenceRange);
+                                        }
+                                    });
+                                }
+                                setTimeout(() => {
+                                    requestAnimationFrame(() => {
+                                        syncingRange = false;
+                                    });
+                                }, 15);
                             }
-                        });
+                        }, 100); // Give charts time to process the initial range
 
-                        const mainChartDataLength=data.length;
+                        //if more than 1 chart is there then hide all other chart timescal except the last one.
+                        if (chartArray.length > 1) {
+                            for(let x=0;x<chartArray.length;x++){
+                                if((x+1) < chartArray.length){
+                                    chartArray[x].applyOptions({
+                                        timeScale: {
+                                            visible: false
+                                        },
+                                    });
+                                }
+                            }
+                        }
+
+                        // ---- Align right price-scale widths across all stacked charts ----
+                        if (chartArray.length > 1) {
+                            let alignedWidth = 0;
+                            let alignRaf = null;
+
+                            const alignPriceScales = () => {
+                                let maxW = alignedWidth;
+                                chartArray.forEach((chart) => {
+                                    const w = chart.priceScale("right").width();
+                                    if (w > maxW) maxW = w;
+                                });
+                                // only touch the charts if something actually needs to change
+                                if (maxW !== alignedWidth) {
+                                    alignedWidth = maxW;
+                                    chartArray.forEach((chart) => {
+                                        chart.priceScale("right").applyOptions({
+                                            minimumWidth: alignedWidth,
+                                        });
+                                    });
+                                }
+                            };
+
+                            const scheduleAlign = () => {
+                                if (alignRaf) return;
+                                alignRaf = requestAnimationFrame(() => {
+                                    alignRaf = null;
+                                    alignPriceScales();
+                                });
+                            };
+
+                            setTimeout(alignPriceScales, 500);
+
+                            // Zooming/scrolling/autoscale can change label widths (e.g. 100 -> 1000)
+                            chartArray.forEach((chart) => {
+                                chart.timeScale().subscribeVisibleLogicalRangeChange(scheduleAlign);
+                            });
+                        }
 
                         // Reset button handler.
                         // IMPORTANT: #resetChart is a static button that lives outside the
@@ -24135,30 +24343,56 @@
                         // chartSeries, etc.) - stayed reachable forever. Unbinding the
                         // previous handler before attaching the new one lets that whole
                         // scope become garbage as soon as the modal is closed/reopened.
-                        const resetChart = document.querySelector("#resetChart");
+                        const resetChart =
+                            document.querySelector("#resetChart");
                         if (resetChart) {
                             if (resetChartHandler) {
-                                resetChart.removeEventListener("click",resetChartHandler);
+                                resetChart.removeEventListener(
+                                    "click",
+                                    resetChartHandler,
+                                );
                                 resetChartHandler = null;
                             }
 
                             resetChartHandler = function (e) {
                                 e.stopPropagation();
-                                charts.main.timeScale().resetTimeScale();
-                                charts.main.panes().forEach((p, i) => {
-                                    charts.main.priceScale("right", i).applyOptions({ autoScale: true });
+
+                                if (syncingRange) return;
+                                syncingRange = true;
+
+                                // Reset to 6-month view
+                                chartArray.forEach((chart) => {
+                                    const ts = chart.timeScale();
+                                    ts.resetTimeScale();
+                                    ts.setVisibleRange({
+                                        from: fromDate,
+                                        to: toDate,
+                                    });
+
+                                    const r = ts.getVisibleLogicalRange();
+                                    if (r) {
+                                        ts.setVisibleLogicalRange({
+                                            from: mainChartDataLength - 121,
+                                            to: mainChartDataLength,
+                                        });
+                                    }
+
+                                    chart.priceScale("right").applyOptions({
+                                        autoScale: true,
+                                    });
                                 });
-                                charts.main.timeScale().setVisibleLogicalRange({
-                                    from: mainChartDataLength > 126 ? mainChartDataLength - 126 : 1,
-                                    to: mainChartDataLength
-                                });
+
+                                setTimeout(() => {
+                                    requestAnimationFrame(() => {
+                                        syncingRange = false;
+                                    });
+                                }, 100);
                             };
-                            resetChart.addEventListener("click",resetChartHandler);
 
-                            requestAnimationFrame(()=>{
-                                resetChart.click();
-                            });
-
+                            resetChart.addEventListener(
+                                "click",
+                                resetChartHandler,
+                            );
                         }
                     } catch (error) {
                         console.error(
@@ -24173,17 +24407,23 @@
                 if(!document.querySelector("#chartModal").classList.contains('open')) return;
                 screenWidth = window.innerWidth;
                 screenHeight = window.innerHeight;
-                if(charts.main){
-                    console.log(screenWidth,screenHeight);
-                    charts.main.applyOptions({
-                        width:screenWidth,
-                        height:screenHeight-85
+                const chartArray = Object.values(charts);
+                const chartWidth = screenWidth-15;
+                const otherChartHeight=(screenHeight*0.15)*(chartArray.length - 1);
+                const mainChartHeight = screenHeight - (otherChartHeight + 85);
+                chartArray.forEach((chart,index) => {
+                    let chartHeight=(screenHeight * 0.15);
+                    if(index==0){
+                        chartHeight=mainChartHeight;
+                    }
+                    chart.applyOptions({
+                        width:chartWidth,
+                        height:chartHeight
                     });
-                }
+                });
             }
 
             function closeChartModal() {
-                if (chartPaneObserver) { chartPaneObserver.disconnect(); chartPaneObserver = null; }
                 //remove the existing charts from the memory.
                 for (const key in charts) {
                     charts[key].remove();
