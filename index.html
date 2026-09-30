@@ -10,7 +10,7 @@
             })();
         </script>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <title>NSE Momentum Screener</title>
         <meta name="theme-color" content="#00d4aa" />
         <meta name="description" content="Free NSE stock screener for Indian equity traders — RS ratings, momentum analytics, sector-wise filters, VCP presets and peer comparison for NSE-listed stocks. No login required." />
@@ -144,6 +144,15 @@
             even before bootstrap.min.css finishes loading. Values match
             Bootstrap 5.3.3 exactly, so there is no visual change once the
             real stylesheet swaps in. */
+
+            html, body {
+                touch-action: pan-x pan-y; /* scrolling works, page pinch-zoom is blocked */
+            }
+
+            /* the chart areas handle their own gestures */
+            #chartModal .tv-lightweight-charts{
+                touch-action: none;
+            }
 
             :root {
                 --bg: #0b0f1a;
@@ -3823,6 +3832,42 @@
                 background: transparent !important;
                 min-width: 180px;
                 border-right: 0 !important;
+            }
+
+            /* tiny transparent overlay buttons (bottom-right of chart) */
+            #chartModal .chart-fit-tools {
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                z-index: 6;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0;
+                pointer-events: none;
+            }
+            #chartModal .chart-fit-btn {
+                pointer-events: auto;
+                width: 20px;
+                height: 20px;
+                padding: 0;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                line-height: 1;
+                background: transparent;
+                border: 0;
+                border-radius: 4px;
+                cursor: pointer;
+                opacity: 0.7;
+                transition: opacity 0.15s, background 0.15s;
+                -webkit-tap-highlight-color: transparent;
+            }
+            #chartModal .chart-fit-btn:hover,
+            #chartModal .chart-fit-btn:active {
+                opacity: 1;
+                background: rgba(128, 128, 128, 0.18);
             }
 
             #chartModal .settings-modal-body {
@@ -16316,6 +16361,45 @@
                                 },
                             ],
                         });
+
+                        // Tiny overlay buttons: fit price scale / fit all data.
+                        // They live inside chartMain (recreated on every open), so
+                        // no manual unbinding is needed.
+                        {
+                            const fitChart = charts.main;
+                            const fitTools = document.createElement("div");
+                            fitTools.className = "chart-fit-tools";
+                            fitTools.innerHTML = `
+                                <button type="button" class="chart-fit-btn" data-fit="price" title="Fit price scale to visible data">↕️</button>
+                                <button type="button" class="chart-fit-btn" data-fit="all" title="Fit all data">↔️</button>
+                            `;
+                            chartMain.appendChild(fitTools);
+
+                            const autoScaleAll = () => {
+                                fitChart.panes().forEach((p, i) => {
+                                    fitChart.priceScale("right", i).applyOptions({ autoScale: true });
+                                });
+                                try {
+                                    fitChart.priceScale("volume").applyOptions({ autoScale: true });
+                                } catch (e) {}
+                            };
+
+                            fitTools.addEventListener("click", (e) => {
+                                const btn = e.target.closest(".chart-fit-btn");
+                                if (!btn) return;
+                                e.stopPropagation();
+                                if (btn.dataset.fit === "price") {
+                                    autoScaleAll();
+                                } else {
+                                    fitChart.timeScale().fitContent();
+                                    autoScaleAll();
+                                }
+                            });
+                            // keep touches/mouse on the buttons from reaching the chart
+                            ["mousedown", "touchstart", "pointerdown", "dblclick"].forEach((ev) =>
+                                fitTools.addEventListener(ev, (e) => e.stopPropagation(), { passive: true }),
+                            );
+                        }
 
                         // Initialize series storage
                         chartSeries = {};
