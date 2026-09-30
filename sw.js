@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v100";
+const CACHE_VERSION = "nse-screener-v102";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
@@ -28,7 +28,7 @@ const FINANCIAL_CACHE = "nse-screener-financial-v1";
 // during activate's version-bump cleanup — a deploy shouldn't force
 // re-downloading Bootstrap/Google Fonts from the CDN again.
 const FONT_CACHE = "nse-screener-fonts-v1";
-const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com", "cdn.jsdelivr.net"];
+const FONT_HOSTS = [/*"fonts.googleapis.com", "fonts.gstatic.com", "cdn.jsdelivr.net"*/];
 
 const STATIC_ASSETS = [
     "./",
@@ -42,6 +42,17 @@ const STATIC_ASSETS = [
     "./assets/img/icon-512.png",
     "./assets/img/badge-96.png",
     "./assets/audio/nse_screener_alert.wav",
+    "./assets/fonts/fonts.css",
+    "./assets/fonts/sora-latin-400-normal.woff2",
+    "./assets/fonts/sora-latin-600-normal.woff2",
+    "./assets/fonts/sora-latin-700-normal.woff2",
+    "./assets/fonts/sora-latin-ext-400-normal.woff2",
+    "./assets/fonts/jetbrains-mono-latin-400-normal.woff2",
+    "./assets/fonts/jetbrains-mono-latin-600-normal.woff2",
+    "./assets/fonts/jetbrains-mono-latin-700-normal.woff2",
+    "./assets/fonts/jetbrains-mono-latin-ext-400-normal.woff2",
+    "./assets/vendor/bootstrap/bootstrap.min.css",
+    "./assets/vendor/lightweight-charts/lightweight-charts.standalone.production.js",
     "./helper/indicator-db.js",
     "./helper/alert.js",
     "./helper/alert-worker.js"
@@ -62,13 +73,14 @@ const NO_RANGE_ASSETS = ["./assets/audio/nse_screener_alert.wav"];
 // first time the browser requests them (see the fetch handler below),
 // and then persist in FONT_CACHE across future deploys.
 const FONT_ASSETS = [
-    "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
-    "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;600;700&display=swap",
-    "https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"
+    // "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
+    // "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;600;700&display=swap",
+    // "https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"
 ];
 
 const LIVE_URL_HOSTS = [
-  "nse-momentum-screener-api.vercel.app"
+    "nse-momentum-screener-api.vercel.app",
+    "https://nse-momentum-screener-api.jadeja-rajdeep.workers.dev"
 ];
 
 // ── Message: allow page to trigger SW update ─────────────────────────────────
