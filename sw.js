@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v103";
+const CACHE_VERSION = "nse-screener-v104";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
@@ -80,7 +80,7 @@ const FONT_ASSETS = [
 
 const LIVE_URL_HOSTS = [
     "nse-momentum-screener-api.vercel.app",
-    "https://nse-momentum-screener-api.jadeja-rajdeep.workers.dev"
+    "nse-momentum-screener-api.jadeja-rajdeep.workers.dev"
 ];
 
 // ── Message: allow page to trigger SW update ─────────────────────────────────
@@ -115,7 +115,16 @@ self.addEventListener("install", (event) => {
                     ),
                 );
             }),
-        ]).then(() => self.skipWaiting()),
+        ])
+        // NOTE: self.skipWaiting() is intentionally NOT called here. The new
+        // worker stays in the "waiting" state until either:
+        //   - the user taps "Reload" on the update toast (page posts
+        //     SKIP_WAITING -> handled by the message listener above), or
+        //   - the user taps "Later" / ignores it, and the new worker simply
+        //     activates on its own the next time the app is fully closed and
+        //     reopened (the page also re-shows the toast if a worker is
+        //     still waiting on launch).
+        // .then(() => self.skipWaiting()),
     );
 });
 
@@ -154,6 +163,13 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
+    // Only GET can be cached. Analytics beacons (POST) and any other non-GET
+    // request must go straight to the network untouched — otherwise
+    // cache.put() throws on them and cacheFirst() answers with a fake 503.
+    if (event.request.method !== "GET") {
+        return;
+    }
+
     // m.json → Network-first, fall back to stale cache
     if (url.pathname.endsWith("m.json")) {
         event.respondWith(networkFirstData(event.request));
@@ -187,6 +203,13 @@ self.addEventListener("fetch", (event) => {
 
     if (NO_RANGE_ASSETS.some((path) => url.pathname.endsWith(path))) {
         event.respondWith(cacheFirstNoRange(event.request, CACHE_VERSION));
+        return;
+    }
+
+    // Any other cross-origin request (Google Analytics, gtag.js, etc.) is not
+    // ours to cache or fake — let the browser handle it natively so a blocked
+    // or failed request surfaces as its real error, not a synthetic 503.
+    if (url.origin !== self.location.origin) {
         return;
     }
 
