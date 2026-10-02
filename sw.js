@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v104";
+const CACHE_VERSION = "nse-screener-v105";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
@@ -54,8 +54,14 @@ const STATIC_ASSETS = [
     "./assets/vendor/bootstrap/bootstrap.min.css",
     "./assets/vendor/lightweight-charts/lightweight-charts.standalone.production.js",
     "./helper/indicator-db.js",
+    "./helper/data-engine.js",
+    "./helper/data-worker.js",
     "./helper/alert.js",
-    "./helper/alert-worker.js"
+    "./helper/alert-worker.js",
+    "./helper/indicator-calculators.js",
+    "./helper/indicator-worker.js",
+    "./helper/indicator-query.js",
+    "./helper/indicator-query-ui.js"
 ];
 
 // Assets that should always be served whole, ignoring any Range header

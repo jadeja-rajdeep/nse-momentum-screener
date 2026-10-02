@@ -818,7 +818,7 @@
                 const res = await getIndicator(
                     row.ISIN,
                     "afh_" + afh.length,
-                    (d) => calculateHighestHighResistance(d, { length: afh.length }),
+                    (d) => IndicatorCalculators.calculateHighestHighResistance(d, { length: afh.length }),
                     loadData,
                 );
                 const target = res ? parseFloat(res.price) : NaN;
@@ -837,7 +837,7 @@
                 const res = await getIndicator(
                     row.ISIN,
                     "pivottrendline_" + pivot.length + "_high",
-                    (d) => calculateTrendlinePoints(d, pivot.length, "high"),
+                    (d) => IndicatorCalculators.calculateTrendlinePoints(d, pivot.length, "high"),
                     loadData,
                 );
                 if (!res) continue;
@@ -861,7 +861,7 @@
                 const calc = await getIndicator(
                     row.ISIN,
                     "supertrend_" + st.atrLength + "_" + st.factor,
-                    (d) => calculateSupertrend(d, st),
+                    (d) => IndicatorCalculators.calculateSupertrend(d, st),
                     loadData,
                 );
                 const target = Array.isArray(calc) && calc.length ? parseFloat(calc[calc.length - 1].value) : NaN;
@@ -1153,7 +1153,9 @@
         superTrendAlerts: (cs) => (cs.supertrend || []).map((s) => [s.enabled, s.atrLength, s.factor]),
     };
 
-    window.onChartSettingsSaved = function (oldSettings, newSettings) {
+    window.addEventListener("chartSettingsSaved", function (e) {
+        const { oldSettings, newSettings } = e.detail;
+
         // Not running (market closed / alerts off): startCycle() rebuilds from
         // the saved chart settings anyway, so nothing to do.
         if (!cycleRunning) return;
@@ -1168,7 +1170,7 @@
         // rebuildList replaces the whole list (latest build wins), so removed
         // or re-parameterised targets disappear automatically.
         Promise.all(changed.map(rebuildList)).then(() => runAlertCheck());
-    };
+    });
 
     // Re-evaluate the instant the user flips a setting on/off, and grab
     // notification permission right away (this fires from a direct user click,

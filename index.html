@@ -1654,6 +1654,59 @@
                 padding: 1px 5px;
                 border-radius: 4px;
             }
+            /* Indicator Advance Query */
+            .indicator-pill-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                margin-bottom: 6px;
+                max-height: 90px;
+                overflow-y: auto;
+            }
+            .indicator-pill {
+                font-size: 0.75rem;
+                padding: 2px 8px;
+            }
+            .iq-tail-setting {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 8px;
+                margin: 8px 0 0 24px;
+                font-size: 0.8rem;
+            }
+            .iq-tail-setting input {
+                width: 80px;
+                padding: 2px 6px;
+                border-radius: 6px;
+                border: 1px solid var(--border, rgba(255, 255, 255, 0.2));
+                background: transparent;
+                color: inherit;
+            }
+            .iq-tail-note {
+                opacity: 0.7;
+                font-size: 0.75rem;
+            }
+            .iq-tail-info {
+                font-size: 0.75rem;
+                opacity: 0.75;
+                margin: 2px 0 6px;
+            }
+            .indicator-pill.ohlcv-pill {
+                border-style: dashed;
+                opacity: 0.85;
+            }
+            #group_indicator[data-state="disabled"] #f_indicator_query {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
+            #group_indicator[data-state="disabled"] .adv-query-hint::before {
+                content: "Indicator engine is off \2014  enable it in Settings. ";
+                font-weight: 600;
+            }
+            #group_indicator[data-state="computing"] #f_indicator_query {
+                opacity: 0.6;
+            }
             .tradable-check-label {
                 font-size: 12px;
                 font-weight: 600;
@@ -3774,7 +3827,8 @@
                 left: 0;
                 display: inline-block; /* so sticky has a real box to stick, not the full row width */
                 width: 100vw;
-                height: calc(100vh - 295px); /*299.2px*/
+                min-height: calc(100vh - 295px); /*299.2px*/
+                height: calc(100vh - 233px);
             }
             .thumb-chart .fullscreen-btn,
             .thumb-chart .financial-btn {
@@ -3854,7 +3908,7 @@
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 11px;
+                font-size: 18px;
                 line-height: 1;
                 background: transparent;
                 border: 0;
@@ -3868,6 +3922,18 @@
             #chartModal .chart-fit-btn:active {
                 opacity: 1;
                 background: rgba(128, 128, 128, 0.18);
+            }
+            #chartModal .chart-fit-btn[data-fit="log"] {
+                width: auto;
+                min-width: 24px;
+                padding: 0 4px;
+                font-weight: 700;
+                color: var(--muted);
+            }
+            #chartModal .chart-fit-btn[data-fit="log"].active {
+                opacity: 1;
+                color: #0d6efd;
+                background: rgba(13, 110, 253, 0.15);
             }
 
             #chartModal .settings-modal-body {
@@ -4076,6 +4142,10 @@
         </style>
         <link rel="stylesheet" href="./assets/css/mobile.css" media="screen and (max-width:767px)" />
         <script src="./helper/indicator-db.js" async></script>
+        <!-- Indicator maths: single source of truth (also importScripts()'d by data-worker.js and indicator-worker.js) -->
+        <script src="./helper/indicator-calculators.js"></script>
+        <script src="./helper/indicator-query.js"></script>
+        <script src="./helper/indicator-query-ui.js"></script>
         <!-- Latest production standalone build at the time of this demo (5.2.1). -->
         <script src="assets/vendor/lightweight-charts/lightweight-charts.standalone.production.js" async></script>
     </head>
@@ -5139,6 +5209,83 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="filter-group" id="group_indicator" data-group="group_indicator" data-state="disabled">
+                    <button
+                        type="button"
+                        class="filter-group-header"
+                        onclick="toggleFilterGroup('group_indicator')"
+                        aria-expanded="false"
+                    >
+                        <span class="filter-group-title">Indicator Advance Query</span>
+                        <span class="filter-group-caret">▾</span>
+                    </button>
+                    <div class="filter-group-body">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <div class="adv-query-box">
+                                    <div class="adv-query-header">
+                                        <label class="adv-query-enable">
+                                            <input
+                                                id="f_indicator_enabled"
+                                                disabled
+                                                onchange="
+                                                    syncIndicatorQueryFieldUI();
+                                                    applyFilters();
+                                                "
+                                                type="checkbox"
+                                            />
+                                            <span>📈 Indicator Advance Query (SuperTrend, EMA, RSI, etc.)</span>
+                                        </label>
+                                    </div>
+
+                                    <!-- Pills: populated once the background worker finishes
+                                         computing every enabled chart indicator for every
+                                         stock. Click a pill to insert "<key>[0]" at the
+                                         cursor, same as Chartink's index-based access. -->
+                                    <div class="indicator-pill-list" id="indicatorPillList"></div>
+
+                                    <textarea
+                                        class="form-control adv-query-textarea"
+                                        id="f_indicator_query"
+                                        oninput="onIndicatorQueryInput()"
+                                        onfocus="if (typeof reconcileIndicatorKeysWithChartSettings === 'function') reconcileIndicatorKeysWithChartSettings('query box focused')"
+                                        placeholder="e.g. supertrend_21_9[0] * 0.25 >= close[0] - close[1]"
+                                        rows="2"
+                                        readonly
+                                    ></textarea>
+                                    <div class="adv-query-status" id="indicatorQueryStatus"></div>
+                                    <div class="iq-tail-info" id="indicatorTailInfo"></div>
+
+                                    <span class="adv-token-group">
+                                        <button class="btn-adv-token" onclick="appendIndicatorToken(' AND ')" type="button">AND</button>
+                                        <button class="btn-adv-token" onclick="appendIndicatorToken(' OR ')" type="button">OR</button>
+                                        <button class="btn-adv-token" onclick="appendIndicatorToken(' NOT ')" type="button">NOT</button>
+                                        <button class="btn-adv-token" onclick="appendIndicatorToken('(')" type="button">(</button>
+                                        <button class="btn-adv-token" onclick="appendIndicatorToken(')')" type="button">)</button>
+                                        <button class="btn-adv-token btn-adv-clear" onclick="clearIndicatorQuery()" type="button">Clear</button>
+                                    </span>
+
+                                    <div class="adv-query-hint">
+                                        Click a pill above to insert a field, e.g.
+                                        <code>supertrend_21_9[0]</code>. <code>[0]</code> means
+                                        today, <code>[1]</code> one bar back, and so on.
+                                        Arithmetic (<code>+ - * /</code>) and grouping with
+                                        <code>( )</code> both work, e.g.
+                                        <code>ema_50_close[0] - ema_200_close[0] > 0</code>.
+                                        This runs <strong>after</strong> all regular filters
+                                        and the Advanced Query above, only against stocks
+                                        that already matched. Disabled until the background
+                                        indicator engine finishes (a few seconds after page
+                                        load) — enable it in
+                                        <a href="#" onclick="openSettingsModal(); return false;">Settings</a>
+                                        if it isn't already on.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Top actions: Clear + Save (outside groups) -->
@@ -5664,7 +5811,7 @@
                         <div class="help-tab" data-help-tab="exportcsv"><span class="help-tab-icon">📤</span> Export CSV</div>
                         <div class="help-tab" data-help-tab="colvisibility"><span class="help-tab-icon">▦</span> Column Visibility</div>
                         <div class="help-tab" data-help-tab="pwa"><span class="help-tab-icon">📲</span> Install App</div>
-                        <div class="help-tab" data-help-tab="tips"><span class="help-tab-icon">💡</span> Use Cases</div>
+                        <!-- <div class="help-tab" data-help-tab="tips"><span class="help-tab-icon">💡</span> Use Cases</div> -->
                     </div>
 
                     <div class="help-content" id="helpContent">
@@ -7475,6 +7622,32 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Other -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">🛠 Other</div>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="abv-check-item">
+                                    <input type="checkbox" id="settingsIndicatorQueryEnabled" onchange="onSettingsIndicatorQueryToggle(this.checked)" />
+                                    <span>Enable Indicator Advance Query (computes the enabled chart indicators for every stock in the background)</span>
+                                </label>
+                                <div class="iq-tail-setting">
+                                    <label for="settingsIndicatorTailBars">Bars kept for queries</label>
+                                    <input
+                                        type="number"
+                                        id="settingsIndicatorTailBars"
+                                        min="1"
+                                        max="252"
+                                        step="1"
+                                        value="63"
+                                        onchange="onSettingsIndicatorTailChange(this.value)"
+                                    />
+                                    <span class="iq-tail-note">default 63, max 252 · lets queries look back up to [bars − 1], e.g. close[62]. Higher = more RAM.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -8117,6 +8290,12 @@
                                 <span>Enable charts in tools</span>
                             </label>
                         </div>
+                        <div class="chart-field-row" style="margin-top: 8px">
+                            <label class="abv-check-item" title="Main price pane only. Volume, RSI and MACD panes always stay normal.">
+                                <input type="checkbox" data-cpath="logScale" />
+                                <span>Logarithmic price scale (main chart)</span>
+                            </label>
+                        </div>
                     </div>
 
                     <!-- VOLUME -->
@@ -8336,6 +8515,9 @@
                         </div>
                         <button type="button" class="peer-modal-close" aria-label="Close watchlists" onclick="toggleChartWatchlistDrawer(false)">✕</button>
                     </div>
+                    <div class="chart-watchlist-search flex-shrink-0 px-3 pt-2">
+                        <input type="search" class="form-control form-control-sm" id="chartWatchlistSearch" placeholder="Search code or name…" aria-label="Search watchlist stocks" autocomplete="off" spellcheck="false" />
+                    </div>
                     <div class="chart-watchlist-drawer-list" id="chartWatchlistDrawerList"></div>
                 </aside>
                 <div class="settings-modal-body" style="padding: 5px 10px; gap: 0">Main Chart Goes Here...</div>
@@ -8460,7 +8642,74 @@
             </div>
         </div>
 
+        <script src="./helper/data-engine.js"></script>
         <script>
+            // ============ INDICATOR ADVANCE QUERY — GLOBAL SETTING ============
+            // "settingsIndicatorQueryEnabled" (Settings modal) is the master switch: it
+            // decides whether the background indicator engine runs at all. It is persisted
+            // in localStorage and included in Export / Import settings.
+            // "f_indicator_enabled" (filter panel) only decides whether the query is applied
+            // as a filter; it never touches the master switch or starts the engine.
+            const IQ_ENABLED_KEY = "nse_screener_indicator_query_enabled";
+
+            function isIndicatorQuerySettingOn() {
+                try {
+                    const v = localStorage.getItem(IQ_ENABLED_KEY);
+                    if (v !== null) return v === "1";
+                } catch (e) {}
+                // First run after this change: fall back to whatever the helper had.
+                try {
+                    return typeof isIndicatorQueryEnabled === "function" ? !!isIndicatorQueryEnabled() : false;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            function saveIndicatorQuerySetting(on) {
+                try {
+                    localStorage.setItem(IQ_ENABLED_KEY, on ? "1" : "0");
+                } catch (e) {
+                    console.warn("Indicator query setting: could not save", e);
+                }
+            }
+
+            // Push the stored master switch into the indicator helper's own flag.
+            function syncIndicatorQuerySettingToHelper() {
+                if (typeof setIndicatorQueryEnabled === "function") setIndicatorQueryEnabled(isIndicatorQuerySettingOn());
+            }
+
+            // Start the background engine — only when the master switch is on
+            // (startIndicatorEngine() itself ignores calls while already computing/ready).
+            function ensureIndicatorEngineStarted() {
+                if (!isIndicatorQuerySettingOn()) return;
+                if (typeof startIndicatorEngine === "function") startIndicatorEngine();
+            }
+
+            function onSettingsIndicatorQueryToggle(on) {
+                saveIndicatorQuerySetting(on);
+                syncIndicatorQuerySettingToHelper();
+                syncIndicatorQueryFieldUI();
+                if (on) ensureIndicatorEngineStarted();
+                else if (typeof stopIndicatorEngine === "function") stopIndicatorEngine(); // frees worker + memory
+                if (typeof refreshIndicatorStatus === "function") refreshIndicatorStatus();
+                if (typeof applyFilters === "function") applyFilters();
+            }
+
+            // Master switch off  -> checkbox disabled AND textarea read-only.
+            // Master switch on   -> checkbox usable; textarea editable only while it is ticked.
+            function syncIndicatorQueryFieldUI() {
+                const cb = document.getElementById("f_indicator_enabled");
+                const ta = document.getElementById("f_indicator_query");
+                const master = isIndicatorQuerySettingOn();
+                if (cb) cb.disabled = !master;
+                if (ta) ta.readOnly = !master || !(cb && cb.checked);
+            }
+
+            // True when a filter state asks for the indicator query but the master switch is off.
+            function indicatorQueryBlocked(st) {
+                return !!(st && st.f_indicator_enabled && st.f_indicator_query && !isIndicatorQuerySettingOn());
+            }
+
             // ============ DATA ============
             const JSON_URL = "m.json"; // same directory — works on GitHub Pages
             let allData = [];
@@ -8666,16 +8915,16 @@
             // Re-render the currently open industry/basic-industry table so checkbox
             // states reflect the latest filter selections (e.g. after toggling one row,
             // other rows sharing the same chain should also reflect as checked/unchecked).
-            function refreshOpenIndustryTables() {
+            async function refreshOpenIndustryTables() {
                 if (document.getElementById("indModal").classList.contains("open")) {
-                    const groups = buildGroupStats(allData, "Industry");
+                    const groups = await getGroupStats("Industry");
                     document.getElementById("indTableWrap").innerHTML = renderIndTable(groups, indSortCol, indSortDir, "drill", "ind");
                 }
                 if (document.getElementById("basicIndModal").classList.contains("open")) {
                     const bc = document.getElementById("basicIndBreadcrumb").textContent;
                     const industryName = bc.split(" › ").pop().trim();
                     const rows = allData.filter((r) => r["Industry"] === industryName);
-                    const groups = buildGroupStats(rows, "Basic Industry");
+                    const groups = await getGroupStats("Basic Industry", industryName);
                     document.getElementById("basicIndTableWrap").innerHTML = renderIndTable(groups, basicIndSortCol, basicIndSortDir, "noop", "basicInd");
                 }
             }
@@ -9037,9 +9286,18 @@
 
                     CURRENT_DATA_DATE = rows[0]?.Date;
                     //clear chart indicator data from indexdb if date is not same.
-                    ensureIndicatorCacheFreshness(CURRENT_DATA_DATE);
+                    window.indicatorCacheFresh = ensureIndicatorCacheFreshness(CURRENT_DATA_DATE).catch(() => {});
 
                     allData = rows;
+
+                    // Hand the (canonicalised) rows to the data worker: it computes the
+                    // Basic-Industry / Industry rank maps off the main thread and keeps its
+                    // own copy for filtering, sorting, grouping and saved-search runs.
+                    // If workers are unavailable the original inline code below runs.
+                    if (!(window.DataEngine && DataEngine.supported)) throw new Error("Web Workers are not available in this browser");
+                    const ranks = await DataEngine.init(rows);
+                    peerRankMap = ranks.peerRankMap;
+                    groupRankMap = ranks.groupRankMap;
 
                     // Pre-compute Basic Industry rank and Industry rank for
                     // every stock. Rank is based on RS TOTAL (highest = rank 1).
@@ -9048,94 +9306,6 @@
                     // biPct / indPct = percentile FROM TOP (1 = top 1%).
                     // This runs once at load (O(n log n)) so renderPage()
                     // just does two Map lookups per row — essentially free.
-                    peerRankMap = new Map();
-                    const groupByField = (field) => {
-                        const groups = {};
-                        rows.forEach((r) => {
-                            const key = r[field] || "__none__";
-                            if (!groups[key]) groups[key] = [];
-                            groups[key].push(r);
-                        });
-                        return groups;
-                    };
-                    // Sort each group by RS TOTAL desc, assign ranks
-                    const assignRanks = (field, rankKey, totalKey, pctKey) => {
-                        const groups = groupByField(field);
-                        Object.values(groups).forEach((group) => {
-                            const sorted = [...group].sort((a, b) => (parseFloat(b["RS TOTAL"]) || 0) - (parseFloat(a["RS TOTAL"]) || 0));
-                            sorted.forEach((r, i) => {
-                                if (!peerRankMap.has(r.Code)) peerRankMap.set(r.Code, {});
-                                const entry = peerRankMap.get(r.Code);
-                                entry[rankKey] = i + 1;
-                                entry[totalKey] = sorted.length;
-                                // top-percentile: rank 1 of 10 = top 10%
-                                entry[pctKey] = ((i + 1) / sorted.length) * 100;
-                            });
-                        });
-                    };
-                    assignRanks("Basic Industry", "biRank", "biTotal", "biPct");
-                    assignRanks("Industry", "indRank", "indTotal", "indPct");
-
-                    // Build group-level rank maps using the EXACT SAME logic
-                    // as the Industry Performance popup (buildGroupStats):
-                    //   - Industry rank: each Industry's average 5D%/1M%
-                    //     change is ranked against ALL other Industries
-                    //     (global scope — matches the 📊 Industry popup).
-                    //   - Basic Industry rank: each Basic Industry's average
-                    //     5D%/1M% change is ranked ONLY against sibling
-                    //     Basic Industries sharing the same parent Industry
-                    //     (scoped — matches the drill-down popup opened from
-                    //     clicking an Industry row, NOT a global rank).
-                    // Keyed by GROUP NAME (not stock Code) — renderPage()
-                    // looks up groupRankMap.get(r["Industry"] / r["Basic Industry"]).
-                    // Safe because every Basic Industry belongs to exactly
-                    // one parent Industry in this dataset (verified 1:1).
-                    groupRankMap = new Map();
-
-                    // Rank a set of groups (built from `rows`) by avg chngField,
-                    // write rank/total/pct into groupRankMap keyed by group name.
-                    const rankGroupsInto = (rowsSubset, groupField, chngField, rankKey, totalKey, pctKey) => {
-                        const sums = {},
-                            counts = {};
-                        rowsSubset.forEach((r) => {
-                            const g = r[groupField] || "—";
-                            const v = parseFloat(r[chngField]);
-                            if (!isNaN(v)) {
-                                sums[g] = (sums[g] || 0) + v;
-                                counts[g] = (counts[g] || 0) + 1;
-                            }
-                        });
-                        const groups = Object.keys(sums).map((g) => ({
-                            name: g,
-                            avg: counts[g] > 0 ? sums[g] / counts[g] : null,
-                        }));
-                        const sorted = [...groups].filter((g) => g.avg !== null).sort((a, b) => b.avg - a.avg);
-                        const total = sorted.length;
-                        sorted.forEach((g, i) => {
-                            const rank = i + 1;
-                            if (!groupRankMap.has(g.name)) groupRankMap.set(g.name, {});
-                            const entry = groupRankMap.get(g.name);
-                            entry[rankKey] = rank;
-                            entry[totalKey] = total;
-                            entry[pctKey] = (rank / total) * 100;
-                        });
-                    };
-
-                    // Industry rank — global scope (matches 📊 Industry popup)
-                    rankGroupsInto(rows, "Industry", "5 Days Chng%", "ind5dRank", "ind5dTotal", "ind5dPct");
-                    rankGroupsInto(rows, "Industry", "1 Month Chng%", "ind1mRank", "ind1mTotal", "ind1mPct");
-
-                    // Basic Industry rank — scoped PER PARENT INDUSTRY
-                    // (matches the drill-down popup opened from an Industry row)
-                    const rowsByIndustry = {};
-                    rows.forEach((r) => {
-                        const ind = r["Industry"] || "—";
-                        (rowsByIndustry[ind] ||= []).push(r);
-                    });
-                    Object.values(rowsByIndustry).forEach((industryRows) => {
-                        rankGroupsInto(industryRows, "Basic Industry", "5 Days Chng%", "bi5dRank", "bi5dTotal", "bi5dPct");
-                        rankGroupsInto(industryRows, "Basic Industry", "1 Month Chng%", "bi1mRank", "bi1mTotal", "bi1mPct");
-                    });
 
                     // Build hierarchy maps
                     rows.forEach((r) => {
@@ -9187,9 +9357,20 @@
                     // data and diff against yesterday's stored result to find
                     // new stocks — populates alertBadgeMap (used by renderPage)
                     // and pops a summary alert if the data date has changed.
-                    runAlertBadgeCheck(dates.length ? dates[0] : null);
+                    try {
+                        await runAlertBadgeCheck(dates.length ? dates[0] : null);
+                    } catch (err) {
+                        console.warn("Alert badge check failed:", err);
+                    }
 
+                    syncIndicatorQuerySettingToHelper();
                     applyFilters();
+
+                    // Indicator Advance Query: start the background worker only after the page
+                    // is fully loaded and painted, and only if the Settings switch is on (once).
+                    const kickIndicatorEngine = () => requestAnimationFrame(() => ensureIndicatorEngineStarted());
+                    if (document.readyState === "complete") kickIndicatorEngine();
+                    else window.addEventListener("load", kickIndicatorEngine, { once: true });
                 } catch (e) {
                     document.getElementById("loading").style.display = "none";
                     const el = document.getElementById("error-msg");
@@ -9314,501 +9495,79 @@
                 return isNaN(v) ? null : v;
             }
 
-            function applyFilters(callRenderPage = true) {
-                const search = gv("f_search").toLowerCase();
-                const macros = mselGetSelected("f_macro");
-                const sectors = mselGetSelected("f_sector");
-                const industries = mselGetSelected("f_industry");
-                const basics = mselGetSelected("f_basic");
-                const bands = mselGetSelected("f_priceband");
-                const advDecl = mselGetSelected("f_adv_decl");
-                const allIndexSel = mselGetSelected("f_allindex");
-                const wlNames = mselGetSelected("f_watchlist");
-                const wlCodesUnion = wlNames.length
-                    ? new Set(
-                          loadWatchlists()
-                              .filter((wl) => wlNames.includes(wl.name))
-                              .flatMap((wl) => wl.codes),
-                      )
-                    : null;
-
-                const rsMin = gn("f_rs_min");
-                const rsMax = gn("f_rs_max");
-                const mcMin = gn("f_mcap_min");
-                const mcMax = gn("f_mcap_max");
-                const rs1Min = gn("f_rs1m_min");
-                const rs1Max = gn("f_rs1m_max");
-                const rs3Min = gn("f_rs3m_min");
-                const rs3Max = gn("f_rs3m_max");
-                const rs2Min = gn("f_rs2m_min");
-                const rs2Max = gn("f_rs2m_max");
-                const rs4Min = gn("f_rs4m_min");
-                const rs4Max = gn("f_rs4m_max");
-                const rs6Min = gn("f_rs6m_min");
-                const rs6Max = gn("f_rs6m_max");
-                const lin3Min = gn("f_lin3m_min");
-                const lin1Min = gn("f_lin1m_min");
-                const rvolAvg3mMin = gn("f_rvol_avg_3m_min");
-                const dcr1Min = gn("f_dcr1_min");
-                const dcr1Max = gn("f_dcr1_max");
-                const dcr5Min = gn("f_dcr5_min");
-                const dcr5Max = gn("f_dcr5_max");
-                const dcr10Min = gn("f_dcr10_min");
-                const dcr10Max = gn("f_dcr10_max");
-                const dcr15Min = gn("f_dcr15_min");
-                const dcr15Max = gn("f_dcr15_max");
-                const rmv15Min = gn("f_rmv15_min");
-                const rmv15Max = gn("f_rmv15_max");
-                const rmv21Min = gn("f_rmv21_min");
-                const rmv21Max = gn("f_rmv21_max");
-                const rmv42Min = gn("f_rmv42_min");
-                const rmv42Max = gn("f_rmv42_max");
-                const peMin = gn("f_pe_min");
-                const peMax = gn("f_pe_max");
-                const clMin = gn("f_close_min");
-                const clMax = gn("f_close_max");
-                const roeMin = gn("f_roe_min");
-                const roeMax = gn("f_roe_max");
-                const debtMin = gn("f_debt_min");
-                const debtMax = gn("f_debt_max");
-                const cashflowMin = gn("f_cashflow_min");
-                const cashflowMax = gn("f_cashflow_max");
-                const bookvalMin = gn("f_bookval_min");
-                const bookvalMax = gn("f_bookval_max");
-                const toMin = gn("f_to_min");
-                const toMax = gn("f_to_max");
-                const promMin = gn("f_prom_min");
-                const promMax = gn("f_prom_max");
-                const nrMin = gn("f_nr_min");
-                const fiveDrMin = gn("f_5dr_min");
-                const fiveDrMax = gn("f_5dr_max");
-                const tenDrMin = gn("f_10dr_min");
-                const tenDrMax = gn("f_10dr_max");
-                const fifteenDrMin = gn("f_15dr_min");
-                const fifteenDrMax = gn("f_15dr_max");
-                const twentyoneDrMin = gn("f_21dr_min");
-                const twentyoneDrMax = gn("f_21dr_max");
-                const afh_0_5mMin = gn("f_afh_0_5m_min");
-                const afh_0_5mMax = gn("f_afh_0_5m_max");
-                const afh1mMin = gn("f_afh1m_min");
-                const afh1mMax = gn("f_afh1m_max");
-                const afh2mMin = gn("f_afh2m_min");
-                const afh2mMax = gn("f_afh2m_max");
-                const afh3mMin = gn("f_afh3m_min");
-                const afh3mMax = gn("f_afh3m_max");
-                const afh4mMin = gn("f_afh4m_min");
-                const afh4mMax = gn("f_afh4m_max");
-                const afh5mMin = gn("f_afh5m_min");
-                const afh5mMax = gn("f_afh5m_max");
-                const afh6mMin = gn("f_afh6m_min");
-                const afh6mMax = gn("f_afh6m_max");
-                const afh9mMin = gn("f_afh9m_min");
-                const afh9mMax = gn("f_afh9m_max");
-                const sma10Min = gn("f_sma10_min");
-                const sma10Max = gn("f_sma10_max");
-                const sma20Min = gn("f_sma20_min");
-                const sma20Max = gn("f_sma20_max");
-                const sma50Min = gn("f_sma50_min");
-                const sma50Max = gn("f_sma50_max");
-                const sma100Min = gn("f_sma100_min");
-                const sma100Max = gn("f_sma100_max");
-                const sma150Min = gn("f_sma150_min");
-                const sma150Max = gn("f_sma150_max");
-                const sma200Min = gn("f_sma200_min");
-                const sma200Max = gn("f_sma200_max");
-                const chg1dMin = gn("f_chg1d_min");
-                const chg1dMax = gn("f_chg1d_max");
-                const chg5dMin = gn("f_chg5d_min");
-                const chg5dMax = gn("f_chg5d_max");
-                const chg1mMin = gn("f_chg1m_min");
-                const chg1mMax = gn("f_chg1m_max");
-                const chg3mMin = gn("f_chg3m_min");
-                const chg3mMax = gn("f_chg3m_max");
-                const chg2mMin = gn("f_chg2m_min");
-                const chg2mMax = gn("f_chg2m_max");
-                const chg4mMin = gn("f_chg4m_min");
-                const chg4mMax = gn("f_chg4m_max");
-                const chg6mMin = gn("f_chg6m_min");
-                const chg6mMax = gn("f_chg6m_max");
-                const biRankPct = gn("f_bi_rank_pct");
-                const indRankPct = gn("f_ind_rank_pct");
-                const bi5dRankPct = gn("f_bi5d_rank_pct");
-                const ind5dRankPct = gn("f_ind5d_rank_pct");
-                const bi1mRankPct = gn("f_bi1m_rank_pct");
-                const ind1mRankPct = gn("f_ind1m_rank_pct");
-                const eps1Min = gn("f_eps1_min");
-                const eps1Max = gn("f_eps1_max");
-                const eps2Min = gn("f_eps2_min");
-                const eps2Max = gn("f_eps2_max");
-                const sal1Min = gn("f_sal1_min");
-                const sal1Max = gn("f_sal1_max");
-                const sal2Min = gn("f_sal2_min");
-                const sal2Max = gn("f_sal2_max");
-                const epsq1Min = gn("f_epsq1_min");
-                const epsq1Max = gn("f_epsq1_max");
-                const salq1Min = gn("f_salq1_min");
-                const salq1Max = gn("f_salq1_max");
-                const epsq2Min = gn("f_epsq2_min");
-                const epsq2Max = gn("f_epsq2_max");
-                const salq2Min = gn("f_salq2_min");
-                const salq2Max = gn("f_salq2_max");
-
-                const volAbv = gc("f_vol_abv");
-                const toAbv = gc("f_to_abv");
-                const delAbv = gc("f_del_abv");
-                const tradableOnly = gc("f_tradable");
-                const fnoOnly = gc("f_fno");
-                const rsTrend5Only = gc("f_rs_trend_5");
-                const rsTrend10Only = gc("f_rs_trend_10");
-                const aai1dOnly = gc("f_aai_1d");
-                const aai5dOnly = gc("f_aai_5d");
-                const aai1mOnly = gc("f_aai_1m");
-                const aai2mOnly = gc("f_aai_2m");
-                const aai3mOnly = gc("f_aai_3m");
-                const aai4mOnly = gc("f_aai_4m");
-                const aai6mOnly = gc("f_aai_6m");
-                const hlStructureOnly = gc("f_hl_structure");
-                const hlStructure3mOnly = gc("f_hl_structure_3m");
-
-                filteredData = allData.filter((r) => {
-                    if (search) {
-                        const code = (r.Code || "").toLowerCase();
-                        const name = (r.Name || "").toLowerCase();
-                        if (!code.includes(search) && !name.includes(search)) return false;
-                    }
-                    if (macros.length && !macros.includes(r["Macro Economic Sector"])) return false;
-                    if (sectors.length && !sectors.includes(r["Sector"])) return false;
-                    if (industries.length && !industries.includes(r["Industry"])) return false;
-                    if (basics.length && !basics.includes(r["Basic Industry"])) return false;
-                    if (bands.length && !bands.includes(String(r["Price Band %"]))) return false;
-                    if (advDecl.length && !advDecl.includes(String(r["Advancing_Neutral_Declining"]))) return false;
-                    if (allIndexSel.length && !getAllIndexValues(r).some((v) => allIndexSel.includes(v))) return false;
-                    if (wlCodesUnion && !wlCodesUnion.has(r.Code)) return false;
-
-                    const rs = parseFloat(r["RS TOTAL"]);
-                    if (rsMin !== null && (isNaN(rs) || rs < rsMin)) return false;
-                    if (rsMax !== null && (isNaN(rs) || rs > rsMax)) return false;
-
-                    const mc = parseFloat(r["Market Cap"]) / 10_000_000;
-                    if (mcMin !== null && (isNaN(mc) || mc < mcMin)) return false;
-                    if (mcMax !== null && (isNaN(mc) || mc > mcMax)) return false;
-
-                    const rs1 = parseFloat(r["1 Month RS"]);
-                    if (rs1Min !== null && (isNaN(rs1) || rs1 < rs1Min)) return false;
-                    if (rs1Max !== null && (isNaN(rs1) || rs1 > rs1Max)) return false;
-
-                    const rs3 = parseFloat(r["3 Months RS"]);
-                    if (rs3Min !== null && (isNaN(rs3) || rs3 < rs3Min)) return false;
-                    if (rs3Max !== null && (isNaN(rs3) || rs3 > rs3Max)) return false;
-
-                    const rs2 = parseFloat(r["2 Months RS"]);
-                    if (rs2Min !== null && (isNaN(rs2) || rs2 < rs2Min)) return false;
-                    if (rs2Max !== null && (isNaN(rs2) || rs2 > rs2Max)) return false;
-
-                    const rs4 = parseFloat(r["4 Months RS"]);
-                    if (rs4Min !== null && (isNaN(rs4) || rs4 < rs4Min)) return false;
-                    if (rs4Max !== null && (isNaN(rs4) || rs4 > rs4Max)) return false;
-
-                    const rs6 = parseFloat(r["6 Months RS"]);
-                    if (rs6Min !== null && (isNaN(rs6) || rs6 < rs6Min)) return false;
-                    if (rs6Max !== null && (isNaN(rs6) || rs6 > rs6Max)) return false;
-
-                    const lin3 = parseFloat(r["3 Month Linearity >= 0.5"]);
-                    if (lin3Min !== null && (isNaN(lin3) || lin3 < lin3Min)) return false;
-
-                    const lin1 = parseFloat(r["1 Month Linearity >= 0.5"]);
-                    if (lin1Min !== null && (isNaN(lin1) || lin1 < lin1Min)) return false;
-
-                    const rvolAvg3m = parseFloat(r["Rvol_Avg_3_Month"]);
-                    if (rvolAvg3mMin !== null && (isNaN(rvolAvg3m) || rvolAvg3m < rvolAvg3mMin)) return false;
-
-                    const dcr1 = parseFloat(r["DCR_1"]);
-                    if (dcr1Min !== null && (isNaN(dcr1) || dcr1 < dcr1Min)) return false;
-                    if (dcr1Max !== null && (isNaN(dcr1) || dcr1 > dcr1Max)) return false;
-
-                    const dcr5 = parseFloat(r["DCR_5"]);
-                    if (dcr5Min !== null && (isNaN(dcr5) || dcr5 < dcr5Min)) return false;
-                    if (dcr5Max !== null && (isNaN(dcr5) || dcr5 > dcr5Max)) return false;
-
-                    const dcr10 = parseFloat(r["DCR_10"]);
-                    if (dcr10Min !== null && (isNaN(dcr10) || dcr10 < dcr10Min)) return false;
-                    if (dcr10Max !== null && (isNaN(dcr10) || dcr10 > dcr10Max)) return false;
-
-                    const dcr15 = parseFloat(r["DCR_15"]);
-                    if (dcr15Min !== null && (isNaN(dcr15) || dcr15 < dcr15Min)) return false;
-                    if (dcr15Max !== null && (isNaN(dcr15) || dcr15 > dcr15Max)) return false;
-
-                    const rmv15 = parseFloat(r["RMV_15"]);
-                    if (rmv15Min !== null && (isNaN(rmv15) || rmv15 < rmv15Min)) return false;
-                    if (rmv15Max !== null && (isNaN(rmv15) || rmv15 > rmv15Max)) return false;
-
-                    const rmv21 = parseFloat(r["RMV_21"]);
-                    if (rmv21Min !== null && (isNaN(rmv21) || rmv21 < rmv21Min)) return false;
-                    if (rmv21Max !== null && (isNaN(rmv21) || rmv21 > rmv21Max)) return false;
-
-                    const rmv42 = parseFloat(r["RMV_42"]);
-                    if (rmv42Min !== null && (isNaN(rmv42) || rmv42 < rmv42Min)) return false;
-                    if (rmv42Max !== null && (isNaN(rmv42) || rmv42 > rmv42Max)) return false;
-
-                    const pe = parseFloat(r["PE"]);
-                    if (peMin !== null && (isNaN(pe) || pe < peMin)) return false;
-                    if (peMax !== null && (isNaN(pe) || pe > peMax)) return false;
-
-                    const cl = parseFloat(r["Close"]);
-                    if (clMin !== null && (isNaN(cl) || cl < clMin)) return false;
-                    if (clMax !== null && (isNaN(cl) || cl > clMax)) return false;
-
-                    const roe = parseFloat(r["ROE"]);
-                    if (roeMin !== null && (isNaN(roe) || roe < roeMin)) return false;
-                    if (roeMax !== null && (isNaN(roe) || roe > roeMax)) return false;
-
-                    const debt = parseFloat(r["Debt"]);
-                    if (debtMin !== null && (isNaN(debt) || debt < debtMin)) return false;
-                    if (debtMax !== null && (isNaN(debt) || debt > debtMax)) return false;
-
-                    const cashflow = parseFloat(r["Cash Flow"]);
-                    if (cashflowMin !== null && (isNaN(cashflow) || cashflow < cashflowMin)) return false;
-                    if (cashflowMax !== null && (isNaN(cashflow) || cashflow > cashflowMax)) return false;
-
-                    const bookval = parseFloat(r["Book Val"]);
-                    if (bookvalMin !== null && (isNaN(bookval) || bookval < bookvalMin)) return false;
-                    if (bookvalMax !== null && (isNaN(bookval) || bookval > bookvalMax)) return false;
-
-                    const to = parseFloat(r["Net Turnover"]) / 10_000_000;
-                    if (toMin !== null && (isNaN(to) || to < toMin)) return false;
-                    if (toMax !== null && (isNaN(to) || to > toMax)) return false;
-
-                    const prom = parseFloat(r["Prom Hold %"]);
-                    if (promMin !== null && (isNaN(prom) || prom < promMin)) return false;
-                    if (promMax !== null && (isNaN(prom) || prom > promMax)) return false;
-
-                    const nr = parseFloat(r["Narrow Range"]);
-                    if (nrMin !== null && (isNaN(nr) || nr < nrMin)) return false;
-
-                    const fiveDr = parseFloat(r["5 Days Range%"]);
-                    if (fiveDrMin !== null && (isNaN(fiveDr) || fiveDr < fiveDrMin)) return false;
-                    if (fiveDrMax !== null && (isNaN(fiveDr) || fiveDr > fiveDrMax)) return false;
-
-                    const tenDr = parseFloat(r["10 Days Range%"]);
-                    if (tenDrMin !== null && (isNaN(tenDr) || tenDr < tenDrMin)) return false;
-                    if (tenDrMax !== null && (isNaN(tenDr) || tenDr > tenDrMax)) return false;
-
-                    const fifteenDr = parseFloat(r["15 Days Range%"]);
-                    if (fifteenDrMin !== null && (isNaN(fifteenDr) || fifteenDr < fifteenDrMin)) return false;
-                    if (fifteenDrMax !== null && (isNaN(fifteenDr) || fifteenDr > fifteenDrMax)) return false;
-
-                    const twentyoneDr = parseFloat(r["21 Days Range%"]);
-                    if (twentyoneDrMin !== null && (isNaN(twentyoneDr) || twentyoneDr < twentyoneDrMin)) return false;
-                    if (twentyoneDrMax !== null && (isNaN(twentyoneDr) || twentyoneDr > twentyoneDrMax)) return false;
-
-                    const afh_0_5m = parseFloat(r["Away_From_High_0_5_Month"]);
-                    if (afh_0_5mMin !== null && (isNaN(afh_0_5m) || afh_0_5m < afh_0_5mMin)) return false;
-                    if (afh_0_5mMax !== null && (isNaN(afh_0_5m) || afh_0_5m > afh_0_5mMax)) return false;
-
-                    const afh1m = parseFloat(r["Away_From_High_1_Month"]);
-                    if (afh1mMin !== null && (isNaN(afh1m) || afh1m < afh1mMin)) return false;
-                    if (afh1mMax !== null && (isNaN(afh1m) || afh1m > afh1mMax)) return false;
-
-                    const afh2m = parseFloat(r["Away_From_High_2_Month"]);
-                    if (afh2mMin !== null && (isNaN(afh2m) || afh2m < afh2mMin)) return false;
-                    if (afh2mMax !== null && (isNaN(afh2m) || afh2m > afh2mMax)) return false;
-
-                    const afh3m = parseFloat(r["Away_From_High_3_Month"]);
-                    if (afh3mMin !== null && (isNaN(afh3m) || afh3m < afh3mMin)) return false;
-                    if (afh3mMax !== null && (isNaN(afh3m) || afh3m > afh3mMax)) return false;
-
-                    const afh4m = parseFloat(r["Away_From_High_4_Month"]);
-                    if (afh4mMin !== null && (isNaN(afh4m) || afh4m < afh4mMin)) return false;
-                    if (afh4mMax !== null && (isNaN(afh4m) || afh4m > afh4mMax)) return false;
-
-                    const afh5m = parseFloat(r["Away_From_High_5_Month"]);
-                    if (afh5mMin !== null && (isNaN(afh5m) || afh5m < afh5mMin)) return false;
-                    if (afh5mMax !== null && (isNaN(afh5m) || afh5m > afh5mMax)) return false;
-
-                    const afh6m = parseFloat(r["Away_From_High_6_Month"]);
-                    if (afh6mMin !== null && (isNaN(afh6m) || afh6m < afh6mMin)) return false;
-                    if (afh6mMax !== null && (isNaN(afh6m) || afh6m > afh6mMax)) return false;
-
-                    const afh9m = parseFloat(r["Away_From_High_9_Month"]);
-                    if (afh9mMin !== null && (isNaN(afh9m) || afh9m < afh9mMin)) return false;
-                    if (afh9mMax !== null && (isNaN(afh9m) || afh9m > afh9mMax)) return false;
-
-                    const sma10 = parseFloat(r["Away_From_SMA10"]);
-                    if (sma10Min !== null && (isNaN(sma10) || sma10 < sma10Min)) return false;
-                    if (sma10Max !== null && (isNaN(sma10) || sma10 > sma10Max)) return false;
-
-                    const sma20 = parseFloat(r["Away_From_SMA20"]);
-                    if (sma20Min !== null && (isNaN(sma20) || sma20 < sma20Min)) return false;
-                    if (sma20Max !== null && (isNaN(sma20) || sma20 > sma20Max)) return false;
-
-                    const sma50 = parseFloat(r["Away_From_SMA50"]);
-                    if (sma50Min !== null && (isNaN(sma50) || sma50 < sma50Min)) return false;
-                    if (sma50Max !== null && (isNaN(sma50) || sma50 > sma50Max)) return false;
-
-                    const sma100 = parseFloat(r["Away_From_SMA100"]);
-                    if (sma100Min !== null && (isNaN(sma100) || sma100 < sma100Min)) return false;
-                    if (sma100Max !== null && (isNaN(sma100) || sma100 > sma100Max)) return false;
-
-                    const sma150 = parseFloat(r["Away_From_SMA150"]);
-                    if (sma150Min !== null && (isNaN(sma150) || sma150 < sma150Min)) return false;
-                    if (sma150Max !== null && (isNaN(sma150) || sma150 > sma150Max)) return false;
-
-                    const sma200 = parseFloat(r["Away_From_SMA200"]);
-                    if (sma200Min !== null && (isNaN(sma200) || sma200 < sma200Min)) return false;
-                    if (sma200Max !== null && (isNaN(sma200) || sma200 > sma200Max)) return false;
-
-                    const chg1d = parseFloat(r["1 Day Chng%"]);
-                    if (chg1dMin !== null && (isNaN(chg1d) || chg1d < chg1dMin)) return false;
-                    if (chg1dMax !== null && (isNaN(chg1d) || chg1d > chg1dMax)) return false;
-
-                    const chg5d = parseFloat(r["5 Days Chng%"]);
-                    if (chg5dMin !== null && (isNaN(chg5d) || chg5d < chg5dMin)) return false;
-                    if (chg5dMax !== null && (isNaN(chg5d) || chg5d > chg5dMax)) return false;
-
-                    const chg1m = parseFloat(r["1 Month Chng%"]);
-                    if (chg1mMin !== null && (isNaN(chg1m) || chg1m < chg1mMin)) return false;
-                    if (chg1mMax !== null && (isNaN(chg1m) || chg1m > chg1mMax)) return false;
-
-                    const chg3m = parseFloat(r["3 Months Chng%"]);
-                    if (chg3mMin !== null && (isNaN(chg3m) || chg3m < chg3mMin)) return false;
-                    if (chg3mMax !== null && (isNaN(chg3m) || chg3m > chg3mMax)) return false;
-
-                    const chg2m = parseFloat(r["2 Months Chng%"]);
-                    if (chg2mMin !== null && (isNaN(chg2m) || chg2m < chg2mMin)) return false;
-                    if (chg2mMax !== null && (isNaN(chg2m) || chg2m > chg2mMax)) return false;
-
-                    const chg4m = parseFloat(r["4 Months Chng%"]);
-                    if (chg4mMin !== null && (isNaN(chg4m) || chg4m < chg4mMin)) return false;
-                    if (chg4mMax !== null && (isNaN(chg4m) || chg4m > chg4mMax)) return false;
-
-                    const chg6m = parseFloat(r["6 Months Chng%"]);
-                    if (chg6mMin !== null && (isNaN(chg6m) || chg6m < chg6mMin)) return false;
-                    if (chg6mMax !== null && (isNaN(chg6m) || chg6m > chg6mMax)) return false;
-
-                    if (biRankPct !== null || indRankPct !== null || bi5dRankPct !== null || ind5dRankPct !== null || bi1mRankPct !== null || ind1mRankPct !== null) {
-                        const pr = peerRankMap.get(r.Code);
-                        if (biRankPct !== null) {
-                            if (!pr || pr.biPct > biRankPct) return false;
-                        }
-                        if (indRankPct !== null) {
-                            if (!pr || pr.indPct > indRankPct) return false;
-                        }
-                        if (bi5dRankPct !== null) {
-                            const g = groupRankMap.get(r["Basic Industry"]);
-                            if (!g || g.bi5dPct === undefined || g.bi5dPct > bi5dRankPct) return false;
-                        }
-                        if (ind5dRankPct !== null) {
-                            const g = groupRankMap.get(r["Industry"]);
-                            if (!g || g.ind5dPct === undefined || g.ind5dPct > ind5dRankPct) return false;
-                        }
-                        if (bi1mRankPct !== null) {
-                            const g = groupRankMap.get(r["Basic Industry"]);
-                            if (!g || g.bi1mPct === undefined || g.bi1mPct > bi1mRankPct) return false;
-                        }
-                        if (ind1mRankPct !== null) {
-                            const g = groupRankMap.get(r["Industry"]);
-                            if (!g || g.ind1mPct === undefined || g.ind1mPct > ind1mRankPct) return false;
-                        }
-                    }
-
-                    const eps1 = parseFloat(r["EPS Latest Qtr %"]);
-                    if (eps1Min !== null && (isNaN(eps1) || eps1 < eps1Min)) return false;
-                    if (eps1Max !== null && (isNaN(eps1) || eps1 > eps1Max)) return false;
-
-                    const eps2 = parseFloat(r["EPS Prev Qtr %"]);
-                    if (eps2Min !== null && (isNaN(eps2) || eps2 < eps2Min)) return false;
-                    if (eps2Max !== null && (isNaN(eps2) || eps2 > eps2Max)) return false;
-
-                    const sal1 = parseFloat(r["Sales Latest Qtr %"]);
-                    if (sal1Min !== null && (isNaN(sal1) || sal1 < sal1Min)) return false;
-                    if (sal1Max !== null && (isNaN(sal1) || sal1 > sal1Max)) return false;
-
-                    const sal2 = parseFloat(r["Sales Prev Qtr %"]);
-                    if (sal2Min !== null && (isNaN(sal2) || sal2 < sal2Min)) return false;
-                    if (sal2Max !== null && (isNaN(sal2) || sal2 > sal2Max)) return false;
-
-                    const epsq1 = parseFloat(r["EPS Latest Qtr QoQ %"]);
-                    if (epsq1Min !== null && (isNaN(epsq1) || epsq1 < epsq1Min)) return false;
-                    if (epsq1Max !== null && (isNaN(epsq1) || epsq1 > epsq1Max)) return false;
-
-                    const salq1 = parseFloat(r["Sales Latest Qtr QoQ %"]);
-                    if (salq1Min !== null && (isNaN(salq1) || salq1 < salq1Min)) return false;
-                    if (salq1Max !== null && (isNaN(salq1) || salq1 > salq1Max)) return false;
-
-                    const epsq2 = parseFloat(r["EPS Prev Qtr QoQ %"]);
-                    if (epsq2Min !== null && (isNaN(epsq2) || epsq2 < epsq2Min)) return false;
-                    if (epsq2Max !== null && (isNaN(epsq2) || epsq2 > epsq2Max)) return false;
-
-                    const salq2 = parseFloat(r["Sales Prev Qtr QoQ %"]);
-                    if (salq2Min !== null && (isNaN(salq2) || salq2 < salq2Min)) return false;
-                    if (salq2Max !== null && (isNaN(salq2) || salq2 > salq2Max)) return false;
-
-                    if (volAbv && r["Volume Above Avg"] !== "Yes") return false;
-                    if (toAbv && r["Turnover Above Avg"] !== "Yes") return false;
-                    if (delAbv && r["Delivery Above Avg"] !== "Yes") return false;
-                    if (tradableOnly && r["Is Tradable"] != 1) return false;
-                    if (fnoOnly && r["F&O"] != 1) return false;
-                    if (rsTrend5Only && r["RS_Trend_5"] != 1) return false;
-                    if (rsTrend10Only && r["RS_Trend_10"] != 1) return false;
-                    if (aai1dOnly && r["Above All Indices (1D)"] != 1) return false;
-                    if (aai5dOnly && r["Above All Indices (5D)"] != 1) return false;
-                    if (aai1mOnly && r["Above All Indices (1M)"] != 1) return false;
-                    if (aai2mOnly && r["Above All Indices (2M)"] != 1) return false;
-                    if (aai3mOnly && r["Above All Indices (3M)"] != 1) return false;
-                    if (aai4mOnly && r["Above All Indices (4M)"] != 1) return false;
-                    if (aai6mOnly && r["Above All Indices (6M)"] != 1) return false;
-                    if (hlStructureOnly && r["Higher_Low_Structure"] != 1) return false;
-                    if (hlStructure3mOnly && r["Higher_Low_Structure_3M"] != 1) return false;
-
-                    return true;
-                });
-
-                // Advanced query builder (AND/OR/NOT + brackets), applied on
-                // top of the regular filters above when enabled.
-                const advEnabled = gc("f_adv_enabled");
-                const advText = gv("f_adv_query");
-                const advStatusEl = document.getElementById("advQueryStatus");
-                if (advEnabled && advText.trim()) {
-                    try {
-                        const advPred = advGetPredicate(advText);
-                        if (advPred) filteredData = filteredData.filter(advPred);
-                        if (advStatusEl) {
-                            advStatusEl.textContent = `✓ Valid — ${filteredData.length.toLocaleString("en-IN")} stocks match all filters`;
-                            advStatusEl.className = "adv-query-status adv-query-ok";
-                        }
-                    } catch (e) {
-                        if (advStatusEl) {
-                            advStatusEl.textContent = `⚠ ${e.message}`;
-                            advStatusEl.className = "adv-query-status adv-query-err";
-                        }
-                    }
-                }
-
-                if (callRenderPage) {
-                    sortData();
-                    currentPage = 1;
-                    updateStats();
-
-                    if (document.readyState === "loading") {
-                        // Page is not loaded yet — wait until DOM is ready
-                        document.addEventListener(
-                            "DOMContentLoaded",
-                            () => {
-                                renderPage();
-                                renderPagination();
-                                // const cv = loadColumnVisibility();
-                                // applyColumnVisibility(cv);
-                            },
-                            { once: true },
-                        );
-                        return;
-                    }
-
+            let filterReqSeq = 0;
+
+            // Union of the selected watchlists' codes (localStorage isn't visible to workers)
+            function wlCodesForState(state) {
+                const names = (state && state.f_watchlist) || [];
+                if (!names.length) return null;
+                return [...new Set(loadWatchlists().filter((wl) => names.includes(wl.name)).flatMap((wl) => wl.codes))];
+            }
+
+            function rowsFromIdx(idx) {
+                const out = new Array(idx.length);
+                for (let i = 0; i < idx.length; i++) out[i] = allData[idx[i]];
+                return out;
+            }
+
+            function renderAfterFilter() {
+                currentPage = 1;
+                updateStats();
+                const go = () => {
                     renderPage();
                     renderPagination();
-                    // const cv = loadColumnVisibility();
-                    // applyColumnVisibility(cv);
-                }
+                };
+                if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go, { once: true });
+                else go();
+            }
+
+            // Same behaviour as before, but the heavy lifting (filter + advanced query +
+            // sort) happens in the data worker. Latest request wins; stale replies are dropped.
+            function applyFilters(callRenderPage = true) {
+                if (!(window.DataEngine && DataEngine.ready)) return; // data not loaded yet
+
+                const state = captureFilters();
+                const reqId = ++filterReqSeq;
+                const sc = sortCol,
+                    sd = sortDir;
+
+                DataEngine.filter({ state, wlCodes: wlCodesForState(state), sortCol: sc, sortDir: sd, doSort: callRenderPage })
+                    .then((res) => {
+                        if (reqId !== filterReqSeq) return; // a newer applyFilters() superseded this one
+                        filteredData = rowsFromIdx(res.idx);
+
+                        // Indicator Advance Query runs last, on the main thread (the indicator
+                        // series live in memory here, not in the data worker). Row order is
+                        // preserved, so the worker's sort stays valid.
+                        if (state.f_indicator_enabled && state.f_indicator_query) {
+                            if (isIndicatorQuerySettingOn()) {
+                                filteredData = applyIndicatorQueryFilter(filteredData, state.f_indicator_query);
+                            }
+                        }
+                        // One function owns the status text (disabled / calculating / ready / valid).
+                        if (typeof refreshIndicatorStatus === "function") refreshIndicatorStatus();
+
+                        const advStatusEl = document.getElementById("advQueryStatus");
+                        if (res.adv && advStatusEl) {
+                            if (res.adv.ok) {
+                                advStatusEl.textContent = `✓ Valid — ${filteredData.length.toLocaleString("en-IN")} stocks match all filters`;
+                                advStatusEl.className = "adv-query-status adv-query-ok";
+                            } else {
+                                advStatusEl.textContent = `⚠ ${res.adv.message}`;
+                                advStatusEl.className = "adv-query-status adv-query-err";
+                            }
+                        }
+
+                        if (callRenderPage) {
+                            // the sort column may have changed while we were waiting
+                            if (sc !== sortCol || sd !== sortDir) sortDataAsync().then(renderAfterFilter);
+                            else renderAfterFilter();
+                        }
+                    })
+                    .catch((err) => {
+                        if (reqId !== filterReqSeq) return;
+                        console.error("[DataEngine] filter failed:", err);
+                    });
             }
 
             // ---- Collapsible filter groups ----
@@ -9890,13 +9649,15 @@
                 rebuildSectorDropdown([]);
                 rebuildIndustryDropdown([], []);
                 rebuildBasicDropdown([], [], []);
-                ["f_vol_abv", "f_to_abv", "f_del_abv", "f_tradable", "f_fno", "f_rs_trend_5", "f_rs_trend_10", "f_aai_1d", "f_aai_5d", "f_aai_1m", "f_aai_2m", "f_aai_3m", "f_aai_4m", "f_aai_6m", "f_adv_enabled", "f_hl_structure", "f_hl_structure_3m"].forEach((id) => {
+                ["f_vol_abv", "f_to_abv", "f_del_abv", "f_tradable", "f_fno", "f_rs_trend_5", "f_rs_trend_10", "f_aai_1d", "f_aai_5d", "f_aai_1m", "f_aai_2m", "f_aai_3m", "f_aai_4m", "f_aai_6m", "f_adv_enabled", "f_indicator_enabled", "f_hl_structure", "f_hl_structure_3m"].forEach((id) => {
                     const el = document.getElementById(id);
                     if (el) el.checked = false;
                 });
                 const advTa = document.getElementById("f_adv_query");
                 if (advTa) advTa.value = "";
                 advValidateQuery();
+                if (typeof setIndicatorQueryText === "function") setIndicatorQueryText("");
+                syncIndicatorQueryFieldUI();
                 if (callApplyFilter) {
                     applyFilters();
                 }
@@ -10099,6 +9860,8 @@
             function defaultChartSettings() {
                 return {
                     enabled: true,
+                    // Main-pane price scale mode: false = Normal (0), true = Logarithmic (1)
+                    logScale: false,
                     volume: {
                         enabled: true,
                         maLength: 50,
@@ -10324,6 +10087,21 @@
                 if (e.target === document.getElementById("chartSettingsModal")) closeChartSettingsModal();
             }
 
+            // Called from the chart modal's "log" button: puts the value into the
+            // Charts settings form (after refreshing the form from storage so no
+            // other setting gets overwritten by an unpopulated form) and saves it.
+            function setChartLogScale(on) {
+                renderChartMaRows();
+                renderChartAfhRows();
+                renderChartSupertrendRows();
+                renderChartPivotTrendLineRows();
+                populateChartSourceSelects();
+                populateChartSettingsForm(loadChartSettings());
+                const el = document.querySelector('#chartSettingsModal [data-cpath="logScale"]');
+                if (el) el.checked = !!on;
+                saveChartSettings();
+            }
+
             function saveChartSettings() {
                 const oldSettings = loadChartSettings(); // ← NEW: snapshot before overwrite
                 const settings = defaultChartSettings();
@@ -10341,10 +10119,14 @@
                 });
                 saveChartSettingsToStorage(settings);
                 closeChartSettingsModal();
-                if (typeof window.onChartSettingsSaved === "function") {
-                    // ← NEW
-                    window.onChartSettingsSaved(oldSettings, settings);
-                }
+                window.dispatchEvent(
+                    new CustomEvent("chartSettingsSaved", {
+                        detail: {
+                            oldSettings,
+                            newSettings:settings
+                        }
+                    })
+                );
                 if (typeof applyChartSettings === "function") {
                     applyChartSettings(settings);
                 }
@@ -10395,52 +10177,16 @@
                 const cols = ["Code", "Name", "Close", "Narrow Range", "5 Days Range%", "10 Days Range%", "15 Days Range%", "21 Days Range%", "RMV_15", "RMV_21", "RMV_42", "Is Tradable", "Advancing_Neutral_Declining", "Higher_Low_Structure", "Higher_Low_Structure_3M", "_biRank", "_indRank", "_bi5dRank", "_ind5dRank", "_bi1mRank", "_ind1mRank", "1 Day Chng%", "RS_Trend_5", "RS_Trend_10", "Above All Indices (1D)", "Above All Indices (5D)", "Above All Indices (1M)", "Above All Indices (2M)", "Above All Indices (3M)", "Above All Indices (4M)", "Above All Indices (6M)", "RS TOTAL", "1 Month RS", "2 Months RS", "3 Months RS", "4 Months RS", "6 Months RS", "3 Month Linearity >= 0.5", "1 Month Linearity >= 0.5", "Rvol_Avg_3_Month", "Away_From_High_0_5_Month", "Away_From_High_1_Month", "Away_From_High_2_Month", "Away_From_High_3_Month", "Away_From_High_4_Month", "Away_From_High_5_Month", "Away_From_High_6_Month", "Away_From_High_9_Month", "Away_From_SMA10", "Away_From_SMA20", "Away_From_SMA50", "Away_From_SMA100", "Away_From_SMA150", "Away_From_SMA200", "5 Days Chng%", "1 Month Chng%", "2 Months Chng%", "3 Months Chng%", "4 Months Chng%", "6 Months Chng%", "DCR_1", "DCR_5", "DCR_10", "DCR_15", "Market Cap", "PE", "ROE", "Debt", "Cash Flow", "Book Val", "Macro Economic Sector", "Sector", "Industry", "Basic Industry", "Volume", "Net Turnover", "Delivery %", "Volume Above Avg", "Delivery Above Avg", "F&O", "Price Band %", "Prom Hold %", "EPS Latest Qtr %", "EPS Prev Qtr %", "Sales Latest Qtr %", "Sales Prev Qtr %", "EPS Latest Qtr QoQ %", "Sales Latest Qtr QoQ %", "EPS Prev Qtr QoQ %", "Sales Prev Qtr QoQ %", "All Index"];
                 const idx = cols.indexOf(col);
                 if (idx >= 0) ths[idx].classList.add(sortDir === -1 ? "sort-desc" : "sort-asc");
-                sortData();
-                renderPage();
+                sortDataAsync().then(() => renderPage());
                 // const cv = loadColumnVisibility();
                 // applyColumnVisibility(cv);
             }
 
-            function sortData() {
-                filteredData.sort((a, b) => {
-                    // Synthetic keys for stock-level peer ranks (RS-based, from peerRankMap)
-                    const peerRankKeyMap = {
-                        _biRank: "biRank",
-                        _indRank: "indRank",
-                    };
-                    if (peerRankKeyMap[sortCol]) {
-                        const key = peerRankKeyMap[sortCol];
-                        const ap = peerRankMap.get(a.Code);
-                        const bp = peerRankMap.get(b.Code);
-                        const av = ap ? ap[key] : Infinity;
-                        const bv = bp ? bp[key] : Infinity;
-                        return (av - bv) * sortDir;
-                    }
-                    // Synthetic keys for group-level ranks (Industry Performance
-                    // popup logic, from groupRankMap keyed by group name)
-                    const groupRankConfig = {
-                        _bi5dRank: { key: "bi5dRank", field: "Basic Industry" },
-                        _ind5dRank: { key: "ind5dRank", field: "Industry" },
-                        _bi1mRank: { key: "bi1mRank", field: "Basic Industry" },
-                        _ind1mRank: { key: "ind1mRank", field: "Industry" },
-                    };
-                    if (groupRankConfig[sortCol]) {
-                        const { key, field } = groupRankConfig[sortCol];
-                        const ag = groupRankMap.get(a[field]);
-                        const bg = groupRankMap.get(b[field]);
-                        const av = ag ? ag[key] : Infinity;
-                        const bv = bg ? bg[key] : Infinity;
-                        return (av - bv) * sortDir;
-                    }
-                    let av = a[sortCol],
-                        bv = b[sortCol];
-                    if (av === null || av === undefined || av === "") return 1;
-                    if (bv === null || bv === undefined || bv === "") return -1;
-                    const an = parseFloat(av),
-                        bn = parseFloat(bv);
-                    if (!isNaN(an) && !isNaN(bn)) return (an - bn) * sortDir;
-                    return String(av).localeCompare(String(bv)) * sortDir;
-                });
+            // Sorts the current filteredData in the data worker.
+            async function sortDataAsync() {
+                const idx = new Int32Array(filteredData.length);
+                for (let i = 0; i < idx.length; i++) idx[i] = DataEngine.rowIndex.get(filteredData[i]);
+                filteredData = rowsFromIdx(await DataEngine.sort(idx, sortCol, sortDir));
             }
 
             // ============ RENDER ============
@@ -11859,6 +11605,8 @@
                 { id: "f_hl_structure_3m", type: "check" },
                 { id: "f_adv_enabled", type: "check" },
                 { id: "f_adv_query", type: "text" },
+                { id: "f_indicator_enabled", type: "check" },
+                { id: "f_indicator_query", type: "text" },
             ];
 
             // Human-readable labels for preview
@@ -12010,6 +11758,8 @@
                 f_hl_structure_3m: "Higher Low Structure 3M",
                 f_adv_enabled: "Advanced Query Enabled",
                 f_adv_query: "Advanced Query",
+                f_indicator_enabled: "Indicator Advance Query Enabled",
+                f_indicator_query: "Indicator Advance Query",
             };
 
             // ============ ADVANCED QUERY BUILDER (AND / OR / NOT / brackets) ============
@@ -13252,190 +13002,10 @@
                 });
                 advSyncBuilderFromQuery(state.f_adv_query || "");
                 advValidateQuery();
+                handleRestoredIndicatorQuery(state.f_indicator_query || "", !!state.f_indicator_enabled);
+                syncIndicatorQueryFieldUI();
                 applyFilters();
                 autoExpandFilterGroupsWithValues();
-            }
-
-            function runFilterState(state) {
-                // Run a filter state and return matching rows (without touching the UI)
-                const get = (id) => state[id] || "";
-                const getArr = (id) => state[id] || [];
-                const gnum = (id) => {
-                    const v = parseFloat(state[id]);
-                    return isNaN(v) ? null : v;
-                };
-                const gbool = (id) => !!state[id];
-
-                const macros = getArr("f_macro");
-                const sectors = getArr("f_sector");
-                const industries = getArr("f_industry");
-                const basics = getArr("f_basic");
-                const bands = getArr("f_priceband");
-                const advDecl = getArr("f_adv_decl");
-                const allIndexSel = getArr("f_allindex");
-                const wlNames = getArr("f_watchlist");
-                const wlCodesUnion = wlNames.length
-                    ? new Set(
-                          loadWatchlists()
-                              .filter((wl) => wlNames.includes(wl.name))
-                              .flatMap((wl) => wl.codes),
-                      )
-                    : null;
-
-                const results = allData.filter((r) => {
-                    const search = get("f_search").toLowerCase();
-                    if (search) {
-                        const code = (r.Code || "").toLowerCase(),
-                            name = (r.Name || "").toLowerCase();
-                        if (!code.includes(search) && !name.includes(search)) return false;
-                    }
-                    if (macros.length && !macros.includes(r["Macro Economic Sector"])) return false;
-                    if (sectors.length && !sectors.includes(r["Sector"])) return false;
-                    if (industries.length && !industries.includes(r["Industry"])) return false;
-                    if (basics.length && !basics.includes(r["Basic Industry"])) return false;
-                    if (bands.length && !bands.includes(String(r["Price Band %"]))) return false;
-                    if (advDecl.length && !advDecl.includes(String(r["Advancing_Neutral_Declining"]))) return false;
-                    if (allIndexSel.length && !getAllIndexValues(r).some((v) => allIndexSel.includes(v))) return false;
-                    if (wlCodesUnion && !wlCodesUnion.has(r.Code)) return false;
-
-                    const chk = (field, rKey, scale = 1) => {
-                        const mn = gnum(field + "_min"),
-                            mx = gnum(field + "_max");
-                        const v = parseFloat(r[rKey]) / scale;
-                        if (mn !== null && (isNaN(v) || v < mn)) return false;
-                        if (mx !== null && (isNaN(v) || v > mx)) return false;
-                        return true;
-                    };
-                    const chk1 = (field, rKey, mn) => {
-                        const minV = gnum(field);
-                        const v = parseFloat(r[rKey]);
-                        if (minV !== null && (isNaN(v) || v < minV)) return false;
-                        return true;
-                    };
-
-                    if (!chk("f_rs", "RS TOTAL")) return false;
-                    if (!chk("f_rs1m", "1 Month RS")) return false;
-                    if (!chk("f_rs3m", "3 Months RS")) return false;
-                    if (!chk("f_rs2m", "2 Months RS")) return false;
-                    if (!chk("f_rs4m", "4 Months RS")) return false;
-                    if (!chk("f_rs6m", "6 Months RS")) return false;
-                    if (!chk("f_mcap", "Market Cap", 10_000_000)) return false;
-                    if (!chk("f_pe", "PE")) return false;
-                    if (!chk("f_close", "Close")) return false;
-                    if (!chk("f_roe", "ROE")) return false;
-                    if (!chk("f_debt", "Debt")) return false;
-                    if (!chk("f_cashflow", "Cash Flow")) return false;
-                    if (!chk("f_bookval", "Book Val")) return false;
-                    if (!chk("f_to", "Net Turnover", 10_000_000)) return false;
-                    if (!chk("f_prom", "Prom Hold %")) return false;
-                    if (!chk("f_eps1", "EPS Latest Qtr %")) return false;
-                    if (!chk("f_eps2", "EPS Prev Qtr %")) return false;
-                    if (!chk("f_sal1", "Sales Latest Qtr %")) return false;
-                    if (!chk("f_sal2", "Sales Prev Qtr %")) return false;
-                    if (!chk("f_epsq1", "EPS Latest Qtr QoQ %")) return false;
-                    if (!chk("f_salq1", "Sales Latest Qtr QoQ %")) return false;
-                    if (!chk("f_epsq2", "EPS Prev Qtr QoQ %")) return false;
-                    if (!chk("f_salq2", "Sales Prev Qtr QoQ %")) return false;
-                    if (!chk1("f_lin3m_min", "3 Month Linearity >= 0.5")) return false;
-                    if (!chk1("f_lin1m_min", "1 Month Linearity >= 0.5")) return false;
-                    if (!chk1("f_rvol_avg_3m_min", "Rvol_Avg_3_Month")) return false;
-                    if (!chk("f_dcr1", "DCR_1")) return false;
-                    if (!chk("f_dcr5", "DCR_5")) return false;
-                    if (!chk("f_dcr10", "DCR_10")) return false;
-                    if (!chk("f_dcr15", "DCR_15")) return false;
-                    if (!chk("f_rmv15", "RMV_15")) return false;
-                    if (!chk("f_rmv21", "RMV_21")) return false;
-                    if (!chk("f_rmv42", "RMV_42")) return false;
-                    if (!chk1("f_nr_min", "Narrow Range")) return false;
-                    if (!chk("f_5dr", "5 Days Range%")) return false;
-                    if (!chk("f_10dr", "10 Days Range%")) return false;
-                    if (!chk("f_15dr", "15 Days Range%")) return false;
-                    if (!chk("f_21dr", "21 Days Range%")) return false;
-                    if (!chk("f_afh_0_5m", "Away_From_High_0_5_Month")) return false;
-                    if (!chk("f_afh1m", "Away_From_High_1_Month")) return false;
-                    if (!chk("f_afh2m", "Away_From_High_2_Month")) return false;
-                    if (!chk("f_afh3m", "Away_From_High_3_Month")) return false;
-                    if (!chk("f_afh4m", "Away_From_High_4_Month")) return false;
-                    if (!chk("f_afh5m", "Away_From_High_5_Month")) return false;
-                    if (!chk("f_afh6m", "Away_From_High_6_Month")) return false;
-                    if (!chk("f_afh9m", "Away_From_High_9_Month")) return false;
-                    if (!chk("f_sma10", "Away_From_SMA10")) return false;
-                    if (!chk("f_sma20", "Away_From_SMA20")) return false;
-                    if (!chk("f_sma50", "Away_From_SMA50")) return false;
-                    if (!chk("f_sma100", "Away_From_SMA100")) return false;
-                    if (!chk("f_sma150", "Away_From_SMA150")) return false;
-                    if (!chk("f_sma200", "Away_From_SMA200")) return false;
-                    if (!chk("f_chg1d", "1 Day Chng%")) return false;
-                    if (!chk("f_chg5d", "5 Days Chng%")) return false;
-                    if (!chk("f_chg1m", "1 Month Chng%")) return false;
-                    if (!chk("f_chg3m", "3 Months Chng%")) return false;
-                    if (!chk("f_chg2m", "2 Months Chng%")) return false;
-                    if (!chk("f_chg4m", "4 Months Chng%")) return false;
-                    if (!chk("f_chg6m", "6 Months Chng%")) return false;
-
-                    const biRankPct = gnum("f_bi_rank_pct");
-                    const indRankPct = gnum("f_ind_rank_pct");
-                    const bi5dRankPct = gnum("f_bi5d_rank_pct");
-                    const ind5dRankPct = gnum("f_ind5d_rank_pct");
-                    const bi1mRankPct = gnum("f_bi1m_rank_pct");
-                    const ind1mRankPct = gnum("f_ind1m_rank_pct");
-                    if (biRankPct !== null || indRankPct !== null || bi5dRankPct !== null || ind5dRankPct !== null || bi1mRankPct !== null || ind1mRankPct !== null) {
-                        const pr = peerRankMap.get(r.Code);
-                        if (biRankPct !== null && (!pr || pr.biPct > biRankPct)) return false;
-                        if (indRankPct !== null && (!pr || pr.indPct > indRankPct)) return false;
-                        if (bi5dRankPct !== null) {
-                            const g = groupRankMap.get(r["Basic Industry"]);
-                            if (!g || g.bi5dPct === undefined || g.bi5dPct > bi5dRankPct) return false;
-                        }
-                        if (ind5dRankPct !== null) {
-                            const g = groupRankMap.get(r["Industry"]);
-                            if (!g || g.ind5dPct === undefined || g.ind5dPct > ind5dRankPct) return false;
-                        }
-                        if (bi1mRankPct !== null) {
-                            const g = groupRankMap.get(r["Basic Industry"]);
-                            if (!g || g.bi1mPct === undefined || g.bi1mPct > bi1mRankPct) return false;
-                        }
-                        if (ind1mRankPct !== null) {
-                            const g = groupRankMap.get(r["Industry"]);
-                            if (!g || g.ind1mPct === undefined || g.ind1mPct > ind1mRankPct) return false;
-                        }
-                    }
-
-                    if (gbool("f_vol_abv") && r["Volume Above Avg"] !== "Yes") return false;
-                    if (gbool("f_to_abv") && r["Turnover Above Avg"] !== "Yes") return false;
-                    if (gbool("f_del_abv") && r["Delivery Above Avg"] !== "Yes") return false;
-                    if (gbool("f_tradable") && r["Is Tradable"] != 1) return false;
-                    if (gbool("f_fno") && r["F&O"] != 1) return false;
-                    if (gbool("f_rs_trend_5") && r["RS_Trend_5"] != 1) return false;
-                    if (gbool("f_rs_trend_10") && r["RS_Trend_10"] != 1) return false;
-                    if (gbool("f_aai_1d") && r["Above All Indices (1D)"] != 1) return false;
-                    if (gbool("f_aai_5d") && r["Above All Indices (5D)"] != 1) return false;
-                    if (gbool("f_aai_1m") && r["Above All Indices (1M)"] != 1) return false;
-                    if (gbool("f_aai_2m") && r["Above All Indices (2M)"] != 1) return false;
-                    if (gbool("f_aai_3m") && r["Above All Indices (3M)"] != 1) return false;
-                    if (gbool("f_aai_4m") && r["Above All Indices (4M)"] != 1) return false;
-                    if (gbool("f_aai_6m") && r["Above All Indices (6M)"] != 1) return false;
-                    if (gbool("f_hl_structure") && r["Higher_Low_Structure"] != 1) return false;
-                    if (gbool("f_hl_structure_3m") && r["Higher_Low_Structure_3M"] != 1) return false;
-                    return true;
-                });
-
-                // Advanced query builder, honored the same way as applyFilters()
-                // so saved searches (single or "Run Selected" multi-combine)
-                // behave identically to the live filter panel.
-                if (gbool("f_adv_enabled") && get("f_adv_query").trim()) {
-                    try {
-                        const advPred = advGetPredicate(get("f_adv_query"));
-                        if (advPred) return results.filter(advPred);
-                    } catch (e) {
-                        // Invalid saved query text: log it so it's visible
-                        // during debugging, and fall back to the
-                        // non-advanced results rather than throwing or
-                        // silently returning zero rows.
-                        console.warn("Advanced query in saved search failed to parse:", get("f_adv_query"), e.message);
-                    }
-                }
-                return results;
             }
 
             // ============ ALERT BADGES (new-stock detection) ============
@@ -13451,7 +13021,7 @@
             // that are new today vs. yesterday. Populated by runAlertBadgeCheck().
             let alertBadgeMap = {};
 
-            // Convert a SETUP_PRESETS entry into a runFilterState()-compatible
+            // Convert a SETUP_PRESETS entry into a filter-state
             // state object (same shape captureFilters()/saved searches use).
             function buildPresetFilterState(preset) {
                 const state = {};
@@ -13473,34 +13043,52 @@
 
             // Silently run every preset + every saved search against the
             // currently loaded allData and return their result-code lists.
-            function computeAlertWatchSets() {
+            // Runs every preset + saved search. The filter passes happen in the data worker.
+            async function computeAlertWatchSets() {
+                const jobs = [];
+                SETUP_PRESETS.forEach((p) => jobs.push({ kind: "preset", id: p.id, label: p.label, state: buildPresetFilterState(p) }));
+                loadSavedSearches().forEach((sv) => jobs.push({ kind: "saved", id: sv.id, name: sv.name, state: sv.state || {} }));
+
+                const lists = await runFilterCodesAsync(jobs.map((j) => j.state));
+
                 const presets = {};
-                SETUP_PRESETS.forEach((p) => {
-                    try {
-                        const results = runFilterState(buildPresetFilterState(p));
-                        presets[p.id] = {
-                            label: p.label,
-                            codes: results.map((r) => r.Code),
-                        };
-                    } catch (e) {
-                        console.warn("Alert badge: preset run failed for", p.id, e);
-                    }
-                });
-
                 const saved = {};
-                loadSavedSearches().forEach((s) => {
-                    try {
-                        const results = runFilterState(s.state || {});
-                        saved[s.id] = {
-                            name: s.name,
-                            codes: results.map((r) => r.Code),
-                        };
-                    } catch (e) {
-                        console.warn("Alert badge: saved search run failed for", s.name, e);
+                jobs.forEach((j, i) => {
+                    const codes = lists[i];
+                    if (!codes) {
+                        console.warn("Alert badge: run failed for", j.label || j.name);
+                        return;
                     }
+                    if (j.kind === "preset") presets[j.id] = { label: j.label, codes };
+                    else saved[j.id] = { name: j.name, codes };
                 });
-
                 return { presets, saved };
+            }
+
+            // states -> array of Code[] (null where a state failed). Worker first, main-thread fallback.
+            async function runFilterCodesAsync(states) {
+                const lists = await DataEngine.runStates(states.map((st) => ({ state: st, wlCodes: wlCodesForState(st) })));
+                // The data worker knows nothing about indicator series, so a state that
+                // uses the Indicator Advance Query is narrowed here afterwards. If the
+                // indicator engine isn't ready the entry becomes null ("run failed")
+                // rather than an unfiltered list.
+                return lists.map((codes, i) => {
+                    const st = states[i] || {};
+                    const q = st.f_indicator_enabled && st.f_indicator_query ? String(st.f_indicator_query).trim() : "";
+                    if (q && !isIndicatorQuerySettingOn()) return null; // master switch off -> "run failed", not an unfiltered list
+                    return q ? filterCodesByIndicatorQuery(codes, q) : codes;
+                });
+            }
+
+            let _rowByCode = null,
+                _rowByCodeSrc = null;
+            async function runFilterStatesAsync(states) {
+                const lists = await runFilterCodesAsync(states);
+                if (_rowByCodeSrc !== allData) {
+                    _rowByCode = new Map(allData.map((r) => [r.Code, r]));
+                    _rowByCodeSrc = allData;
+                }
+                return lists.map((codes) => (codes || []).map((c) => _rowByCode.get(c)).filter(Boolean));
             }
 
             function loadAlertSnapshot() {
@@ -13578,7 +13166,7 @@
 
             // Entry point — called once from loadData() right after allData
             // is ready. currentDate is the data date shown in the 📅 badge.
-            function runAlertBadgeCheck(currentDate) {
+            async function runAlertBadgeCheck(currentDate) {
                 if (!currentDate) {
                     alertBadgeMap = {};
                     return;
@@ -13614,7 +13202,7 @@
                 // recompute every preset & saved search and diff against
                 // whatever we had stored from the previous data date.
                 pruneSnapshotGroups(prevSnapshot);
-                const current = computeAlertWatchSets();
+                const current = await computeAlertWatchSets();
                 const byCode = {};
                 const summary = [];
 
@@ -13840,7 +13428,7 @@
             // ---- Run multiple searches (combine results) ----
             let multiSearchActive = false;
 
-            function runSelected() {
+            async function runSelected() {
                 const checked = [...document.querySelectorAll(".ss-card-check:checked")];
                 if (!checked.length) return;
                 const ids = checked.map((c) => parseInt(c.dataset.id));
@@ -13855,10 +13443,13 @@
 
                 // Multi: combine unique results
                 const searches = ids.map((id) => list.find((s) => s.id === id)).filter(Boolean);
+                if (searches.some((sv) => indicatorQueryBlocked(sv.state))) {
+                    alert("Some selected searches use the Indicator Advance Query, which is turned off. Enable it in Settings to include them — those searches were skipped.");
+                }
                 const seenCodes = new Set();
                 const combined = [];
-                searches.forEach((s) => {
-                    const results = runFilterState(s.state);
+                const resultLists = await runFilterStatesAsync(searches.map((sv) => sv.state));
+                resultLists.forEach((results) => {
                     results.forEach((r) => {
                         if (!seenCodes.has(r.Code)) {
                             seenCodes.add(r.Code);
@@ -13869,7 +13460,7 @@
 
                 // Override filteredData directly and display
                 filteredData = combined;
-                sortData();
+                await sortDataAsync();
                 currentPage = 1;
                 updateStats();
                 renderPage();
@@ -14031,42 +13622,14 @@
             let basicIndSortDir = -1;
 
             // Build aggregated rows grouped by a key field
-            function buildGroupStats(rows, groupField) {
-                const map = {};
-                rows.forEach((r) => {
-                    const grp = r[groupField] || "—";
-                    if (!map[grp]) {
-                        map[grp] = {
-                            name: grp,
-                            macro: r["Macro Economic Sector"] || "",
-                            sector: r["Sector"] || "",
-                            industry: r["Industry"] || "",
-                            basicIndustry: r["Basic Industry"] || "",
-                            stocks: [],
-                            sums: {},
-                            counts: {},
-                        };
-                        IND_CHNG_FIELDS.forEach((f) => {
-                            map[grp].sums[f.key] = 0;
-                            map[grp].counts[f.key] = 0;
-                        });
-                    }
-                    map[grp].stocks.push(r.Code);
-                    IND_CHNG_FIELDS.forEach((f) => {
-                        const v = parseFloat(r[f.key]);
-                        if (!isNaN(v)) {
-                            map[grp].sums[f.key] += v;
-                            map[grp].counts[f.key]++;
-                        }
-                    });
-                });
-                return Object.values(map).map((g) => {
-                    const avgs = {};
-                    IND_CHNG_FIELDS.forEach((f) => {
-                        avgs[f.key] = g.counts[f.key] > 0 ? g.sums[f.key] / g.counts[f.key] : null;
-                    });
-                    return { ...g, avgs, stockCount: g.stocks.length };
-                });
+// Worker-backed grouping. `industryName` restricts to one Industry (Basic-Industry drill-down).
+            async function getGroupStats(field, industryName) {
+                return DataEngine.groupStats(field, industryName || null);
+            }
+
+            async function getChainGroupCounts(rows) {
+                const idx = Int32Array.from(rows, (r) => DataEngine.rowIndex.get(r));
+                return Promise.all([DataEngine.chainCounts("Industry", idx), DataEngine.chainCounts("Basic Industry", idx)]);
             }
 
             // Heat class based on value
@@ -14143,32 +13706,12 @@
             }
 
             // ---- Industry modal ----
-            function openIndustryModal() {
-                const groups = buildGroupStats(allData, "Industry");
+            async function openIndustryModal() {
+                const groups = await getGroupStats("Industry");
                 document.getElementById("indTableWrap").innerHTML = renderIndTable(groups, indSortCol, indSortDir, "drill", "ind");
                 document.getElementById("indModal").classList.add("open");
             }
             // ---- Filtered Stocks Industry Breakdown modal ----
-            function buildChainGroupCounts(rows, field) {
-                const counts = new Map();
-                rows.forEach((r) => {
-                    const key = (r[field] || "").toString().trim();
-                    if (!key) return;
-                    const macro = (r["Macro Economic Sector"] || "").toString().trim();
-                    const sector = (r["Sector"] || "").toString().trim();
-                    const industry = (r["Industry"] || "").toString().trim();
-                    const parentParts = field === "Basic Industry" ? [macro, sector, industry] : [macro, sector];
-                    const breadcrumb = parentParts.filter(Boolean).join(" › ");
-                    const existing = counts.get(key);
-                    if (existing) {
-                        existing.count += 1;
-                    } else {
-                        counts.set(key, { name: key, breadcrumb, count: 1 });
-                    }
-                });
-                return Array.from(counts.values()).sort((a, b) => b.count - a.count);
-            }
-
             function renderSimpleCountTable(groups) {
                 if (!groups.length) {
                     return '<div class="ind-drill-hint">No data available.</div>';
@@ -14193,9 +13736,8 @@
             </table>`;
             }
 
-            function openFilteredIndustryModal() {
-                const industryGroups = buildChainGroupCounts(filteredData, "Industry");
-                const basicIndustryGroups = buildChainGroupCounts(filteredData, "Basic Industry");
+            async function openFilteredIndustryModal() {
+                const [industryGroups, basicIndustryGroups] = await getChainGroupCounts(filteredData);
 
                 document.getElementById("filteredIndustryTableWrap").innerHTML = renderSimpleCountTable(industryGroups);
                 document.getElementById("filteredBasicIndustryTableWrap").innerHTML = renderSimpleCountTable(basicIndustryGroups);
@@ -14222,6 +13764,9 @@
             function openSettingsModal() {
                 hideSettingsStatus();
                 initAlertSettingsUI();
+                const indEl = document.getElementById("settingsIndicatorQueryEnabled");
+                if (indEl) indEl.checked = isIndicatorQuerySettingOn();
+                if (typeof syncIndicatorTailInput === "function") syncIndicatorTailInput();
                 document.getElementById("settingsModal").classList.add("open");
             }
 
@@ -14283,6 +13828,8 @@
                     column_visibility: loadColumnVisibility(),
                     chart_settings: loadChartSettings(),
                     alert_settings: loadAlertSettings(),
+                    indicator_settings: loadIndicatorSettings(),
+                    indicator_query_enabled: isIndicatorQuerySettingOn(),
                 };
                 const json = JSON.stringify(payload, null, 2);
                 const blob = new Blob([json], { type: "application/json" });
@@ -14325,6 +13872,14 @@
                         // Restore alert settings if present
                         if (payload.alert_settings) {
                             localStorage.setItem(ALERT_SETTINGS_KEY, JSON.stringify(payload.alert_settings));
+                        }
+                        // Restore indicator advance-query settings if present
+                        if (payload.indicator_settings) {
+                            localStorage.setItem(INDICATOR_SETTINGS_KEY, JSON.stringify(payload.indicator_settings));
+                        }
+                        // Restore the Indicator Advance Query master switch if present
+                        if (typeof payload.indicator_query_enabled === "boolean") {
+                            saveIndicatorQuerySetting(payload.indicator_query_enabled);
                         }
                         showSettingsStatus(`✓ Import successful — reloading in 2s…`, "ok");
                         setTimeout(() => window.location.reload(), 2000);
@@ -14395,12 +13950,12 @@
             }
 
             // ---- Basic Industry drill-down modal ----
-            function openBasicIndModal(industryName) {
+            async function openBasicIndModal(industryName) {
                 const rows = allData.filter((r) => r["Industry"] === industryName);
                 if (!rows.length) return;
                 const ref = rows[0];
                 document.getElementById("basicIndBreadcrumb").textContent = `${ref["Macro Economic Sector"]} › ${ref["Sector"]} › ${industryName}`;
-                const groups = buildGroupStats(rows, "Basic Industry");
+                const groups = await getGroupStats("Basic Industry", industryName);
                 document.getElementById("basicIndTableWrap").innerHTML = renderIndTable(groups, basicIndSortCol, basicIndSortDir, "noop", "basicInd");
                 document.getElementById("basicIndModal").classList.add("open");
             }
@@ -14412,7 +13967,7 @@
             }
 
             // ---- Delegated event listeners for both industry tables ----
-            document.getElementById("indTableWrap").addEventListener("click", (e) => {
+            document.getElementById("indTableWrap").addEventListener("click", async (e) => {
                 const th = e.target.closest("th[data-sortcol]");
                 if (th) {
                     const col = decodeURIComponent(th.dataset.sortcol);
@@ -14421,7 +13976,7 @@
                         indSortCol = col;
                         indSortDir = -1;
                     }
-                    const groups = buildGroupStats(allData, "Industry");
+                    const groups = await getGroupStats("Industry");
                     document.getElementById("indTableWrap").innerHTML = renderIndTable(groups, indSortCol, indSortDir, "drill", "ind");
                     return;
                 }
@@ -14444,7 +13999,7 @@
                 refreshOpenIndustryTables();
             });
 
-            document.getElementById("basicIndTableWrap").addEventListener("click", (e) => {
+            document.getElementById("basicIndTableWrap").addEventListener("click", async (e) => {
                 const th = e.target.closest("th[data-sortcol]");
                 if (!th) return;
                 const col = decodeURIComponent(th.dataset.sortcol);
@@ -14456,7 +14011,7 @@
                 const bc = document.getElementById("basicIndBreadcrumb").textContent;
                 const industryName = bc.split(" › ").pop().trim();
                 const rows = allData.filter((r) => r["Industry"] === industryName);
-                const groups = buildGroupStats(rows, "Basic Industry");
+                const groups = await getGroupStats("Basic Industry", industryName);
                 document.getElementById("basicIndTableWrap").innerHTML = renderIndTable(groups, basicIndSortCol, basicIndSortDir, "noop", "basicInd");
             });
 
@@ -14644,522 +14199,6 @@
             }
 
             // ============ THUMBNAIL CHART ============
-            function getSourceValue(candle, source = "close") {
-                if (!candle) {
-                    return undefined;
-                }
-
-                switch (source) {
-                    case "open":
-                        return candle.open;
-
-                    case "high":
-                        return candle.high;
-
-                    case "low":
-                        return candle.low;
-
-                    case "close":
-                        return candle.close;
-
-                    case "hl2":
-                        return (candle.high + candle.low) / 2;
-
-                    case "hlc3":
-                        return (candle.high + candle.low + candle.close) / 3;
-
-                    case "ohlc4":
-                        return (candle.open + candle.high + candle.low + candle.close) / 4;
-
-                    case "volume":
-                        return candle.v;
-
-                    case "value":
-                        return candle.value;
-
-                    default:
-                        return candle.close;
-                }
-            }
-
-            function calculateSMA(data, period, source = "close") {
-                if (!Array.isArray(data) || data.length === 0 || period <= 0) {
-                    return [];
-                }
-
-                const result = [];
-
-                // Keep track of valid values only.
-                const validData = [];
-
-                for (const item of data) {
-                    const value = Number(getSourceValue(item, source));
-
-                    if (Number.isFinite(value)) {
-                        validData.push({
-                            time: item.time,
-                            value,
-                        });
-                    }
-                }
-
-                // Not enough valid values to calculate SMA.
-                if (validData.length < period) {
-                    return data.map((item) => ({
-                        time: item.time,
-                    }));
-                }
-
-                // Map calculated values by time.
-                const smaMap = new Map();
-
-                let sum = 0;
-
-                for (let i = 0; i < validData.length; i++) {
-                    sum += validData[i].value;
-
-                    if (i >= period) {
-                        sum -= validData[i - period].value;
-                    }
-
-                    if (i >= period - 1) {
-                        smaMap.set(validData[i].time, sum / period);
-                    }
-                }
-
-                // Restore the complete original timeline.
-                for (const item of data) {
-                    const value = smaMap.get(item.time);
-
-                    if (value !== undefined) {
-                        result.push({
-                            time: item.time,
-                            value,
-                        });
-                    } else {
-                        // Lightweight Charts whitespace
-                        result.push({
-                            time: item.time,
-                        });
-                    }
-                }
-
-                return result;
-            }
-
-            function calculateEMA(data, period, source = "close") {
-                if (!Array.isArray(data) || data.length === 0 || period <= 0) {
-                    return [];
-                }
-
-                // Extract only valid numeric values.
-                const validData = [];
-
-                for (const item of data) {
-                    const value = Number(getSourceValue(item, source));
-
-                    if (Number.isFinite(value)) {
-                        validData.push({
-                            time: item.time,
-                            value,
-                        });
-                    }
-                }
-
-                // Not enough valid values.
-                if (validData.length < period) {
-                    return data.map((item) => ({
-                        time: item.time,
-                    }));
-                }
-
-                const emaMap = new Map();
-
-                // Initial SMA.
-                let sum = 0;
-
-                for (let i = 0; i < period; i++) {
-                    sum += validData[i].value;
-                }
-
-                let ema = sum / period;
-
-                emaMap.set(validData[period - 1].time, ema);
-
-                const multiplier = 2 / (period + 1);
-
-                // Remaining EMA values.
-                for (let i = period; i < validData.length; i++) {
-                    ema = (validData[i].value - ema) * multiplier + ema;
-
-                    emaMap.set(validData[i].time, ema);
-                }
-
-                // Restore complete original timeline.
-                const result = data.map((item) => {
-                    const value = emaMap.get(item.time);
-
-                    if (value !== undefined) {
-                        return {
-                            time: item.time,
-                            value,
-                        };
-                    }
-
-                    // Lightweight Charts whitespace.
-                    return {
-                        time: item.time,
-                    };
-                });
-
-                return result;
-            }
-
-            function calculateMACD(data, options = {}) {
-                const { fastLength = 12, histNegativeColor = "#ef4444", histPositiveColor = "#22c55e", macdLineColor = "#3b82f6", oscMaType = "ema", signalLength = 9, signalLineColor = "#f59e0b", signalMaType = "ema", slowLength = 26, source = "close" } = options;
-
-                if (!data || data.length === 0) {
-                    return { macdLine: [], signalLine: [], histogram: [] };
-                }
-
-                // 1. Extract the selected source series into [{ time, value }]
-                const sourceSeries = data.map((item) => ({
-                    time: item.time,
-                    value: Number(getSourceValue(item, source)),
-                }));
-
-                // 2. Calculate Fast and Slow MAs
-                const fastMA = oscMaType === "ema" ? calculateEMA(sourceSeries, fastLength, "value") : calculateSMA(sourceSeries, fastLength, "value");
-                const slowMA = oscMaType === "ema" ? calculateEMA(sourceSeries, slowLength, "value") : calculateSMA(sourceSeries, slowLength, "value");
-
-                const fastMap = new Map(fastMA.map((item) => [item.time, item.value]));
-                const slowMap = new Map(slowMA.map((item) => [item.time, item.value]));
-
-                // 3. Compute MACD Line (Fast MA - Slow MA) over the FULL date range,
-                //    inserting whitespace points where either MA isn't ready yet
-                const macdLine = [];
-                const macdValueMap = new Map(); // only real values, for signal calc
-
-                for (const item of data) {
-                    const fastVal = fastMap.get(item.time);
-                    const slowVal = slowMap.get(item.time);
-
-                    if (fastVal !== undefined && slowVal !== undefined) {
-                        const value = fastVal - slowVal;
-                        macdLine.push({ time: item.time, value });
-                        macdValueMap.set(item.time, value);
-                    } else {
-                        // whitespace point: keeps the time axis aligned, plots nothing
-                        macdLine.push({ time: item.time });
-                    }
-                }
-
-                // 4. Compute Signal Line from the MACD line's real values only
-                const macdRealSeries = macdLine.filter((d) => d.value !== undefined).map((d) => ({ time: d.time, value: d.value }));
-
-                const signalReal = signalMaType === "ema" ? calculateEMA(macdRealSeries, signalLength, "value") : calculateSMA(macdRealSeries, signalLength, "value");
-
-                const signalMap = new Map(signalReal.map((item) => [item.time, item.value]));
-
-                // Build signalLine over the FULL date range too
-                const signalLine = data.map((item) => {
-                    const val = signalMap.get(item.time);
-                    return val !== undefined ? { time: item.time, value: val } : { time: item.time };
-                });
-
-                // 5. Compute Histogram over the FULL date range
-                const histogram = data.map((item) => {
-                    const macdVal = macdValueMap.get(item.time);
-                    const sigVal = signalMap.get(item.time);
-
-                    if (macdVal !== undefined && sigVal !== undefined) {
-                        const diff = macdVal - sigVal;
-                        return {
-                            time: item.time,
-                            value: diff,
-                            color: diff >= 0 ? histPositiveColor : histNegativeColor,
-                        };
-                    }
-                    return { time: item.time }; // whitespace
-                });
-
-                return { macdLine, signalLine, histogram };
-            }
-
-            function calculateRSI(data, settings) {
-                const { length = 14, source = "close", smoothingType = "none", smoothingLength = 14 } = settings || {};
-
-                if (!Array.isArray(data) || data.length === 0) {
-                    return [];
-                }
-
-                const prices = data.map((d) => getSourceValue(d, source));
-                const totalBars = data.length;
-                const rsiSeries = [];
-
-                // 2. Pad initial bars with null values if dataset is shorter than required length
-                if (totalBars <= length) {
-                    const nullPadded = data.map((bar) => ({
-                        time: bar.time,
-                    }));
-                    return nullPadded;
-                }
-
-                // 3. Compute price gains and losses
-                const gains = [];
-                const losses = [];
-                for (let i = 1; i < totalBars; i++) {
-                    const change = prices[i] - prices[i - 1];
-                    gains.push(change > 0 ? change : 0);
-                    losses.push(change < 0 ? -change : 0);
-                }
-
-                // First `length` bars (index 0 to length - 1) have no RSI value
-                for (let i = 0; i < length; i++) {
-                    rsiSeries.push({ time: data[i].time });
-                }
-
-                // 4. Initial SMA for Gains and Losses over first `length` changes
-                let avgGain = 0;
-                let avgLoss = 0;
-                for (let i = 0; i < length; i++) {
-                    avgGain += gains[i];
-                    avgLoss += losses[i];
-                }
-                avgGain /= length;
-                avgLoss /= length;
-
-                const computeRSI = (g, l) => {
-                    if (l === 0) return g === 0 ? 50 : 100;
-                    const rs = g / l;
-                    return Number((100 - 100 / (1 + rs)).toFixed(4));
-                };
-
-                // First valid RSI bar at index `length`
-                rsiSeries.push({
-                    time: data[length].time,
-                    value: computeRSI(avgGain, avgLoss),
-                });
-
-                // 5. Subsequent RSI values using Wilder's Exponential Smoothing (RMA)
-                for (let i = length; i < gains.length; i++) {
-                    avgGain = (avgGain * (length - 1) + gains[i]) / length;
-                    avgLoss = (avgLoss * (length - 1) + losses[i]) / length;
-
-                    rsiSeries.push({
-                        time: data[i + 1].time,
-                        value: computeRSI(avgGain, avgLoss),
-                    });
-                }
-
-                return rsiSeries;
-            }
-
-            function calculateHighestHighResistance(data, options) {
-                const { length } = options;
-
-                if (!Array.isArray(data) || data.length === 0 || !length || length <= 0) {
-                    return null;
-                }
-
-                // offsetDays = (length / 9) * 3, rounded to nearest integer day
-                const offsetDays = Math.round((length / 9) * 3);
-
-                const n = data.length;
-
-                const startIndex = n - offsetDays - 1;
-
-                if (startIndex < 1) {
-                    // Not enough data even after offset
-                    return null;
-                }
-
-                const from = startIndex;
-                const to = Math.max(0, from - length);
-
-                let highestHigh = -Infinity;
-                let highestIndex = -1;
-
-                // Single pass, O(n) — high performance, no allocations, no sorting
-                for (let i = from; i >= to; i--) {
-                    const h = data[i].high;
-                    if (h > highestHigh) {
-                        highestHigh = h;
-                        highestIndex = i;
-                    }
-                }
-
-                if (highestIndex === -1) return null;
-
-                return {
-                    price: highestHigh,
-                    index: highestIndex,
-                    dataPoint: data[highestIndex],
-                };
-            }
-
-            function calculateSupertrend(data, options) {
-                const { enabled = true, atrLength = 21, factor = 9, upColor = "#22c55e", downColor = "#ef4444" } = options || {};
-
-                const n = data.length;
-                const result = new Array(n);
-
-                if (!enabled || n === 0) {
-                    for (let i = 0; i < n; i++) result[i] = { time: data[i].time };
-                    return result;
-                }
-
-                // ---- True Range ----
-                const tr = new Array(n).fill(0);
-                for (let i = 0; i < n; i++) {
-                    const { high, low, close } = data[i];
-                    if (i === 0) {
-                        tr[i] = high - low;
-                    } else {
-                        const prevClose = data[i - 1].close;
-                        tr[i] = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
-                    }
-                }
-
-                // ---- ATR (Wilder's smoothing / RMA) ----
-                const atr = new Array(n).fill(undefined);
-                let sumTR = 0;
-                for (let i = 0; i < n; i++) {
-                    if (i < atrLength) {
-                        sumTR += tr[i];
-                        if (i === atrLength - 1) atr[i] = sumTR / atrLength;
-                    } else {
-                        atr[i] = (atr[i - 1] * (atrLength - 1) + tr[i]) / atrLength;
-                    }
-                }
-
-                const firstValidIdx = atrLength - 1;
-
-                let prevFinalUpper,
-                    prevFinalLower,
-                    prevClose,
-                    prevDirection = 1;
-
-                for (let i = 0; i < n; i++) {
-                    const point = data[i];
-
-                    if (i < firstValidIdx || atr[i] === undefined) {
-                        result[i] = { time: point.time }; // whitespace: keeps timescale aligned
-                        continue;
-                    }
-
-                    const hl2 = (point.high + point.low) / 2;
-                    const basicUpper = hl2 + factor * atr[i];
-                    const basicLower = hl2 - factor * atr[i];
-
-                    let finalUpper, finalLower;
-
-                    if (i === firstValidIdx) {
-                        finalUpper = basicUpper;
-                        finalLower = basicLower;
-                    } else {
-                        finalUpper = basicUpper < prevFinalUpper || prevClose > prevFinalUpper ? basicUpper : prevFinalUpper;
-                        finalLower = basicLower > prevFinalLower || prevClose < prevFinalLower ? basicLower : prevFinalLower;
-                    }
-
-                    let direction;
-                    if (i === firstValidIdx) {
-                        direction = point.close <= finalUpper ? -1 : 1;
-                    } else if (prevDirection === 1) {
-                        direction = point.close < finalLower ? -1 : 1;
-                    } else {
-                        direction = point.close > finalUpper ? 1 : -1;
-                    }
-
-                    const value = direction === 1 ? finalLower : finalUpper;
-                    const color = direction === 1 ? upColor : downColor;
-
-                    result[i] = { time: point.time, value, color };
-
-                    prevFinalUpper = finalUpper;
-                    prevFinalLower = finalLower;
-                    prevClose = point.close;
-                    prevDirection = direction;
-                }
-
-                return result;
-            }
-
-            function calculateTrendlinePoints(data, length, mode = "high", skipWindows = 1) {
-                if (!Array.isArray(data) || data.length === 0) {
-                    throw new Error("data must be a non-empty array");
-                }
-                if (!Number.isInteger(length) || length <= 0) {
-                    throw new Error("length must be a positive integer");
-                }
-                if (mode !== "high" && mode !== "low") {
-                    throw new Error("mode must be 'high' or 'low'");
-                }
-                if (!Number.isInteger(skipWindows) || skipWindows < 0) {
-                    throw new Error("skipWindows must be a non-negative integer");
-                }
-
-                function findExtreme(start, end) {
-                    let best = null;
-                    for (let i = start; i < end; i++) {
-                        const candle = data[i];
-                        const price = mode === "high" ? candle.high : candle.low;
-                        if (best === null || (mode === "high" ? price > best.price : price < best.price)) {
-                            best = { index: i, time: candle.time, price };
-                        }
-                    }
-                    return best;
-                }
-
-                const n = data.length;
-
-                // The most recent `skipWindows` blocks are ignored for pivot detection.
-                const w1End = n - length * skipWindows;
-                if (w1End <= 0) {
-                    throw new Error("Not enough data after skipping recent window(s)");
-                }
-                const w1Start = Math.max(0, w1End - length);
-
-                const w2End = w1Start;
-                const w2Start = Math.max(0, w2End - length);
-
-                const w3End = w2Start;
-                const w3Start = Math.max(0, w3End - length);
-
-                const P1 = findExtreme(w1Start, w1End);
-                const P2 = w2End - w2Start > 0 ? findExtreme(w2Start, w2End) : null;
-                const P3 = w3End - w3Start > 0 ? findExtreme(w3Start, w3End) : null;
-
-                // Lines still extend to the very latest bar (covers the skipped window).
-                const latestIndex = n - 1;
-                const latestTime = data[latestIndex].time;
-
-                function extrapolate(pA, pB, targetIndex, targetTime) {
-                    const barsAB = pB.index - pA.index;
-                    if (barsAB === 0) {
-                        return { time: targetTime, value: pB.price };
-                    }
-                    const slopePerBar = (pB.price - pA.price) / barsAB;
-                    const barsToTarget = targetIndex - pB.index;
-                    return { time: targetTime, value: pB.price + slopePerBar * barsToTarget };
-                }
-
-                function dedupeByTime(points) {
-                    const seen = new Set();
-                    return points.filter((p) => {
-                        if (seen.has(p.time)) return false;
-                        seen.add(p.time);
-                        return true;
-                    });
-                }
-
-                const lineA = P3 && P2 ? dedupeByTime([{ time: P3.time, value: P3.price }, { time: P2.time, value: P2.price }, extrapolate(P3, P2, latestIndex, latestTime)]) : null;
-
-                const lineB = P2 && P1 ? dedupeByTime([{ time: P2.time, value: P2.price }, { time: P1.time, value: P1.price }, extrapolate(P2, P1, latestIndex, latestTime)]) : null;
-
-                return { lineA, lineB, pivots: { P1, P2, P3 } };
-            }
-
             function hexToRgba(hex, opacity = 1) {
                 hex = hex.replace("#", "");
 
@@ -15232,6 +14271,7 @@
                 generatingThumbCharts = true;
                 thumbChartGeneration++;
                 const myGeneration = thumbChartGeneration;
+                if (window.DataEngine) DataEngine.setChartGeneration(myGeneration); // workers drop older queued thumbnails
 
                 //remove the existing charts from the memory.
                 for (const key in thumbCharts) {
@@ -15287,13 +14327,10 @@
                     let chartHeight = Math.round(screenHeight - (otherHeight + previousTrHeight));
 
                     try {
-                        const response = await fetch(`data/chart/${isin}.json`);
-
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}`);
-                        }
-
-                        const data = await response.json();
+                        // Fetch + JSON parse + every indicator calculation run in a chart worker.
+                        const bundle = await DataEngine.loadChartBundle(isin, "thumb", chartSettings, chartDaysDataLength, myGeneration);
+                        if (!bundle) return; // superseded by a newer thumbnail pass
+                        const { data, ind: chartInd } = bundle;
 
                         // A newer generateThumbnailChart() run may have already
                         // torn this row's chart down while we were awaiting the
@@ -15422,11 +14459,7 @@
                                 });
 
                                 const indicatorKey = "volume_sma_" + chartSettings.volume.maLength;
-                                let volMaData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!volMaData) {
-                                    volMaData = calculateSMA(data, chartSettings.volume.maLength, "volume");
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, volMaData);
-                                }
+                                let volMaData = chartInd[indicatorKey];
                                 if (isThumbChartStale(isin, myGeneration)) return;
                                 chartSeriesVolumeSma.setData(volMaData.slice(chartDaysDataLength));
                             }
@@ -15447,15 +14480,7 @@
                                 });
 
                                 const indicatorKey = ma.type + "_" + ma.length + "_" + ma.source;
-                                let maData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!maData) {
-                                    if (ma.type == "ema") {
-                                        maData = calculateEMA(data, ma.length, ma.source);
-                                    } else {
-                                        maData = calculateSMA(data, ma.length, ma.source);
-                                    }
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, maData);
-                                }
+                                let maData = chartInd[indicatorKey];
                                 if (isThumbChartStale(isin, myGeneration)) return;
                                 maSeries[index].setData(maData.slice(chartDaysDataLength));
                             }
@@ -15465,12 +14490,7 @@
                             if (isThumbChartStale(isin, myGeneration)) return;
                             if (supertrend.enabled == true) {
                                 const indicatorKey = "supertrend_" + supertrend.atrLength + "_" + supertrend.factor;
-                                let superTrendData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!superTrendData) {
-                                    superTrendData = calculateSupertrend(data, supertrend);
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, superTrendData);
-                                }
-
+                                let superTrendData = chartInd[indicatorKey];
                                 if (isThumbChartStale(isin, myGeneration)) return;
                                 thumbCharts[isin]
                                     .addSeries(LightweightCharts.LineSeries, {
@@ -15487,12 +14507,7 @@
                             if (isThumbChartStale(isin, myGeneration)) return;
                             if (pivot.enabled == true) {
                                 const indicatorKey = "pivottrendline_" + pivot.length + "_high";
-                                let pivotData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!pivotData) {
-                                    pivotData = calculateTrendlinePoints(data, pivot.length, "high");
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, pivotData);
-                                }
-
+                                let pivotData = chartInd[indicatorKey];
                                 if (isThumbChartStale(isin, myGeneration)) return;
 
                                 if (pivotData.lineA) {
@@ -15524,12 +14539,7 @@
                                 }
 
                                 const indicatorKeyLow = "pivottrendline_" + pivot.length + "_low";
-                                pivotData = await IndicatorCacheDB.get(isin, indicatorKeyLow, CURRENT_DATA_DATE);
-                                if (!pivotData) {
-                                    pivotData = calculateTrendlinePoints(data, pivot.length, "low");
-                                    await IndicatorCacheDB.set(isin, indicatorKeyLow, CURRENT_DATA_DATE, pivotData);
-                                }
-
+                                pivotData = chartInd[indicatorKeyLow];
                                 if (isThumbChartStale(isin, myGeneration)) return;
 
                                 if (pivotData.lineA) {
@@ -15567,12 +14577,7 @@
                             if (isThumbChartStale(isin, myGeneration)) return;
                             if (afh.enabled && afh.length >= 15) {
                                 const indicatorKey = "afh_" + afh.length;
-                                let afhData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!afhData) {
-                                    afhData = calculateHighestHighResistance(data, { length: afh.length });
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, afhData);
-                                }
-
+                                let afhData = chartInd[indicatorKey];
                                 if (isThumbChartStale(isin, myGeneration)) return;
                                 if (afhData) {
                                     chartSeries.createPriceLine({
@@ -15697,6 +14702,56 @@
                     chartWatchlistDrawerClickHandler = null;
                 }
             }
+
+            // ---- Watchlist drawer search ----------------------------------
+            // Lives outside openChartModal() and is bound once, so nothing is
+            // created/destroyed per chart open.  It reads the rendered DOM
+            // (code/name textContent), not any data array.
+            function getChartWatchlistSearchTerm() {
+                const input = document.getElementById("chartWatchlistSearch");
+                return input ? input.value.trim().toLowerCase() : "";
+            }
+
+            function setChartWatchlistGroupOpen(group, isOpen) {
+                const collapse = group.querySelector(".accordion-collapse");
+                const button = group.querySelector(".accordion-button");
+                if (!collapse || !button) return;
+                collapse.classList.toggle("show", isOpen);
+                button.classList.toggle("collapsed", !isOpen);
+                button.setAttribute("aria-expanded", String(isOpen));
+            }
+
+            function filterChartWatchlistDrawer() {
+                const container = document.getElementById("chartWatchlistDrawerList");
+                if (!container) return;
+                const term = getChartWatchlistSearchTerm();
+                const groups = container.querySelectorAll(".chart-watchlist-group");
+
+                if (!term) {
+                    // Cleared: show every stock, collapse all accordions and
+                    // open only the first watchlist (same default as a fresh render).
+                    container.querySelectorAll(".chart-watchlist-stock.d-none").forEach((stock) => stock.classList.remove("d-none"));
+                    const defaultGroup = container.querySelector(".chart-watchlist-group:not([data-alert-list])") || groups[0];
+                    groups.forEach((group) => setChartWatchlistGroupOpen(group, group === defaultGroup));
+                    return;
+                }
+
+                // Typing: hide non-matching stocks, open only accordions that
+                // contain a match, close the rest.
+                groups.forEach((group) => {
+                    let hasMatch = false;
+                    group.querySelectorAll(".chart-watchlist-stock").forEach((stock) => {
+                        const code = (stock.querySelector(".chart-watchlist-stock-code")?.textContent || "").toLowerCase();
+                        const name = (stock.querySelector(".chart-watchlist-stock-name")?.textContent || "").toLowerCase();
+                        const isMatch = code.includes(term) || name.includes(term);
+                        stock.classList.toggle("d-none", !isMatch);
+                        if (isMatch) hasMatch = true;
+                    });
+                    setChartWatchlistGroupOpen(group, hasMatch);
+                });
+            }
+
+            document.getElementById("chartWatchlistSearch").addEventListener("input", filterChartWatchlistDrawer);
 
             function handleWatchListCollapseClick(collapseButton) {
                 const nowExpanded = collapseButton.classList.toggle("collapsed");
@@ -15841,6 +14896,7 @@
                     empty.className = "chart-watchlist-empty";
                     empty.textContent = "No watchlists yet.";
                     container.appendChild(empty);
+                    if (getChartWatchlistSearchTerm()) filterChartWatchlistDrawer();
                     return;
                 }
 
@@ -15930,6 +14986,7 @@
                 });
 
                 syncChartWatchlistDrawerSelection(container);
+                if (getChartWatchlistSearchTerm()) filterChartWatchlistDrawer();
             }
 
             function syncChartWatchlistDrawerSelection(container) {
@@ -15944,7 +15001,7 @@
                 // watchlist containing the newly selected stock remains open.
                 const collapse = selectedStock.closest(".accordion-collapse");
                 const collapseButton = collapse?.previousElementSibling?.querySelector(".accordion-button");
-                if (collapse && collapseButton) {
+                if (collapse && collapseButton && !getChartWatchlistSearchTerm()) {
                     container.querySelectorAll(".accordion-collapse.show").forEach((section) => {
                         if (section !== collapse) {
                             section.classList.remove("show");
@@ -16046,6 +15103,7 @@
             document.addEventListener("keydown", function (e) {
                 const modal = document.querySelector("#chartModal");
                 if (!modal || !modal.classList.contains("open")) return;
+                if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
 
                 if (e.key === "ArrowUp") {
                     e.preventDefault();
@@ -16266,13 +15324,9 @@
 
                 (async () => {
                     try {
-                        const response = await fetch(`data/chart/${isin}.json`);
-
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}`);
-                        }
-
-                        const data = await response.json();
+                        // Fetch + JSON parse + every indicator calculation run in a chart worker.
+                        const bundle = await DataEngine.loadChartBundle(isin, "full", chartSettings, 0, 0);
+                        const { data, ind: chartInd } = bundle;
 
                         const chartWidth = screenWidth;
                         const mainChartHeight = screenHeight - 85;
@@ -16372,6 +15426,7 @@
                             fitTools.innerHTML = `
                                 <button type="button" class="chart-fit-btn" data-fit="price" title="Fit price scale to visible data">↕️</button>
                                 <button type="button" class="chart-fit-btn" data-fit="all" title="Fit all data">↔️</button>
+                                <button type="button" class="chart-fit-btn${chartSettings.logScale ? " active" : ""}" data-fit="log" title="Logarithmic price scale (main chart)">㏒</button>
                             `;
                             chartMain.appendChild(fitTools);
 
@@ -16388,6 +15443,17 @@
                                 const btn = e.target.closest(".chart-fit-btn");
                                 if (!btn) return;
                                 e.stopPropagation();
+                                if (btn.dataset.fit === "log") {
+                                    const on = !btn.classList.contains("active");
+                                    btn.classList.toggle("active", on);
+                                    // main pane (index 0) only; RSI / MACD panes stay Normal
+                                    fitChart.priceScale("right", 0).applyOptions({
+                                        mode: on ? LightweightCharts.PriceScaleMode.Logarithmic : LightweightCharts.PriceScaleMode.Normal,
+                                        autoScale: true,
+                                    });
+                                    setChartLogScale(on); // sync Charts settings form + saveChartSettings()
+                                    return;
+                                }
                                 if (btn.dataset.fit === "price") {
                                     autoScaleAll();
                                 } else {
@@ -16420,6 +15486,10 @@
                             wickDownColor: "#ef5350",
                         });
                         chartSeries.main.price.setData(data);
+                        // saved scale mode, main pane only (0 = Normal, 1 = Logarithmic)
+                        charts.main.priceScale("right", 0).applyOptions({
+                            mode: chartSettings.logScale ? LightweightCharts.PriceScaleMode.Logarithmic : LightweightCharts.PriceScaleMode.Normal,
+                        });
                         chartSeriesDataMap.main.price = Object.fromEntries(
                             data.map((bar, index) => [
                                 bar.time,
@@ -16478,12 +15548,7 @@
                                 });
 
                                 const indicatorKey = "volume_sma_" + chartSettings.volume.maLength;
-                                let volumeMaData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!volumeMaData) {
-                                    volumeMaData = calculateSMA(data, chartSettings.volume.maLength, "volume");
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, volumeMaData);
-                                }
-
+                                let volumeMaData = chartInd[indicatorKey];
                                 chartSeries.main.volume.sma.setData(volumeMaData);
                                 chartSeriesDataMap.main.volume.sma = Object.fromEntries(
                                     volumeMaData.map((bar, index) => [
@@ -16518,12 +15583,7 @@
                                 });
 
                                 const indicatorKey = ma.type + "_" + ma.length + "_" + ma.source;
-                                let calculation = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!calculation) {
-                                    calculation = ma.type === "ema" ? calculateEMA(data, ma.length, ma.source) : calculateSMA(data, ma.length, ma.source);
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, calculation);
-                                }
-
+                                let calculation = chartInd[indicatorKey];
                                 chartSeries.main.ma[key].setData(calculation);
                                 chartSeriesDataMap.main.ma[key] = Object.fromEntries(calculation.map((bar, index) => [bar.time, { ...bar, color: ma.color }]));
                             }
@@ -16533,12 +15593,7 @@
                         chartSettings.afh.forEach(async (afh) => {
                             if (afh.enabled && afh.length >= 15) {
                                 const indicatorKey = "afh_" + afh.length;
-                                let result = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!result) {
-                                    result = calculateHighestHighResistance(data, { length: afh.length });
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, result);
-                                }
-
+                                let result = chartInd[indicatorKey];
                                 if (result) {
                                     const startTime = result.dataPoint.time;
                                     const lastTime = data[data.length - 1].time;
@@ -16581,12 +15636,7 @@
                                 });
 
                                 const indicatorKey = "supertrend_" + supertrend.atrLength + "_" + supertrend.factor;
-                                let calculation = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!calculation) {
-                                    calculation = calculateSupertrend(data, supertrend);
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, calculation);
-                                }
-
+                                let calculation = chartInd[indicatorKey];
                                 chartSeries.main.supertrend[key].setData(calculation);
                                 chartSeriesDataMap.main.supertrend[key] = Object.fromEntries(calculation.map((bar, index) => [bar.time, { ...bar }]));
                             }
@@ -16596,12 +15646,7 @@
                         chartSettings.pivottrendline.forEach(async (pivot) => {
                             if (pivot.enabled && pivot.length > 1) {
                                 const indicatorKey = "pivottrendline_" + pivot.length + "_high";
-                                let result = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!result) {
-                                    result = calculateTrendlinePoints(data, pivot.length, "high");
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, result);
-                                }
-
+                                let result = chartInd[indicatorKey];
                                 if (result) {
                                     if (result.lineA) {
                                         charts.main
@@ -16633,12 +15678,7 @@
                                 }
 
                                 const indicatorKeyLow = "pivottrendline_" + pivot.length + "_low";
-                                result = await IndicatorCacheDB.get(isin, indicatorKeyLow, CURRENT_DATA_DATE);
-                                if (!result) {
-                                    result = calculateTrendlinePoints(data, pivot.length, "low");
-                                    await IndicatorCacheDB.set(isin, indicatorKeyLow, CURRENT_DATA_DATE, result);
-                                }
-
+                                result = chartInd[indicatorKeyLow];
                                 if (result) {
                                     if (result.lineA) {
                                         charts.main
@@ -16679,12 +15719,7 @@
                             paneOfKey.rsi = rsiPaneIndex;
 
                             const indicatorKey = "rsi_" + chartSettings.rsi.length + "_" + chartSettings.rsi.source + "_" + chartSettings.rsi.smoothingType + "_" + chartSettings.rsi.smoothingLength;
-                            let rsiChartData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                            if (!rsiChartData) {
-                                rsiChartData = calculateRSI(data, chartSettings.rsi);
-                                await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, rsiChartData);
-                            }
-
+                            let rsiChartData = chartInd[indicatorKey];
                             chartSeries.rsi = {};
                             chartSeriesDataMap.rsi = {};
 
@@ -16726,12 +15761,7 @@
                                 );
 
                                 const indicatorKey = "rsi_sma_" + chartSettings.rsi.length + "_" + chartSettings.rsi.source + "_" + chartSettings.rsi.smoothingType + "_" + chartSettings.rsi.smoothingLength;
-                                let calculation = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                                if (!calculation) {
-                                    calculation = chartSettings.rsi.smoothingType === "ema" ? calculateEMA(rsiChartData, chartSettings.rsi.smoothingLength, "value") : calculateSMA(rsiChartData, chartSettings.rsi.smoothingLength, "value");
-                                    await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, calculation);
-                                }
-
+                                let calculation = chartInd[indicatorKey];
                                 chartSeries.rsi.ma.setData(calculation);
                                 chartSeriesDataMap.rsi.ma = Object.fromEntries(
                                     calculation.map((bar, index) => [
@@ -16751,12 +15781,7 @@
                             paneOfKey.macd = macdPaneIndex;
 
                             const indicatorKey = "macd_" + chartSettings.macd.source + "_" + chartSettings.macd.fastLength + "_" + chartSettings.macd.slowLength + "_" + chartSettings.macd.signalLength + "_" + chartSettings.macd.oscMaType + "_" + chartSettings.macd.signalMaType;
-                            let macdChartData = await IndicatorCacheDB.get(isin, indicatorKey, CURRENT_DATA_DATE);
-                            if (!macdChartData) {
-                                macdChartData = calculateMACD(data, chartSettings.macd);
-                                await IndicatorCacheDB.set(isin, indicatorKey, CURRENT_DATA_DATE, macdChartData);
-                            }
-
+                            let macdChartData = chartInd[indicatorKey];
                             chartSeries.macd = {};
                             chartSeriesDataMap.macd = {};
                             chartSeries.macd.histogram = charts.main.addSeries(
@@ -16989,7 +16014,6 @@
                 screenWidth = window.innerWidth;
                 screenHeight = window.innerHeight;
                 if (charts.main) {
-                    console.log(screenWidth, screenHeight);
                     charts.main.applyOptions({
                         width: screenWidth,
                         height: screenHeight - 85,
@@ -17255,7 +16279,7 @@
 
             // Open with S / s when the filter panel is hidden.
             document.addEventListener("keydown", (e) => {
-                if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.repeat || e.isComposing || e.getModifierState("CapsLock") || e.getModifierState("AltGraph") || e.getModifierState("Fn") || e.key === "Tab" || e.key === "Escape" || e.key === "Enter" || e.key === "Home" || e.key === "End" || e.key === "Delete" || e.key === "Backspace" || e.key === "PageUp" || e.key === "PageDown" || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight" || /^F([1-9]|1[0-2])$/.test(e.key)) return;
+                if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.repeat || e.isComposing || e.getModifierState("AltGraph") || e.getModifierState("Fn") || e.key === "Tab" || e.key === "Escape" || e.key === "Enter" || e.key === "Home" || e.key === "End" || e.key === "Delete" || e.key === "Backspace" || e.key === "PageUp" || e.key === "PageDown" || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight" || /^F([1-9]|1[0-2])$/.test(e.key)) return;
                 if (/^[a-zA-Z0-9]$/.test(e.key) == false) return;
 
                 const isChartModalOpen = document.querySelector("#chartModal").classList.contains("open");
@@ -17270,14 +16294,14 @@
                 openStockSearchModal(string);
             });
 
-            // clear the current filter with C / c when the filter panel is hidden.
+            // clear the current filter with Delete / Escape when the filter panel is hidden.
             document.addEventListener("keydown", (e) => {
-                if (e.key !== "c" && e.key !== "C") return;
+                if (e.key !== "Delete" && e.key !== "Escape") return;
                 if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || e.isComposing) return;
                 if (filtersVisible || isStockSearchOpen()) return;
                 const t = e.target;
                 if (t && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))) return;
-                e.preventDefault(); // keep the "s" out of the input
+                e.preventDefault();
                 clearFilters();
             });
 
@@ -17390,7 +16414,7 @@
                 <a href="https://x.com/jadeja_rajdeep" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; margin: 0 8px">@jadeja_rajdeep on X</a>
             </nav>
             <div style="margin-top: 8px" class="d-flex toolbar-scroll flex-nowrap justify-content-between justify-items-center align-items-center">
-                <div class="text-center mx-auto">NSE Momentum Screener — Free stock screener for Indian equity markets. Data updates daily after market close (IST).</div>
+                <div class="text-center mx-auto">NSE Momentum Screener — Free stock screener for Indian equity markets. Data updates daily after market close 6 PM (IST).</div>
             </div>
         </footer>
 
