@@ -10099,10 +10099,10 @@
                 populateChartSettingsForm(loadChartSettings());
                 const el = document.querySelector('#chartSettingsModal [data-cpath="logScale"]');
                 if (el) el.checked = !!on;
-                saveChartSettings();
+                saveChartSettings(true);
             }
 
-            function saveChartSettings() {
+            function saveChartSettings(silent=false) {
                 const oldSettings = loadChartSettings(); // ← NEW: snapshot before overwrite
                 const settings = defaultChartSettings();
                 document.querySelectorAll("#chartSettingsModal [data-cpath]").forEach((el) => {
@@ -10118,17 +10118,19 @@
                     chartSetPath(settings, el.dataset.cpath, val);
                 });
                 saveChartSettingsToStorage(settings);
-                closeChartSettingsModal();
-                window.dispatchEvent(
-                    new CustomEvent("chartSettingsSaved", {
-                        detail: {
-                            oldSettings,
-                            newSettings:settings
-                        }
-                    })
-                );
-                if (typeof applyChartSettings === "function") {
-                    applyChartSettings(settings);
+                if(silent===false){
+                    closeChartSettingsModal();
+                    window.dispatchEvent(
+                        new CustomEvent("chartSettingsSaved", {
+                            detail: {
+                                oldSettings,
+                                newSettings:settings
+                            }
+                        })
+                    );
+                    if (typeof applyChartSettings === "function") {
+                        applyChartSettings(settings);
+                    }
                 }
             }
 
