@@ -252,7 +252,10 @@ function syncIndicatorKeys(newKeys) {
     if (removed.length) rebuildIndicatorFieldList();
 
     if (!added.length) {
-        if (removed.length) { refreshIndicatorStatus(); applyFilters(); }
+        if (removed.length) {
+            refreshIndicatorStatus();
+            //applyFilters();
+        }
         return;
     }
     spawnIndicatorWorker(added, "incremental"); // status line flips to "Calculating N new indicators…"
@@ -311,7 +314,15 @@ function handleIndicatorWorkerMessage(e) {
             indicatorStockCount = msg.count;
             rebuildIndicatorFieldList();
             setIndicatorEngineState("ready", null);
-            applyFilters(); // so a query typed/restored meanwhile takes effect now
+
+            //only apply filters if indicator query is checked and have text. and main settings are enabled.
+            const cb = document.getElementById("f_indicator_enabled");
+            const ta = document.getElementById("f_indicator_query");
+            const master = window.isIndicatorQuerySettingOn();
+            // console.log(master,cb,cb.disabled,cb.checked,ta,ta.readOnly,ta.value);
+            if(master && cb && cb.disabled===false && cb.checked && ta && ta.readOnly===false && ta.value.trim()!=""){
+                if (typeof applyFilters === "function") applyFilters();
+            }
         });
     }
 }

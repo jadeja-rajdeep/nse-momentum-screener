@@ -8664,6 +8664,7 @@
                     return false;
                 }
             }
+            window.isIndicatorQuerySettingOn = isIndicatorQuerySettingOn;
 
             function saveIndicatorQuerySetting(on) {
                 try {
@@ -8697,7 +8698,8 @@
                 const cb = document.getElementById("f_indicator_enabled");
                 const ta = document.getElementById("f_indicator_query");
                 const master = isIndicatorQuerySettingOn();
-                if(master && cb && !cb.disabled && ta && !ta.readOnly && ta.value!=""){
+                // console.log(master,cb,cb.disabled,cb.checked,ta,ta.readOnly,ta.value);
+                if(master && cb && cb.disabled===false && cb.checked && ta && ta.readOnly===false && ta.value.trim()!=""){
                     if (typeof applyFilters === "function") applyFilters();
                 }
             }
@@ -14313,6 +14315,8 @@
                     chartDaysDataLength = -189; // 2K/4K/ultrawide monitors
                 }
 
+                const chartRightPriceScaleMode=chartSettings.logScale ? LightweightCharts.PriceScaleMode.Logarithmic : LightweightCharts.PriceScaleMode.Normal;
+
                 document.querySelectorAll(".thumb-chart").forEach(async (chartDiv, index) => {
                     const isin = chartDiv.dataset.isin;
 
@@ -14361,6 +14365,8 @@
                             rightPriceScale: {
                                 visible: false,
                                 minimumWidth: 0,
+                                mode: chartRightPriceScaleMode,
+                                autoScale: true,
                             },
                             leftPriceScale: {
                                 visible: false,
