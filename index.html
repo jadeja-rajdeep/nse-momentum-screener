@@ -8692,7 +8692,14 @@
                 if (on) ensureIndicatorEngineStarted();
                 else if (typeof stopIndicatorEngine === "function") stopIndicatorEngine(); // frees worker + memory
                 if (typeof refreshIndicatorStatus === "function") refreshIndicatorStatus();
-                if (typeof applyFilters === "function") applyFilters();
+
+                //only apply filters if indicator query is checked and have text. and main settings are enabled.
+                const cb = document.getElementById("f_indicator_enabled");
+                const ta = document.getElementById("f_indicator_query");
+                const master = isIndicatorQuerySettingOn();
+                if(master && cb && !cb.disabled && ta && !ta.readOnly && ta.value!=""){
+                    if (typeof applyFilters === "function") applyFilters();
+                }
             }
 
             // Master switch off  -> checkbox disabled AND textarea read-only.
