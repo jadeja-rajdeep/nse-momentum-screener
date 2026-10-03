@@ -3870,15 +3870,18 @@
                 min-height: calc(100vh - 295px);
                 height: calc(100vh - 233px);
             }
-            .thumb-chart .fullscreen-btn,
-            .thumb-chart .financial-btn,
-            .thumb-chart .stock-detail-btn {
+            .thumb-chart .thumb-chart-buttons{
                 position: absolute;
                 top: 5px;
                 left: 50%;
                 transform: translateX(-50%);
+                display: flex;
+                gap: 4px;
                 z-index: 10;
-
+            }
+            .thumb-chart .fullscreen-btn,
+            .thumb-chart .financial-btn,
+            .thumb-chart .stock-detail-btn {
                 /* Text/Emoji styling */
                 font-size: 16px;
                 line-height: 1;
@@ -3902,12 +3905,7 @@
             }
 
             .thumb-chart .financial-btn {
-                left: calc(50% + 35px) !important;
                 padding: 6px 4px;
-            }
-
-            .thumb-chart .stock-detail-btn {
-                left: calc(50% + 35px + 35px) !important;
             }
 
             .thumb-chart .fullscreen-btn:hover,
@@ -10395,9 +10393,11 @@
                                 <tr class="chart-row">
                                     <td colspan="82" class="chart-cell">
                                         <div class="thumb-chart" data-isin="${r["ISIN"]}">
-                                            <button class="fullscreen-btn" title="Full Screen" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">⛶</button>
-                                            <button class="financial-btn" title="Financial" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">🧾</button>
-                                            <button class="stock-detail-btn" title="Stock Details" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">▤</button>
+                                            <div class="thumb-chart-buttons">
+                                                <button class="fullscreen-btn" title="Full Screen" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">⛶</button>
+                                                <button class="financial-btn" title="Financial" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">🧾</button>
+                                                <button class="stock-detail-btn" title="Stock Details" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">▤</button>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
