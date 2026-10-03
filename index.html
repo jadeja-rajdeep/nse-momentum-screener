@@ -14775,6 +14775,10 @@
                     // capture listener closes only the drawer when chart/header area
                     // outside it is clicked.
                     chartWatchlistOutsideClickHandler = (event) => {
+                        // openChartModal() fires resetChart.click() after every
+                        // chart load. That synthetic click is not the user
+                        // clicking outside, so it must never close the drawer.
+                        if (!event.isTrusted) return;
                         const target = event.target;
                         if (target.closest("#chartWatchlistDrawer, #chartWatchlistToggle")) return;
                         toggleChartWatchlistDrawer(false);
@@ -15126,7 +15130,7 @@
             function getAllFullscreenBtns() {
                 // Get them in DOM order (which matches row order)
                 const table = document.querySelector("#mainTable");
-                return Array.from(table.querySelectorAll("tr.chart-row td.chart-cell > div.thumb-chart > button.fullscreen-btn"));
+                return Array.from(table.querySelectorAll("tr.chart-row td.chart-cell > div.thumb-chart > div.thumb-chart-buttons > button.fullscreen-btn"));
             }
 
             function goToWatchlistDrawerStock(direction) {
