@@ -579,12 +579,6 @@
     }
 }
 
-@media screen and (max-width: 432px) {
-    #chartModal .detail-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
-}
-
 @keyframes m-sheet-up {
     from { opacity: 0.4; transform: translateY(28px); }
     to   { opacity: 1;   transform: none; }
@@ -689,5 +683,6 @@
    surfaces follow the theme instead */
 [data-theme="light"] .site-header { background: var(--surface) !important; }
 [data-theme="light"] .thumb-chart .fullscreen-btn,
-[data-theme="light"] .thumb-chart .financial-btn { background: rgba(26, 34, 51, 0.78); }
+[data-theme="light"] .thumb-chart .financial-btn,
+[data-theme="light"] .thumb-chart .stock-detail-btn{ background: rgba(26, 34, 51, 0.78); }
 [data-theme="light"] #mainTable > thead > tr > th:nth-child(n) { background: var(--surface); }

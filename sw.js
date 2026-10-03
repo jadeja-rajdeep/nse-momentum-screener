@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v108";
+const CACHE_VERSION = "nse-screener-v109";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
@@ -51,7 +51,7 @@ const STATIC_ASSETS = [
     "./assets/fonts/jetbrains-mono-latin-600-normal.woff2",
     "./assets/fonts/jetbrains-mono-latin-700-normal.woff2",
     "./assets/fonts/jetbrains-mono-latin-ext-400-normal.woff2",
-    "./assets/vendor/bootstrap/bootstrap.min.css",
+    "./assets/vendor/bootstrap/prod.bootstrap.min.css",
     "./assets/vendor/lightweight-charts/lightweight-charts.standalone.production.js",
     "./helper/indicator-db.js",
     "./helper/data-engine.js",

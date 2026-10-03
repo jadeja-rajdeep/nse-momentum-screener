@@ -107,7 +107,7 @@
 
         <noscript>
             <link rel="stylesheet" href="assets/fonts/fonts.css"/>
-            <link rel="stylesheet" href="assets/vendor/bootstrap/bootstrap.min.css"/>
+            <link rel="stylesheet" href="assets/vendor/bootstrap/prod.bootstrap.min.css"/>
         </noscript>
         <style>
             /* Critical-path copies of the Bootstrap utility classes used in the
@@ -2162,7 +2162,7 @@
                 border: 1px solid var(--border);
                 border-radius: 12px;
                 width: 100%;
-                max-width: 500px;
+                max-width:767px;
                 margin: 20px;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
             }
@@ -2196,7 +2196,7 @@
                 border: 1px solid var(--border);
                 border-radius: 6px;
                 padding: 10px 12px;
-                font-size: 10px;
+                font-size: 12px;
                 color: var(--muted);
                 max-height: 160px;
                 overflow-y: auto;
@@ -2256,7 +2256,7 @@
                 border: 1px solid rgba(139, 92, 246, 0.25);
                 border-radius: 12px;
                 width: 100%;
-                max-width: 1000px;
+                max-width: 100%;
                 margin: auto;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
             }
@@ -2296,7 +2296,7 @@
                 border: 1px solid rgba(139, 92, 246, 0.25);
                 border-radius: 12px;
                 width: 100%;
-                max-width: 1300px;
+                max-width:100%;
                 margin: auto;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
             }
@@ -2351,7 +2351,7 @@
                 border: 1px solid rgba(0, 212, 170, 0.25);
                 border-radius: 12px;
                 width: 100%;
-                max-width: 1080px;
+                max-width: 100%;
                 margin: auto;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
                 display: flex;
@@ -2861,7 +2861,7 @@
                 border: 1px solid rgba(245, 158, 11, 0.25);
                 border-radius: 12px;
                 width: 100%;
-                max-width: 680px;
+                max-width:767px;
                 margin: auto;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
             }
@@ -3093,7 +3093,7 @@
                 border: 1px solid rgba(148, 163, 184, 0.25);
                 border-radius: 12px;
                 width: 100%;
-                max-width: 520px;
+                max-width:767px;
                 margin: auto;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
             }
@@ -3208,9 +3208,6 @@
             }
 
             /* ---- CHART SETTINGS MODAL ---- */
-            #chartSettingsModal .settings-modal {
-                max-width: 640px;
-            }
             .chart-section-toggle {
                 display: flex;
                 align-items: center;
@@ -3347,7 +3344,7 @@
                 border: 1px solid rgba(29, 155, 240, 0.3);
                 border-radius: 12px;
                 width: 100%;
-                max-width: 720px;
+                max-width: 767px;
                 margin: auto;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
             }
@@ -3526,7 +3523,7 @@
                 border: 1px solid var(--border);
                 border-radius: 12px;
                 width: 100%;
-                max-width: 1100px;
+                max-width: 100%;
                 margin: auto;
                 overflow: hidden;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
@@ -3818,6 +3815,49 @@
                 max-width: auto !important;
             }
 
+            /*stock detail grid code start*/
+            /* Label/value grid inside modal */
+            #detailGridSingle.detail-grid {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 16px;
+                height: 100%; /* not min-height — locks to parent's box */
+                width: 100%;
+                background: var(--bg);
+                overflow-y: auto; /* scroll happens INSIDE this element */
+                align-content: start; /* prevents grid rows from stretching to fill height */
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            #detailGridSingle.detail-grid .detail-item {
+                border-bottom: 1px solid var(--border);
+                padding-bottom: 6px;
+            }
+            #detailGridSingle.detail-grid .detail-label {
+                /*background: var(--surface);*/
+                color: var(--muted);
+                font-family: var(--mono);
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.07em;
+                padding: 5px 10px;
+                white-space: nowrap;
+                user-select: none;
+                transition: color 0.15s;
+                margin-bottom: 2px;
+            }
+            #detailGridSingle.detail-grid .detail-value {
+                font-size: 12px;
+                color: var(--text);
+                word-break: break-word;
+                padding: 0px 10px;
+            }
+            #detailGridSingle.detail-grid .detail-value *{
+                white-space: pre-wrap;
+            }
+            /*stock detail grid code end*/
+
             /*chart css start*/
             #mainTable tbody tr.chart-row td.chart-cell {
                 padding: 0 !important; /* new — so the sticky div sits flush at the cell's left edge */
@@ -3827,11 +3867,12 @@
                 left: 0;
                 display: inline-block; /* so sticky has a real box to stick, not the full row width */
                 width: 100vw;
-                min-height: calc(100vh - 295px); /*299.2px*/
+                min-height: calc(100vh - 295px);
                 height: calc(100vh - 233px);
             }
             .thumb-chart .fullscreen-btn,
-            .thumb-chart .financial-btn {
+            .thumb-chart .financial-btn,
+            .thumb-chart .stock-detail-btn {
                 position: absolute;
                 top: 5px;
                 left: 50%;
@@ -3865,8 +3906,13 @@
                 padding: 6px 4px;
             }
 
+            .thumb-chart .stock-detail-btn {
+                left: calc(50% + 35px + 35px) !important;
+            }
+
             .thumb-chart .fullscreen-btn:hover,
-            .thumb-chart .financial-btn:hover {
+            .thumb-chart .financial-btn:hover,
+           .thumb-chart .stock-detail-btn:hover {
                 font-size: 20px;
             }
 
@@ -3902,8 +3948,8 @@
             }
             #chartModal .chart-fit-btn {
                 pointer-events: auto;
-                width: 20px;
-                height: 20px;
+                width: 24px;
+                height: 24px;
                 padding: 0;
                 display: inline-flex;
                 align-items: center;
@@ -4083,7 +4129,7 @@
             /* Label/value grid inside modal */
             #chartModal .detail-grid {
                 display: none; /*grid*/
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
                 gap: 16px;
                 position: absolute;
                 inset: 0; /* top/right/bottom/left: 0 */
@@ -4122,6 +4168,9 @@
                 color: var(--text);
                 word-break: break-word;
                 padding: 0px 10px;
+            }
+            #chartModal .detail-value *{
+                white-space: pre-wrap;
             }
             #chartModal .chart-financial-data {
                 display: none;
@@ -5643,6 +5692,23 @@
             </div>
         </div>
 
+        <!-- STOCK DETAIL SINGLE MODAL -->
+        <div class="peer-modal-overlay" id="stockDetailSingleModal" onclick="closeStockDetailSingleModalOnOverlay(event)">
+            <div class="peer-modal">
+                <div class="peer-modal-header">
+                    <div>
+                        <div class="peer-modal-title"></div>
+                        <div class="peer-modal-meta"></div>
+                    </div>
+                    <button class="peer-modal-close" onclick="closeStockDetailSingleModal()">✕</button>
+                </div>
+                <div class="peer-modal-body">
+                    <!--Container for displaying stock details from table row in maintable view-->
+                    <div id="detailGridSingle" class="detail-grid"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- PEER MODAL -->
         <div class="peer-modal-overlay" id="peerModal" onclick="closePeerModalOnOverlay(event)">
             <div class="peer-modal">
@@ -5764,7 +5830,7 @@
 
         <!-- BASIC INDUSTRY DRILL-DOWN MODAL -->
         <div class="ind-modal-overlay" id="basicIndModal" onclick="closeBasicIndModalOnOverlay(event)" style="z-index: 10001">
-            <div class="ind-modal" style="max-width: 900px">
+            <div class="ind-modal">
                 <div class="ind-modal-header">
                     <div>
                         <div class="ind-modal-title">🔬 Basic Industry Breakdown</div>
@@ -10331,6 +10397,7 @@
                                         <div class="thumb-chart" data-isin="${r["ISIN"]}">
                                             <button class="fullscreen-btn" title="Full Screen" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">⛶</button>
                                             <button class="financial-btn" title="Financial" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">🧾</button>
+                                            <button class="stock-detail-btn" title="Stock Details" data-isin="${r["ISIN"]}" data-code="${r["Code"]}" data-name="${r["Name"]}">▤</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -10881,6 +10948,24 @@
 
             function closeFinancialModalOnOverlay(e) {
                 if (e.target === document.getElementById("financialModal")) closeFinancialModal();
+            }
+
+            function openStockDetailSingleModal(isin, title, meta) {
+                const modal=document.getElementById("stockDetailSingleModal");
+                modal.querySelector(".peer-modal-title").textContent = title || "Stock Details";
+                modal.querySelector(".peer-modal-meta").textContent = meta || isin || "";
+
+                modal.classList.add("open");
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeStockDetailSingleModal() {
+                document.getElementById("stockDetailSingleModal").classList.remove("open");
+                document.body.style.overflow = "";
+            }
+
+            function closeStockDetailSingleModalOnOverlay(e) {
+                if (e.target === document.getElementById("stockDetailSingleModal")) closeStockDetailSingleModal();
             }
 
             function closePeerModal() {
@@ -15154,7 +15239,7 @@
                     }
                 });
 
-                const grid = document.getElementById("detailGrid");
+                let grid = Caller.classList.contains('fullscreen-btn') ? document.getElementById("detailGrid") : document.getElementById("detailGridSingle");
 
                 // Drawer stocks are not table rows. They still use the same chart
                 // opener. Prefer the current table's real, formatted row when it
@@ -15984,6 +16069,25 @@
 
                         const mainChartDataLength = data.length;
 
+                        let chartDaysDataLength = 21;
+                        if (screenWidth <= 360) {
+                            chartDaysDataLength = 21; // small phones (iPhone SE, older Android)
+                        } else if (screenWidth <= 414) {
+                            chartDaysDataLength = 21; // standard phones (iPhone 12-15, Pixel)
+                        } else if (screenWidth <= 480) {
+                            chartDaysDataLength = 42; // large phones / phablets (landscape-ish)
+                        } else if (screenWidth <= 768) {
+                            chartDaysDataLength = 63; // small tablets portrait (iPad Mini portrait)
+                        } else if (screenWidth <= 1024) {
+                            chartDaysDataLength = 84; // tablets landscape / small laptops
+                        } else if (screenWidth <= 1440) {
+                            chartDaysDataLength = 105; // standard laptop/desktop
+                        } else if (screenWidth <= 1920) {
+                            chartDaysDataLength = 126; // full HD desktop monitors
+                        } else {
+                            chartDaysDataLength = 126; // 2K/4K/ultrawide monitors
+                        }
+
                         // Reset button handler.
                         // IMPORTANT: #resetChart is a static button that lives outside the
                         // modal body we recreate each time, so it survives every
@@ -16008,7 +16112,7 @@
                                     charts.main.priceScale("right", i).applyOptions({ autoScale: true });
                                 });
                                 charts.main.timeScale().setVisibleLogicalRange({
-                                    from: mainChartDataLength > 126 ? mainChartDataLength - 126 : 1,
+                                    from: mainChartDataLength > chartDaysDataLength ? mainChartDataLength - chartDaysDataLength : 1,
                                     to: mainChartDataLength,
                                 });
                             };
@@ -16339,17 +16443,28 @@
                 if (tvCell) {
                     const url = `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(toTvSymbol(tvCell.dataset.code))}`;
                     window.open(url, "_blank", "noopener");
+                    return;
                 }
 
                 const thumbChartFullScreenBtn = e.target.closest(".fullscreen-btn");
                 if (thumbChartFullScreenBtn) {
                     //open the full chart modal here.
                     openChartModal(thumbChartFullScreenBtn);
+                    return;
                 }
 
                 const thumbChartFinancialBtn = e.target.closest(".financial-btn");
                 if (thumbChartFinancialBtn) {
                     openFinancialModal(thumbChartFinancialBtn.dataset.isin, thumbChartFinancialBtn.dataset.code + " - " + thumbChartFinancialBtn.dataset.name, "Financial Information");
+                    return;
+                }
+
+                const thumbChartStockDetailBtn = e.target.closest(".stock-detail-btn");
+                if (thumbChartStockDetailBtn) {
+                    openStockDetailSingleModal(thumbChartStockDetailBtn.dataset.isin, thumbChartStockDetailBtn.dataset.code + " - " + thumbChartStockDetailBtn.dataset.name, "Stock Information");
+                    generateChartDetails(thumbChartStockDetailBtn);
+
+                    return;
                 }
             });
 
