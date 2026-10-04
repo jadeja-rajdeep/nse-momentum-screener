@@ -569,6 +569,80 @@
        return { lineA, lineB, pivots: { P1, P2, P3 } };
    }
 
+   function calculateAnchoredVWAP(candles, settings = {}) {
+       const {
+           date,
+           source = "hlc3",
+           multipliers = [0.6, 0.9, 1.2],
+       } = settings;
+
+       // Active bands only: multiplier must be a number > 0
+       const activeBands = [];
+       multipliers.forEach((m, i) => {
+           const mult = Number(m);
+           if (Number.isFinite(mult) && mult > 0) {
+               activeBands.push({ key: i + 1, mult });
+           }
+       });
+
+       const result = { vwap: [] };
+       activeBands.forEach(({ key }) => {
+           result[`upper${key}`] = [];
+           result[`lower${key}`] = [];
+       });
+
+       if (!Array.isArray(candles) || candles.length === 0 || date == null) {
+           return result;
+       }
+
+       const toMs = (t) => {
+           if (typeof t === "number") return t * 1000;
+           if (typeof t === "string") return Date.parse(t);
+           if (t && typeof t === "object") return Date.UTC(t.year, t.month - 1, t.day);
+           return NaN;
+       };
+
+       const anchorMs = toMs(date);
+       if (Number.isNaN(anchorMs)) return result;
+
+       const hasBands = activeBands.length > 0;
+
+       let cumVol = 0;
+       let cumPV = 0;
+       let cumPV2 = 0;
+
+       for (const candle of candles) {
+           if (toMs(candle.time) < anchorMs) continue;
+
+           const price = getSourceValue(candle, source);
+           const vol = candle.v;
+
+           if (price === undefined || price === null || Number.isNaN(price)) continue;
+           if (vol === undefined || vol === null || Number.isNaN(vol)) continue;
+
+           cumVol += vol;
+           cumPV += price * vol;
+           if (hasBands) cumPV2 += price * price * vol;
+
+           if (cumVol <= 0) continue;
+
+           const vwap = cumPV / cumVol;
+           result.vwap.push({ time: candle.time, value: vwap });
+
+           if (hasBands) {
+               const variance = Math.max(cumPV2 / cumVol - vwap * vwap, 0);
+               const stdev = Math.sqrt(variance);
+
+               for (const { key, mult } of activeBands) {
+                   result[`upper${key}`].push({ time: candle.time, value: vwap + mult * stdev });
+                   result[`lower${key}`].push({ time: candle.time, value: vwap - mult * stdev });
+               }
+           }
+       }
+
+       return result;
+   }
+
 // ---------------------------------------------------------------------------
 // computeIndicatorRaw(canonicalKey, candles) — dispatches a canonical cache
 // key to the right calculator call, with the exact same options-building

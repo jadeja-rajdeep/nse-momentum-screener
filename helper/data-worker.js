@@ -566,6 +566,11 @@ async function handleChart(m) {
     if (S.volume && S.volume.enabled && S.volume.maLength > 0) {
         add("volume_sma_" + S.volume.maLength, () => calculateSMA(data, S.volume.maLength, "volume"));
     }
+    (S.avwap || []).forEach((avwap) => {
+        if (!avwap.enabled || avwap.date == "") return;
+        avwap.multipliers = [avwap.multiplier0,avwap.multiplier1, avwap.multiplier2];
+        add("avwap_"+avwap.date + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2, () => calculateAnchoredVWAP(data, avwap));
+    });
     (S.ma || []).forEach((ma) => {
         if (!ma.enabled) return;
         add(ma.type + "_" + ma.length + "_" + ma.source, () => (ma.type === "ema" ? calculateEMA(data, ma.length, ma.source) : calculateSMA(data, ma.length, ma.source)));
