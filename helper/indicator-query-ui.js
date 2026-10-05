@@ -119,6 +119,15 @@ function getEnabledChartIndicatorKeys() {
         if (afh.enabled && afh.length >= 15) keys.push(`afh_${afh.length}`);
     });
 
+    // Must match the chart's cache keys exactly (see data-worker.js) so payloads are shared.
+    (s.avwap || []).forEach((v) => {
+        if (v.enabled && v.date != "") keys.push(`avwap_${v.date}_${v.source}_${v.multiplier0}_${v.multiplier1}_${v.multiplier2}`);
+    });
+
+    (s.afh_avwap || []).forEach((v) => {
+        if (v.enabled && v.length >= 15) keys.push(`afh_avwap_${v.length}_${v.source}_${v.multiplier0}_${v.multiplier1}_${v.multiplier2}`);
+    });
+
     (s.supertrend || []).forEach((st) => {
         if (st.enabled) keys.push(`supertrend_${st.atrLength}_${st.factor}`);
     });

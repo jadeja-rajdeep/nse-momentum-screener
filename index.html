@@ -8463,6 +8463,27 @@
                         </div>
                     </div>
 
+                    <!-- AFH ANCHORED VWAP -->
+                    <div class="settings-section">
+                        <div class="settings-section-title">Away From High Anchored Vwap (3)</div>
+                        <div class="chart-ma-table">
+                            <div class="chart-ma-head">
+                                <span></span>
+                                <span>AFH Length</span>
+                                <span>Source</span>
+                                <span>Band Multiplier 1</span>
+                                <span>Band Multiplier 2</span>
+                                <span>Band Multiplier 3</span>
+                                <span>Vwap</span>
+                                <span>Band 1</span>
+                                <span>Band 2</span>
+                                <span>Band 3</span>
+                            </div>
+                            <!-- 3 rows rendered by JS into #chartAfhAvwapRows -->
+                            <div class="chart-ma-table" id="chartAfhAvwapRows" style="gap:8px"></div>
+                        </div>
+                    </div>
+
                     <!-- RSI -->
                     <div class="settings-section">
                         <div class="chart-section-toggle">
@@ -10002,6 +10023,18 @@
                         bandColor1: "#808000",
                         bandColor2: "#00897b"
                     })),
+                    afh_avwap: [0, 1, 2].map((i) => ({
+                        enabled: false,
+                        length:[105, 126, 189][i],
+                        source:"hlc3",
+                        multiplier0:0.6,
+                        multiplier1:0.9,
+                        multiplier2:1.2,
+                        color: "#e91e63",
+                        bandColor0: "#4caf50",
+                        bandColor1: "#808000",
+                        bandColor2: "#00897b"
+                    })),
                     rsi: {
                         enabled: false,
                         length: 14,
@@ -10174,6 +10207,29 @@
                 wrap.dataset.built = "1";
             }
 
+            function renderChartAfhAvwapRows() {
+                const wrap = document.getElementById("chartAfhAvwapRows");
+                if (!wrap || wrap.dataset.built) return;
+                wrap.innerHTML = [0, 1, 2]
+                    .map(
+                        (i) => `
+                    <div class="chart-ma-row">
+                        <input type="checkbox" data-cpath="afh_avwap.${i}.enabled" title="Enable Vwap ${i + 1}" />
+                        <input type="number" step="3" min="15" data-cpath="afh_avwap.${i}.length" />
+                        <select data-cpath="afh_avwap.${i}.source">${chartSourceOptionsHtml()}</select>
+                        <input type="number" min="0" step="0.1" data-cpath="afh_avwap.${i}.multiplier0" />
+                        <input type="number" min="0" step="0.1" data-cpath="afh_avwap.${i}.multiplier1" />
+                        <input type="number" min="0" step="0.1" data-cpath="afh_avwap.${i}.multiplier2" />
+                        <input type="color" data-cpath="afh_avwap.${i}.color" />
+                        <input type="color" data-cpath="afh_avwap.${i}.bandColor0" />
+                        <input type="color" data-cpath="afh_avwap.${i}.bandColor1" />
+                        <input type="color" data-cpath="afh_avwap.${i}.bandColor2" />
+                    </div>`,
+                    )
+                    .join("");
+                wrap.dataset.built = "1";
+            }
+
             // Fill every <select data-chart-source-select> with the shared
             // source list (RSI / MACD source dropdowns).
             function populateChartSourceSelects() {
@@ -10203,6 +10259,7 @@
                 renderChartSupertrendRows();
                 renderChartPivotTrendLineRows();
                 renderChartAvwapRows();
+                renderChartAfhAvwapRows();
                 populateChartSourceSelects();
                 populateChartSettingsForm(loadChartSettings());
                 document.getElementById("chartSettingsModal").classList.add("open");
@@ -14758,8 +14815,43 @@
 
                         chartSettings.avwap.forEach(async (avwap) => {
                             if (isThumbChartStale(isin, myGeneration)) return;
-                            if (avwap.enabled) {
+                            if (avwap.enabled && avwap.date != "") {
                                 const indicatorKey = "avwap_"+avwap.date + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2;
+                                let calculation = chartInd[indicatorKey];
+                                if (isThumbChartStale(isin, myGeneration)) return;
+                                if(calculation.vwap){
+                                    thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
+                                        color: avwap.color,
+                                        lineWidth: 1,
+                                        crosshairMarkerVisible: false,
+                                        lastValueVisible: false,
+                                        priceLineVisible: false,
+                                    }).setData(calculation.vwap.slice(chartDaysDataLength));
+
+                                    const bandColors = { 0: avwap.bandColor0, 1: avwap.bandColor1, 2: avwap.bandColor2 };
+                                    [0, 1, 2].forEach((n) => {
+                                        ["upper", "lower"].forEach((side) => {
+                                            if (isThumbChartStale(isin, myGeneration)) return;
+                                            const bdata = calculation[`${side}${n+1}`];
+                                            if (!bdata) return; // band not active, skip creating the series
+
+                                            thumbCharts[isin].addSeries(LightweightCharts.LineSeries, {
+                                                color: bandColors[n],
+                                                lineWidth: 1,
+                                                crosshairMarkerVisible: false,
+                                                lastValueVisible: false,
+                                                priceLineVisible: false,
+                                            }).setData(bdata.slice(chartDaysDataLength));
+                                        });
+                                    });
+                                }
+                            }
+                        });
+
+                        chartSettings.afh_avwap.forEach(async (avwap) => {
+                            if (isThumbChartStale(isin, myGeneration)) return;
+                            if (avwap.enabled && avwap.length >= 15){
+                                const indicatorKey = "afh_avwap_"+avwap.length + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2;
                                 let calculation = chartInd[indicatorKey];
                                 if (isThumbChartStale(isin, myGeneration)) return;
                                 if(calculation.vwap){
@@ -15928,7 +16020,7 @@
                                 const indicatorKey = "avwap_"+avwap.date + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2;
                                 let calculation = chartInd[indicatorKey];
                                 if(calculation.vwap){
-                                    const key = ("vwap_"+avwap.date + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2).toUpperCase();
+                                    const key = ("avwap_"+avwap.date + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2).toUpperCase();
                                     chartSeries.main.avwap[key] = charts.main.addSeries(LightweightCharts.LineSeries, {
                                         color: avwap.color,
                                         lineWidth: 1,
@@ -15945,7 +16037,7 @@
                                             const bdata = calculation[`${side}${n+1}`];
                                             if (!bdata) return; // band not active, skip creating the series
 
-                                            const key = ("vwap_"+n+"_"+side+"_"+avwap.date + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2).toUpperCase();
+                                            const key = ("avwap_"+n+"_"+side+"_"+avwap.date + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2).toUpperCase();
                                             chartSeries.main.avwap[key] = charts.main.addSeries(LightweightCharts.LineSeries, {
                                                 color: bandColors[n],
                                                 lineWidth: 1,
@@ -15955,6 +16047,52 @@
                                             });
                                             chartSeries.main.avwap[key].setData(bdata);
                                             chartSeriesDataMap.main.avwap[key] = Object.fromEntries(bdata.map((bar, index) => [bar.time, { ...bar, color: bandColors[n] }]));
+                                        });
+                                    });
+                                }
+                            }
+                        });
+
+                        // Add AFH Avwap to main chart
+                        chartSettings.afh_avwap.forEach((avwap) => {
+                            if (avwap.enabled) {
+                                chartSeries.main.afh_avwap = {};
+                                chartSeriesDataMap.main.afh_avwap = {};
+                                return true;
+                            }
+                        });
+                        chartSettings.afh_avwap.forEach(async (avwap) => {
+                            if (avwap.enabled) {
+                                const indicatorKey = "afh_avwap_"+avwap.length + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2;
+                                let calculation = chartInd[indicatorKey];
+                                if(calculation.vwap){
+                                    const key = ("afh_avwap_"+avwap.length + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2).toUpperCase();
+                                    chartSeries.main.afh_avwap[key] = charts.main.addSeries(LightweightCharts.LineSeries, {
+                                        color: avwap.color,
+                                        lineWidth: 1,
+                                        crosshairMarkerVisible: false,
+                                        lastValueVisible: false,
+                                        priceLineVisible: false,
+                                    });
+                                    chartSeries.main.afh_avwap[key].setData(calculation.vwap);
+                                    chartSeriesDataMap.main.afh_avwap[key] = Object.fromEntries(calculation.vwap.map((bar, index) => [bar.time, { ...bar, color: avwap.color }]));
+
+                                    const bandColors = { 0: avwap.bandColor0, 1: avwap.bandColor1, 2: avwap.bandColor2 };
+                                    [0, 1, 2].forEach((n) => {
+                                        ["upper", "lower"].forEach((side) => {
+                                            const bdata = calculation[`${side}${n+1}`];
+                                            if (!bdata) return; // band not active, skip creating the series
+
+                                            const key = ("afh_avwap_"+n+"_"+side+"_"+avwap.length + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2).toUpperCase();
+                                            chartSeries.main.afh_avwap[key] = charts.main.addSeries(LightweightCharts.LineSeries, {
+                                                color: bandColors[n],
+                                                lineWidth: 1,
+                                                crosshairMarkerVisible: false,
+                                                lastValueVisible: false,
+                                                priceLineVisible: false,
+                                            });
+                                            chartSeries.main.afh_avwap[key].setData(bdata);
+                                            chartSeriesDataMap.main.afh_avwap[key] = Object.fromEntries(bdata.map((bar, index) => [bar.time, { ...bar, color: bandColors[n] }]));
                                         });
                                     });
                                 }

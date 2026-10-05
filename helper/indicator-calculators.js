@@ -649,7 +649,49 @@
 // logic already used inline in index.html's chart rendering, so a key
 // computed here and a key computed there are byte-identical.
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// AVWAP helpers.
+//   avwap_<date>_<source>_<m0>_<m1>_<m2>          anchored at a fixed date
+//   afh_avwap_<length>_<source>_<m0>_<m1>_<m2>    anchored at the AFH candle
+// NOTE: "afh_avwap_..." starts with "afh", so never use key.split("_")[0]
+// to find the indicator kind - use getIndicatorKind().
+// ---------------------------------------------------------------------------
+function getIndicatorKind(key) {
+    if (key.startsWith("afh_avwap_")) return "afh_avwap";
+    if (key.startsWith("avwap_")) return "avwap";
+    return key.split("_")[0];
+}
+
+function parseAvwapKey(key) {
+    const p = key.split("_");
+    const afh = p[0] === "afh";
+    const o = afh ? 2 : 1; // index of the length/date part
+    return {
+        anchor: afh ? "afh" : "date",
+        length: afh ? parseInt(p[o], 10) : undefined,
+        date: afh ? undefined : p[o],
+        source: p[o + 1] || "hlc3",
+        multipliers: [p[o + 2], p[o + 3], p[o + 4]],
+    };
+}
+
+// Anchors the VWAP at the Away-From-High candle, then runs the normal AVWAP.
+// Used by BOTH the chart worker and the query worker so cached payloads match.
+function calculateAfhAnchoredVWAP(data, o) {
+    const afh = calculateHighestHighResistance(data, { length: o.length });
+    if (!afh) return null;
+    return calculateAnchoredVWAP(data, {
+        date: afh.dataPoint.time,
+        source: o.source,
+        multipliers: o.multipliers || [o.multiplier0, o.multiplier1, o.multiplier2],
+    });
+}
+
 function computeIndicatorRaw(key, candles) {
+    if (key.startsWith("afh_avwap_") || key.startsWith("avwap_")) {
+        const a = parseAvwapKey(key);
+        return a.anchor === "afh" ? calculateAfhAnchoredVWAP(candles, a) : calculateAnchoredVWAP(candles, a);
+    }
     const parts = key.split("_");
     const kind = parts[0];
 
@@ -711,7 +753,13 @@ function computeIndicatorRaw(key, candles) {
 // ---------------------------------------------------------------------------
 function extractQuerySeries(canonicalKey, subfield, raw) {
     if (raw == null) return undefined;
-    const kind = canonicalKey.split("_")[0];
+    const kind = getIndicatorKind(canonicalKey);
+
+    if (kind === "avwap" || kind === "afh_avwap") {
+        // subfield: undefined -> vwap line, or upper1..3 / lower1..3 (only exist when multiplier > 0)
+        const s = raw[subfield || "vwap"];
+        return Array.isArray(s) ? s.map((p) => (typeof p.value === "number" ? p.value : undefined)) : [];
+    }
 
     if (kind === "afh") {
         // single-point indicator: represented as a one-element array so
@@ -747,8 +795,14 @@ function extractQuerySeries(canonicalKey, subfield, raw) {
 function deriveQueryFieldsFromCanonicalKeys(canonicalKeys) {
     const fields = [];
     canonicalKeys.forEach((key) => {
-        const kind = key.split("_")[0];
-        if (kind === "macd") fields.push(`${key}.line`, `${key}.signal`, `${key}.hist`);
+        const kind = getIndicatorKind(key);
+        if (kind === "avwap" || kind === "afh_avwap") {
+            fields.push(key);
+            parseAvwapKey(key).multipliers.forEach((m, i) => {
+                if (Number(m) > 0) fields.push(`${key}.upper${i + 1}`, `${key}.lower${i + 1}`);
+            });
+        }
+        else if (kind === "macd") fields.push(`${key}.line`, `${key}.signal`, `${key}.hist`);
         else if (kind === "pivottrendline") fields.push(`${key}.a`, `${key}.b`);
         else fields.push(key);
     });
@@ -760,11 +814,13 @@ if (typeof module !== "undefined" && module.exports) {
         getSourceValue, calculateSMA, calculateEMA, calculateMACD, calculateRSI,
         calculateSupertrend, calculateHighestHighResistance, calculateTrendlinePoints,
         computeIndicatorRaw, extractQuerySeries, deriveQueryFieldsFromCanonicalKeys,
+        calculateAnchoredVWAP, calculateAfhAnchoredVWAP, getIndicatorKind, parseAvwapKey,
     };
 } else if (typeof self !== "undefined") {
     self.IndicatorCalculators = {
         getSourceValue, calculateSMA, calculateEMA, calculateMACD, calculateRSI,
         calculateSupertrend, calculateHighestHighResistance, calculateTrendlinePoints,
         computeIndicatorRaw, extractQuerySeries, deriveQueryFieldsFromCanonicalKeys,
+        calculateAnchoredVWAP, calculateAfhAnchoredVWAP, getIndicatorKind, parseAvwapKey,
     };
 }

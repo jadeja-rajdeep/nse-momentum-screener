@@ -571,6 +571,11 @@ async function handleChart(m) {
         avwap.multipliers = [avwap.multiplier0,avwap.multiplier1, avwap.multiplier2];
         add("avwap_"+avwap.date + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2, () => calculateAnchoredVWAP(data, avwap));
     });
+    (S.afh_avwap || []).forEach((avwap) => {
+        if (!avwap.enabled || avwap.length < 15) return;
+        add("afh_avwap_" + avwap.length + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2,
+            () => calculateAfhAnchoredVWAP(data, avwap));
+    });
     (S.ma || []).forEach((ma) => {
         if (!ma.enabled) return;
         add(ma.type + "_" + ma.length + "_" + ma.source, () => (ma.type === "ema" ? calculateEMA(data, ma.length, ma.source) : calculateSMA(data, ma.length, ma.source)));

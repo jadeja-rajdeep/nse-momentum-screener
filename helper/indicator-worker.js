@@ -47,9 +47,10 @@ const YIELD_EVERY_N_STOCKS = 25;
 const FETCH_CONCURRENCY = 6;
 
 function buildTail(key, raw, tailBars) {
-    const kind = key.split("_")[0];
+    const kind = IndicatorCalculators.getIndicatorKind(key);
     const subs = kind === "macd" ? ["line", "signal", "hist"]
         : kind === "pivottrendline" ? ["a", "b"]
+        : (kind === "avwap" || kind === "afh_avwap") ? [undefined, "upper1", "lower1", "upper2", "lower2", "upper3", "lower3"]
         : [undefined];
     const series = {};
     for (const sub of subs) {

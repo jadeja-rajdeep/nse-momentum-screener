@@ -65,7 +65,9 @@ function iqTokenize(text) {
         // Identifiers / keywords / indexed fields
         if (isIdentStart(c)) {
             let start = i;
-            while (i < n && isIdentChar(text[i])) i++;
+            while (i < n && (isIdentChar(text[i]) ||
+                // allow the dashes of a date inside avwap_YYYY-MM-DD_... keys only
+                (text[i] === "-" && isDigit(text[i - 1]) && isDigit(text[i + 1]) && /^avwap_/i.test(text.slice(start, i))))) i++;
             const word = text.slice(start, i);
             const upper = word.toUpperCase();
 
