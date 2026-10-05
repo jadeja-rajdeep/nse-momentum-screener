@@ -16534,10 +16534,9 @@
 
             function openStockSearchModal(string = "") {
                 const input = document.getElementById("stockSearchInput");
-                input.value = string;
+                input.value = string.trim();
                 stockSearchCleared = false; // new session: clear filters again on first letter
                 document.getElementById("stockSearchModal").classList.add("open");
-                renderStockSearchList();
                 // 1. Focus the input element
                 input.focus();
                 // 2. Calculate the length of the current text string
@@ -16546,6 +16545,8 @@
                     // 3. Force the cursor selection range to the very end
                     input.setSelectionRange(length, length);
                     onStockSearchInput(input);
+                }else{
+                    renderStockSearchList();
                 }
             }
 
@@ -16553,7 +16554,7 @@
             function renderStockSearchList() {
                 const list = document.getElementById("stockSearchList");
                 list.textContent = "";
-                const rows = document.querySelectorAll("#tableBody tr:not(.chart-row)");
+                const rows = document.querySelectorAll("#tableBody > tr:not(.chart-row)");
                 let count = 0;
                 rows.forEach((tr) => {
                     const codeCell = tr.querySelector("td.code-cell");
@@ -16629,7 +16630,11 @@
                 const f = document.getElementById("f_search");
                 f.value = input.value;
                 f.dispatchEvent(new Event("input", { bubbles: true }));
-                renderStockSearchList(); // table re-rendered synchronously by applyFilters
+                setTimeout(()=>{
+                    requestAnimationFrame(()=>{
+                         renderStockSearchList(); // table re-rendered synchronously by applyFilters
+                    });
+                },25);
             }
 
             // Closes the search modal; if the chart modal is open, reopens the chart of
