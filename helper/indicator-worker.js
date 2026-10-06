@@ -81,6 +81,7 @@ self.onmessage = async function (e) {
     try {
         const { isins, chartBaseUrl, enabledIndicatorKeys, dataDate } = msg;
         const tailBars = msg.tailBars || 60;
+        const indicatorSettings = msg.indicatorSettings || {};
         const TAIL_PREFIX = `tail${tailBars}::`;
         const OHLCV_TAIL_KEY = TAIL_PREFIX + "ohlcv";
 
@@ -127,7 +128,7 @@ self.onmessage = async function (e) {
                     // Reuse the raw payload if the chart modal already cached it.
                     let raw = await IndicatorCacheDB.get(isin, key, dataDate);
                     if (!raw) {
-                        raw = computeIndicatorRaw(key, candles);
+                        raw = computeIndicatorRaw(key, candles, indicatorSettings[key]); // full settings -> same options as the chart worker
                         if (raw) await IndicatorCacheDB.set(isin, key, dataDate, raw);
                     }
                     const tail = raw ? buildTail(key, raw, tailBars) : { series: {} };

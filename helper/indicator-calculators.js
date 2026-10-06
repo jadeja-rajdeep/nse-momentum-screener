@@ -687,9 +687,19 @@ function calculateAfhAnchoredVWAP(data, o) {
     });
 }
 
-function computeIndicatorRaw(key, candles) {
+// computeIndicatorRaw(key, candles, settings)
+//   key      canonical cache key (carries the numeric parameters)
+//   settings the FULL chart-settings object for this indicator (colours and
+//            anything else the calculator reads). Optional.
+// RULE: every calculator must receive the user's whole settings object, merged
+// as { ...settings, ...parametersParsedFromKey } - the key always wins for the
+// parameters it encodes, everything else (colours, flags, future options) comes
+// from settings. Cached payloads are shared by the chart worker and the query
+// worker, so both must call calculators with the same options.
+function computeIndicatorRaw(key, candles, settings) {
+    const st = settings || {};
     if (key.startsWith("afh_avwap_") || key.startsWith("avwap_")) {
-        const a = parseAvwapKey(key);
+        const a = { ...st, ...parseAvwapKey(key) };
         return a.anchor === "afh" ? calculateAfhAnchoredVWAP(candles, a) : calculateAnchoredVWAP(candles, a);
     }
     const parts = key.split("_");
@@ -701,13 +711,13 @@ function computeIndicatorRaw(key, candles) {
         return kind === "ema" ? calculateEMA(candles, length, source) : calculateSMA(candles, length, source);
     }
     if (kind === "supertrend") {
-        return calculateSupertrend(candles, { atrLength: parseInt(parts[1], 10), factor: parseFloat(parts[2]) });
+        return calculateSupertrend(candles, { ...st, atrLength: parseInt(parts[1], 10), factor: parseFloat(parts[2]) });
     }
     if (kind === "afh") {
-        return calculateHighestHighResistance(candles, { length: parseInt(parts[1], 10) });
+        return calculateHighestHighResistance(candles, { ...st, length: parseInt(parts[1], 10) });
     }
     if (kind === "pivottrendline") {
-        // pivottrendline_<length>_<high|low>
+        // pivottrendline_<length>_<high|low>  (calculator takes positional args, no options object)
         const length = parseInt(parts[1], 10);
         const mode = parts[2];
         return calculateTrendlinePoints(candles, length, mode);
@@ -720,7 +730,7 @@ function computeIndicatorRaw(key, candles) {
             const smoothingType = parts[4];
             const smoothingLength = parseInt(parts[5], 10);
             const baseKey = `rsi_${length}_${source}_${smoothingType}_${smoothingLength}`;
-            const rsiData = computeIndicatorRaw(baseKey, candles);
+            const rsiData = computeIndicatorRaw(baseKey, candles, st);
             return smoothingType === "ema"
                 ? calculateEMA(rsiData, smoothingLength, "value")
                 : calculateSMA(rsiData, smoothingLength, "value");
@@ -730,7 +740,7 @@ function computeIndicatorRaw(key, candles) {
         const source = parts[2];
         const smoothingType = parts[3];
         const smoothingLength = parseInt(parts[4], 10);
-        return calculateRSI(candles, { length, source, smoothingType, smoothingLength });
+        return calculateRSI(candles, { ...st, length, source, smoothingType, smoothingLength });
     }
     if (kind === "macd") {
         // macd_<source>_<fastLength>_<slowLength>_<signalLength>_<oscMaType>_<signalMaType>
@@ -740,7 +750,7 @@ function computeIndicatorRaw(key, candles) {
         const signalLength = parseInt(parts[4], 10);
         const oscMaType = parts[5];
         const signalMaType = parts[6];
-        return calculateMACD(candles, { source, fastLength, slowLength, signalLength, oscMaType, signalMaType });
+        return calculateMACD(candles, { ...st, source, fastLength, slowLength, signalLength, oscMaType, signalMaType });
     }
     throw new Error(`computeIndicatorRaw: unknown canonical key "${key}"`);
 }

@@ -107,52 +107,60 @@ function getIndicatorSeries(isin, fieldName) {
 let indicatorWorker = null;
 let indicatorRequestId = 0;
 
-function getEnabledChartIndicatorKeys() {
+// Single builder for BOTH the canonical cache keys and the full chart-settings
+// object behind each key. The worker passes that object to every calculator, so
+// a payload cached by the query worker is identical to the chart worker's.
+function getEnabledChartIndicators() {
     const s = loadChartSettings();
-    const keys = [];
+    const settingsByKey = {};
+    const add = (key, settings) => { if (!(key in settingsByKey)) settingsByKey[key] = settings; };
 
     (s.ma || []).forEach((ma) => {
-        if (ma.enabled) keys.push(`${ma.type}_${ma.length}_${ma.source}`);
+        if (ma.enabled) add(`${ma.type}_${ma.length}_${ma.source}`, ma);
     });
 
     (s.afh || []).forEach((afh) => {
-        if (afh.enabled && afh.length >= 15) keys.push(`afh_${afh.length}`);
+        if (afh.enabled && afh.length >= 15) add(`afh_${afh.length}`, afh);
     });
 
     // Must match the chart's cache keys exactly (see data-worker.js) so payloads are shared.
     (s.avwap || []).forEach((v) => {
-        if (v.enabled && v.date != "") keys.push(`avwap_${v.date}_${v.source}_${v.multiplier0}_${v.multiplier1}_${v.multiplier2}`);
+        if (v.enabled && v.date != "") add(`avwap_${v.date}_${v.source}_${v.multiplier0}_${v.multiplier1}_${v.multiplier2}`, v);
     });
 
     (s.afh_avwap || []).forEach((v) => {
-        if (v.enabled && v.length >= 15) keys.push(`afh_avwap_${v.length}_${v.source}_${v.multiplier0}_${v.multiplier1}_${v.multiplier2}`);
+        if (v.enabled && v.length >= 15) add(`afh_avwap_${v.length}_${v.source}_${v.multiplier0}_${v.multiplier1}_${v.multiplier2}`, v);
     });
 
     (s.supertrend || []).forEach((st) => {
-        if (st.enabled) keys.push(`supertrend_${st.atrLength}_${st.factor}`);
+        if (st.enabled) add(`supertrend_${st.atrLength}_${st.factor}`, st);
     });
 
     (s.pivottrendline || []).forEach((pivot) => {
         if (pivot.enabled && pivot.length > 1) {
-            keys.push(`pivottrendline_${pivot.length}_high`);
-            keys.push(`pivottrendline_${pivot.length}_low`);
+            add(`pivottrendline_${pivot.length}_high`, pivot);
+            add(`pivottrendline_${pivot.length}_low`, pivot);
         }
     });
 
     if (s.rsi && s.rsi.enabled) {
         const { length, source, smoothingType, smoothingLength } = s.rsi;
-        keys.push(`rsi_${length}_${source}_${smoothingType}_${smoothingLength}`);
+        add(`rsi_${length}_${source}_${smoothingType}_${smoothingLength}`, s.rsi);
         if (smoothingLength > 0 && smoothingType !== "none") {
-            keys.push(`rsi_sma_${length}_${source}_${smoothingType}_${smoothingLength}`);
+            add(`rsi_sma_${length}_${source}_${smoothingType}_${smoothingLength}`, s.rsi);
         }
     }
 
     if (s.macd && s.macd.enabled) {
         const { source, fastLength, slowLength, signalLength, oscMaType, signalMaType } = s.macd;
-        keys.push(`macd_${source}_${fastLength}_${slowLength}_${signalLength}_${oscMaType}_${signalMaType}`);
+        add(`macd_${source}_${fastLength}_${slowLength}_${signalLength}_${oscMaType}_${signalMaType}`, s.macd);
     }
 
-    return [...new Set(keys)];
+    return { keys: Object.keys(settingsByKey), settingsByKey };
+}
+
+function getEnabledChartIndicatorKeys() {
+    return getEnabledChartIndicators().keys;
 }
 
 function startIndicatorEngine() {
@@ -205,6 +213,7 @@ function launchIndicatorWorker(worker, enabledIndicatorKeys, requestId) {
         isins: allData.map((row) => row["ISIN"]).filter(Boolean),
         chartBaseUrl: new URL("data/chart/", window.location.href).href,
         enabledIndicatorKeys,
+        indicatorSettings: getEnabledChartIndicators().settingsByKey, // full settings per key -> calculators
         dataDate: CURRENT_DATA_DATE,
         tailBars: indicatorActiveTailBars,
     });
