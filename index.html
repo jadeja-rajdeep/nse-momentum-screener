@@ -3139,6 +3139,61 @@
                 border-bottom: 1px solid var(--border);
             }
 
+            /* ---- REUSABLE ACCORDION (opt-in via data-accordion on any .settings-modal-body) ---- */
+            [data-accordion] > .acc-item > .acc-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                cursor: pointer;
+                user-select: none;
+            }
+            [data-accordion] > .acc-item > .acc-header .acc-chevron {
+                flex: 0 0 auto;
+                background: none;
+                border: 0;
+                padding: 0 2px;
+                margin: 0;
+                color: var(--muted);
+                font-size: 12px;
+                line-height: 1;
+                cursor: pointer;
+                transition: transform 0.2s ease;
+            }
+            [data-accordion] > .acc-item > .acc-header .acc-chevron::before {
+                content: "\25BE"; /* ▾ */
+            }
+            [data-accordion] > .acc-item:not(.open) > .acc-header .acc-chevron {
+                transform: rotate(-90deg);
+            }
+            /* collapsed: header only, no divider / extra spacing */
+            [data-accordion] > .acc-item:not(.open) > .acc-header {
+                margin-bottom: 0;
+                padding-bottom: 0;
+                border-bottom-color: transparent;
+            }
+            [data-accordion] > .acc-item > .acc-body {
+                display: grid;
+                grid-template-rows: 0fr;
+                transition: grid-template-rows 0.25s ease;
+            }
+            [data-accordion] > .acc-item.open > .acc-body {
+                grid-template-rows: 1fr;
+            }
+            [data-accordion] > .acc-item > .acc-body > .acc-body-inner {
+                min-height: 0;
+                overflow: hidden;
+            }
+            [data-accordion] > .acc-item.open > .acc-body > .acc-body-inner {
+                overflow: visible; /* don't clip focus rings / pickers once fully open */
+            }
+            @media (prefers-reduced-motion: reduce) {
+                [data-accordion] > .acc-item > .acc-body,
+                [data-accordion] > .acc-item > .acc-header .acc-chevron {
+                    transition: none;
+                }
+            }
+
             /* Export / Import buttons */
             .settings-action-btn {
                 display: flex;
@@ -4240,6 +4295,7 @@
             <div class="filter-top-actions">
                 <button class="btn-filter-clear" onclick="clearFilters()">✕ Clear</button>
                 <button class="btn-save-search" onclick="openSaveModal()" title="Save current filters as a named search">💾 Save</button>
+                <button class="btn-save-search" onclick="shareCurrentFilters()" title="Copy a shareable link to the current filters">🔗</button>
             </div>
 
             <!-- Collapsible filter groups -->
@@ -5339,6 +5395,7 @@
             <div class="filter-bottom-actions">
                 <button class="btn-filter-clear" onclick="clearFilters()">✕ Clear</button>
                 <button class="btn-save-search" onclick="openSaveModal()" title="Save current filters as a named search">💾 Save</button>
+                <button class="btn-save-search" onclick="shareCurrentFilters()" title="Copy a shareable link to the current filters">🔗</button>
             </div>
         </div>
 
@@ -5457,7 +5514,7 @@
         <div class="ss-modal-overlay" id="saveModal" onclick="closeSaveModalOnOverlay(event)">
             <div class="ss-modal">
                 <div class="ss-modal-header">
-                    <span>💾 Save Current Filters</span>
+                    <span id="saveModalTitle">💾 Save Current Filters</span>
                     <button class="peer-modal-close" onclick="closeSaveModal()">✕</button>
                 </div>
                 <div class="ss-modal-body">
@@ -5466,7 +5523,8 @@
                     <div id="saveSearchPreview" class="ss-preview"></div>
                     <div class="d-flex gap-2 mt-3 justify-content-end">
                         <button class="btn-filter-clear" onclick="closeSaveModal()">Cancel</button>
-                        <button class="btn-save-confirm" onclick="confirmSave()">💾 Save Search</button>
+                        <button class="btn-filter-clear" id="saveAsNewBtn" style="display: none" onclick="confirmSave(true)">➕ Save as New</button>
+                        <button class="btn-save-confirm" id="saveConfirmBtn" onclick="confirmSave()">💾 Save Search</button>
                     </div>
                 </div>
             </div>
@@ -8345,9 +8403,9 @@
                     </div>
                     <button class="peer-modal-close" onclick="closeChartSettingsModal()">✕</button>
                 </div>
-                <div class="settings-modal-body">
-                    <!-- MASTER TOGGLE -->
-                    <div class="settings-section">
+                <div class="settings-modal-body" data-accordion="single">
+                    <!-- MASTER TOGGLE (no title of its own, so give the accordion a label) -->
+                    <div class="settings-section" data-accordion-title="General">
                         <div class="chart-settings-master">
                             <label class="abv-check-item">
                                 <input type="checkbox" data-cpath="enabled" />
@@ -9392,18 +9450,23 @@
                     }
                     if (!rows.length) throw new Error("No data found in JSON");
 
+                    // Start the indicator engine the instant the rows are parsed - it only
+                    // needs the ISINs and the data date, so it doesn't wait for the
+                    // canonicalising / ranking / rendering below. startIndicatorEngine()
+                    // just spawns a worker (all the heavy work is off the main thread and
+                    // it holds back until the daily IndexedDB wipe has finished).
+                    CURRENT_DATA_DATE = rows[0]?.Date;
+                    window.indicatorCacheFresh = ensureIndicatorCacheFreshness(CURRENT_DATA_DATE).catch(() => {});
+                    allData = rows;
+                    syncIndicatorQuerySettingToHelper();
+                    ensureIndicatorEngineStarted();
+
                     // Collapse case-variant duplicates (e.g. "Financial
                     // Services" vs "financial services") in the
                     // classification fields BEFORE anything downstream
                     // (dropdowns, group stats, ranking, filtering) reads
                     // these rows.
                     canonicalizeCategoricalFields(rows);
-
-                    CURRENT_DATA_DATE = rows[0]?.Date;
-                    //clear chart indicator data from indexdb if date is not same.
-                    window.indicatorCacheFresh = ensureIndicatorCacheFreshness(CURRENT_DATA_DATE).catch(() => {});
-
-                    allData = rows;
 
                     // Hand the (canonicalised) rows to the data worker: it computes the
                     // Basic-Industry / Industry rank maps off the main thread and keeps its
@@ -9472,20 +9535,32 @@
                     // data and diff against yesterday's stored result to find
                     // new stocks — populates alertBadgeMap (used by renderPage)
                     // and pops a summary alert if the data date has changed.
-                    try {
-                        await runAlertBadgeCheck(dates.length ? dates[0] : null);
-                    } catch (err) {
-                        console.warn("Alert badge check failed:", err);
+                    // Badge check. Cached same-date path = instant (no filter run), so it
+                    // is awaited and the first render already shows the badges. A new data
+                    // date means every preset / saved search is re-run (and, for indicator
+                    // queries, we wait for the engine) - that NEVER blocks rendering: the
+                    // table paints now, the check runs in the background, and a single
+                    // re-render adds the 🆕 badges + summary popup when it finishes.
+                    const badgeDate = dates.length ? dates[0] : null;
+                    const badgeSnap = loadAlertSnapshot();
+                    const badgeCached = !badgeDate || (badgeSnap && badgeSnap.dataDate === badgeDate);
+                    if (badgeCached) {
+                        try {
+                            await runAlertBadgeCheck(badgeDate);
+                        } catch (err) {
+                            console.warn("Alert badge check failed:", err);
+                        }
                     }
 
-                    syncIndicatorQuerySettingToHelper();
-                    applyFilters();
+                    if (!applyRouteFromLocation()) applyFilters();
 
-                    // Indicator Advance Query: start the background worker only after the page
-                    // is fully loaded and painted, and only if the Settings switch is on (once).
-                    const kickIndicatorEngine = () => requestAnimationFrame(() => ensureIndicatorEngineStarted());
-                    if (document.readyState === "complete") kickIndicatorEngine();
-                    else window.addEventListener("load", kickIndicatorEngine, { once: true });
+                    if (!badgeCached) {
+                        runAlertBadgeCheck(badgeDate)
+                            .then(() => applyFilters())
+                            .catch((err) => console.warn("Alert badge check failed:", err));
+                    }
+
+                    // (Indicator engine was already started right after allData was set.)
                 } catch (e) {
                     document.getElementById("loading").style.display = "none";
                     const el = document.getElementById("error-msg");
@@ -9749,6 +9824,7 @@
             }
 
             function clearFilters(callApplyFilter = true) {
+                if (typeof onFiltersCleared === "function") onFiltersCleared();
                 ["f_search", "f_rs_min", "f_rs_max", "f_mcap_min", "f_mcap_max", "f_rs1m_min", "f_rs1m_max", "f_rs3m_min", "f_rs3m_max", "f_rs2m_min", "f_rs2m_max", "f_rs4m_min", "f_rs4m_max", "f_rs6m_min", "f_rs6m_max", "f_lin3m_min", "f_lin1m_min", "f_rvol_avg_3m_min", "f_dcr1_min", "f_dcr1_max", "f_dcr5_min", "f_dcr5_max", "f_dcr10_min", "f_dcr10_max", "f_dcr15_min", "f_dcr15_max", "f_rmv15_min", "f_rmv15_max", "f_rmv21_min", "f_rmv21_max", "f_rmv42_min", "f_rmv42_max", "f_pe_min", "f_pe_max", "f_close_min", "f_close_max", "f_roe_min", "f_roe_max", "f_debt_min", "f_debt_max", "f_cashflow_min", "f_cashflow_max", "f_bookval_min", "f_bookval_max", "f_to_min", "f_to_max", "f_prom_min", "f_prom_max", "f_nr_min", "f_5dr_min", "f_5dr_max", "f_10dr_min", "f_10dr_max", "f_15dr_min", "f_15dr_max", "f_21dr_min", "f_21dr_max", "f_afh_0_5m_min", "f_afh_0_5m_max", "f_afh1m_min", "f_afh1m_max", "f_afh2m_min", "f_afh2m_max", "f_afh3m_min", "f_afh3m_max", "f_afh4m_min", "f_afh4m_max", "f_afh5m_min", "f_afh5m_max", "f_afh6m_min", "f_afh6m_max", "f_afh9m_min", "f_afh9m_max", "f_sma10_min", "f_sma10_max", "f_sma20_min", "f_sma20_max", "f_sma50_min", "f_sma50_max", "f_sma100_min", "f_sma100_max", "f_sma150_min", "f_sma150_max", "f_sma200_min", "f_sma200_max", "f_chg1d_min", "f_chg1d_max", "f_chg5d_min", "f_chg5d_max", "f_chg1m_min", "f_chg1m_max", "f_chg3m_min", "f_chg3m_max", "f_chg2m_min", "f_chg2m_max", "f_chg4m_min", "f_chg4m_max", "f_chg6m_min", "f_chg6m_max", "f_bi_rank_pct", "f_ind_rank_pct", "f_bi5d_rank_pct", "f_ind5d_rank_pct", "f_bi1m_rank_pct", "f_ind1m_rank_pct", "f_eps1_max", "f_eps2_min", "f_eps2_max", "f_sal1_min", "f_sal1_max", "f_sal2_min", "f_sal2_max", "f_epsq1_min", "f_epsq1_max", "f_salq1_min", "f_salq1_max", "f_epsq2_min", "f_epsq2_max", "f_salq2_min", "f_salq2_max"].forEach((id) => {
                     const el = document.getElementById(id);
                     if (el) el.value = "";
@@ -12556,6 +12632,28 @@
             // Edit thresholds/logic here only — UI renders straight from this array.
             const SETUP_PRESETS = [
                 {
+                    id: "stage_2_stocks",
+                    label: "Stage 2 Stocks",
+                    color: "#228b22",
+                    description: "Stage 2 Stocks Base forming near highs",
+                    simpleFilters: {
+                        f_bi_rank_pct: 30,
+                        f_ind_rank_pct:50,
+                        f_rmv42_max:50,
+                        f_mcap_min: 500,
+                        f_to_min: 5,
+                        f_chg5d_min:0,
+                        f_sma20_max:0,
+                        f_sma50_max:0,
+                        f_sma200_max:0
+                    },
+                    multiSelectFilters: {
+                        f_adv_decl: ["1", "0"],
+                        f_priceband: ["10", "20"],
+                    },
+                    advQuery: '( AWAY_SMA20 >= AWAY_SMA200 AND AWAY_SMA10 >= AWAY_SMA200 ) AND ( (AFH_2M >= 0 AND AFH_2M < 16) OR (AFH_9M >= 0 AND AFH_9M < 16)  ) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" ) ',
+                },
+                {
                     id: "good_base",
                     label: "Good Base",
                     color: "#00ffff",
@@ -12565,18 +12663,20 @@
                         f_to_min: 5,
                         f_5dr_max: 15,
                         f_bi_rank_pct: 30,
-                        f_afh9m_min: -26,
-                        f_chg5d_min: -3,
+                        f_ind_rank_pct:50,
+                        f_afh9m_min: -30,
+                        f_chg5d_min:0,
                         f_chg1m_max: 15,
                         f_dcr5_min: 50,
                         f_dcr10_min: 50,
                         f_dcr15_min: 50,
+                        f_rmv42_max:50,
                     },
                     multiSelectFilters: {
                         f_adv_decl: ["1", "0"],
-                        f_priceband: ["0", "5", "10", "20"],
+                        f_priceband: ["5", "10", "20"],
                     },
-                    advQuery: '( ( AFH_2M >= -5 AND AFH_2M <= 6 ) OR ( AFH_3M >= -5 AND AFH_3M <= 6 ) OR ( AFH_4M >= -5 AND AFH_4M <= 6 ) OR ( AFH_5M >= -5 AND AFH_5M <= 6 ) OR ( AFH_6M >= -5 AND AFH_6M <= 6 ) OR ( AFH_9M >= -5 AND AFH_9M <= 6 )) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
+                    advQuery: '( ( AFH_2M >= -5 AND AFH_2M <= 6 ) OR ( AFH_3M >= -5 AND AFH_3M <= 6 ) OR ( AFH_4M >= -5 AND AFH_4M <= 6 ) OR ( AFH_5M >= -5 AND AFH_5M <= 6 ) OR ( AFH_6M >= -5 AND AFH_6M <= 6 ) OR ( AFH_9M >= -5 AND AFH_9M <= 6 ) ) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" ) ',
                 },
                 {
                     id: "reversal",
@@ -12597,10 +12697,11 @@
                         f_chg6m_max: 10,
                         f_afh9m_min: -26,
                         f_rvol_avg_3m_min: 0.9,
-                        f_chg5d_min: -3,
+                        f_chg5d_min:0,
                         f_dcr5_min: 50,
                         f_dcr10_min: 50,
                         f_dcr15_min: 50,
+                        f_rmv42_max:50,
                     },
                     /*
                     checkFilters: {
@@ -12609,9 +12710,9 @@
                      */
                     multiSelectFilters: {
                         f_adv_decl: ["1", "0"],
-                        f_priceband: ["0", "5", "10", "20"],
+                        f_priceband: ["5", "10", "20"],
                     },
-                    advQuery: '( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
+                    advQuery: '( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" )',
                 },
                 {
                     id: "industry",
@@ -12630,17 +12731,18 @@
                         f_afh1m_max: 6,
                         f_afh9m_min: -26,
                         f_rvol_avg_3m_min: 0.9,
-                        f_chg5d_min: -3,
+                        f_chg5d_min:0,
                         f_chg1m_max: 15,
                         f_dcr5_min: 50,
                         f_dcr10_min: 50,
                         f_dcr15_min: 50,
+                        f_rmv42_max:50,
                     },
                     multiSelectFilters: {
                         f_adv_decl: ["1", "0"],
-                        f_priceband: ["0", "5", "10", "20"],
+                        f_priceband: ["5", "10", "20"],
                     },
-                    advQuery: '( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 ) AND ( LIN_3M >= 0.45 OR LIN_1M >= 0.45) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" )',
+                    advQuery: '( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 ) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" )',
                 },
             ];
 
@@ -12745,6 +12847,7 @@
                 updateSetupPresetButtonLabel();
                 closeSetupPresetPanel();
                 autoExpandFilterGroupsWithValues();
+                setPresetRouteUrl(id);
             }
 
             function clearSetupPreset() {
@@ -13115,6 +13218,247 @@
                 }
             }
 
+            // ============ SHARE LINKS + ROUTES  (?scan=<base64url(query string)>, ?preset=<id>) ============
+                        const SHARE_MAX_QS_LEN = 20000; // sanity cap on a decoded shared query string
+            let activeSavedSearchId = null; // saved search currently loaded in the filter panel (for Update)
+            let routeApplied = false;
+            let routeUrlActive = /[?&](scan|preset)=/.test(location.search);
+
+            (function injectShareStyles() {
+                const st = document.createElement("style");
+                st.textContent =
+                    ".mini-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:100000;background:var(--surface2,#1e2d45);color:var(--text,#e2e8f0);border:1px solid var(--accent,#00d4aa);border-radius:8px;padding:8px 14px;font:12px var(--mono,monospace);box-shadow:0 6px 24px rgba(0,0,0,.4);max-width:90vw;opacity:0;transition:opacity .2s;pointer-events:none}" +
+                    ".mini-toast.show{opacity:1}" +
+                    ".active-ss-banner{font:11px var(--mono,monospace);color:var(--accent3,#f59e0b);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:6px;padding:6px 10px;margin:0 0 8px}";
+                document.head.appendChild(st);
+            })();
+
+            function escHtml(v) {
+                return String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+            }
+
+            let _miniToastTimer = null;
+            function showMiniToast(msg) {
+                let el = document.getElementById("miniToast");
+                if (!el) {
+                    el = document.createElement("div");
+                    el.id = "miniToast";
+                    el.className = "mini-toast";
+                    document.body.appendChild(el);
+                }
+                el.textContent = msg;
+                el.classList.add("show");
+                clearTimeout(_miniToastTimer);
+                _miniToastTimer = setTimeout(() => el.classList.remove("show"), 2600);
+            }
+
+            // UTF-8 safe base64url
+            function b64urlEncode(str) {
+                const bytes = new TextEncoder().encode(str);
+                let bin = "";
+                bytes.forEach((b) => (bin += String.fromCharCode(b)));
+                return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+            }
+            function b64urlDecode(s) {
+                s = s.replace(/-/g, "+").replace(/_/g, "/");
+                while (s.length % 4) s += "=";
+                const bin = atob(s);
+                return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+            }
+
+            // captureFilters()-style state  <->  "f_rs_min=80&f_sector=Auto&f_sector=IT&f_adv_enabled=1"
+            function stateToQueryString(state) {
+                const p = new URLSearchParams();
+                FILTER_FIELDS.forEach(({ id, type }) => {
+                    const v = state[id];
+                    if (v === undefined || v === null || v === "" || v === false) return;
+                    if (type === "mselect") (Array.isArray(v) ? v : [v]).forEach((x) => p.append(id, x));
+                    else if (type === "check") p.set(id, "1");
+                    else p.set(id, String(v));
+                });
+                return p.toString();
+            }
+            function queryStringToState(qs) {
+                if (qs.length > SHARE_MAX_QS_LEN) throw new Error("Shared link is too long");
+                const p = new URLSearchParams(qs);
+                const state = {};
+                // Only known filter ids are read - anything else in the link is ignored.
+                FILTER_FIELDS.forEach(({ id, type }) => {
+                    if (type === "mselect") {
+                        const vals = p.getAll(id);
+                        if (vals.length) state[id] = vals;
+                    } else if (type === "check") {
+                        if (p.get(id) === "1") state[id] = true;
+                    } else {
+                        const v = p.get(id);
+                        if (v !== null && v.trim()) state[id] = v.trim();
+                    }
+                });
+                return state;
+            }
+
+            function getSiteBase() {
+                return location.origin + location.pathname; // current page, no query/hash
+            }
+            function buildShareUrl(state) {
+                return getSiteBase() + "?scan=" + b64urlEncode(stateToQueryString(state));
+            }
+
+            async function copyText(text) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (e) {
+                    try {
+                        const ta = document.createElement("textarea");
+                        ta.value = text;
+                        ta.style.cssText = "position:fixed;opacity:0";
+                        document.body.appendChild(ta);
+                        ta.select();
+                        const ok = document.execCommand("copy");
+                        ta.remove();
+                        return ok;
+                    } catch (e2) {
+                        return false;
+                    }
+                }
+            }
+
+            async function shareState(state, title) {
+                if (!Object.keys(state).length) {
+                    alert("No filters are set. Set at least one filter before sharing.");
+                    return;
+                }
+                const url = buildShareUrl(state);
+                // Phones: native share sheet. Desktop: copy to clipboard.
+                if (navigator.share && window.matchMedia && matchMedia("(pointer: coarse)").matches) {
+                    try {
+                        await navigator.share({ title: title || "NSE Momentum Screener", url });
+                        return;
+                    } catch (e) {
+                        if (e && e.name === "AbortError") return;
+                    }
+                }
+                if (await copyText(url)) showMiniToast("🔗 Link copied to clipboard");
+                else window.prompt("Copy this link:", url);
+            }
+            function shareCurrentFilters() {
+                return shareState(captureFilters(), "NSE Screener — shared filters");
+            }
+            function shareSavedSearch(id) {
+                const s = loadSavedSearches().find((x) => x.id === id);
+                if (s) shareState(s.state || {}, "NSE Screener — " + s.name);
+            }
+
+            // ---- address bar sync ----
+            function setRouteUrl(rel) {
+                try {
+                    history.replaceState(null, "", location.pathname + rel + location.hash);
+                } catch (e) {}
+            }
+            function resetRouteUrl() {
+                if (!routeUrlActive) return;
+                routeUrlActive = false;
+                setRouteUrl("");
+            }
+            function setPresetRouteUrl(id) {
+                setRouteUrl("?preset=" + encodeURIComponent(id));
+                routeUrlActive = true;
+            }
+            function onFiltersCleared() {
+                resetRouteUrl();
+                activeSavedSearchId = null;
+                updateActiveSsBanner();
+            }
+
+            // ---- open a ?scan=<code> or ?preset=<id> link (called once after data loads) ----
+            function applyRouteFromLocation() {
+                if (routeApplied) return false;
+                routeApplied = true;
+                const qp = new URLSearchParams(location.search);
+                const kind = qp.has("preset") ? "preset" : qp.has("scan") ? "scan" : null;
+                if (!kind) return false;
+                const key = qp.get(kind) || "";
+                try {
+                    if (kind === "preset") {
+                        if (!SETUP_PRESETS.some((p) => p.id === key)) {
+                            showMiniToast("Unknown preset link");
+                            return false;
+                        }
+                        applySetupPreset(key); // fills filters, opens the panel + groups, updates the URL
+                        return true;
+                    }
+                    // shared scan
+                    const state = queryStringToState(b64urlDecode(key));
+                    if (!Object.keys(state).length) {
+                        showMiniToast("Shared link has no filters");
+                        return false;
+                    }
+                    restoreFilters(state); // fills filters + expands groups with values
+                    routeUrlActive = false; // restoreFilters() already cleaned the ?scan= from the address bar - nothing to reset later
+                    if (!filtersVisible) toggleFilters();
+                    // A shared scan is user content - never index it, point search engines at the home page.
+                    const robots = document.querySelector('meta[name="robots"]');
+                    if (robots) robots.content = "noindex, follow";
+                    const canon = document.querySelector('link[rel="canonical"]');
+                    if (canon) canon.href = getSiteBase();
+                    showMiniToast("🔗 Shared filters applied");
+                    return true;
+                } catch (e) {
+                    console.warn("[route] could not apply link:", e);
+                    showMiniToast("Invalid or corrupted link");
+                    return false;
+                }
+            }
+
+            // ---- edit saved search ----
+            function getActiveSavedSearch() {
+                if (activeSavedSearchId == null) return null;
+                const s = loadSavedSearches().find((x) => x.id === activeSavedSearchId);
+                if (!s) activeSavedSearchId = null;
+                return s || null;
+            }
+            function updateActiveSsBanner() {
+                let el = document.getElementById("activeSsBanner");
+                const s = getActiveSavedSearch();
+                if (!s) {
+                    if (el) el.style.display = "none";
+                    return;
+                }
+                if (!el) {
+                    const panel = document.getElementById("filterPanel");
+                    if (!panel) return;
+                    el = document.createElement("div");
+                    el.id = "activeSsBanner";
+                    el.className = "active-ss-banner";
+                    panel.insertBefore(el, panel.firstChild);
+                }
+                el.innerHTML = `✏️ Saved search <b>${escHtml(s.name)}</b> is loaded — change the filters, then press 💾 to update it (or save as a new one).`;
+                el.style.display = "";
+            }
+            function editSavedSearch(id) {
+                const s = loadSavedSearches().find((x) => x.id === id);
+                if (!s) return;
+                clearMultiSearch(false);
+                restoreFilters(s.state || {});
+                activeSavedSearchId = id;
+                updateActiveSsBanner();
+                const sp = document.getElementById("savedPanel");
+                if (sp && sp.style.display !== "none") toggleSavedPanel();
+                if (!filtersVisible) toggleFilters();
+            }
+            // A changed definition must not be diffed against yesterday's result list
+            // (it would badge every stock as "new"), so forget its stored snapshot.
+            function dropAlertSnapshotForSaved(id) {
+                try {
+                    const snap = loadAlertSnapshot();
+                    if (snap && snap.saved && snap.saved[id]) {
+                        delete snap.saved[id];
+                        saveAlertSnapshot(snap);
+                    }
+                } catch (e) {}
+            }
+
             function loadSavedSearches() {
                 try {
                     return JSON.parse(localStorage.getItem(SS_KEY) || "[]");
@@ -13147,6 +13491,7 @@
             }
 
             function restoreFilters(state) {
+                if (typeof resetRouteUrl === "function") resetRouteUrl();
                 // Reset all first
                 FILTER_FIELDS.forEach(({ id, type }) => {
                     if (type === "mselect") {
@@ -13384,7 +13729,29 @@
 
             // Entry point — called once from loadData() right after allData
             // is ready. currentDate is the data date shown in the 📅 badge.
-            async function runAlertBadgeCheck(currentDate) {
+            // True when today's run must wait for the Indicator engine: the data
+            // date changed (so a real diff will run) AND at least one preset /
+            // saved search carries an enabled Indicator Advance Query AND the
+            // master switch in Settings is on.
+            function alertCheckNeedsIndicatorEngine(currentDate) {
+                if (!currentDate || !isIndicatorQuerySettingOn()) return false;
+                const prev = loadAlertSnapshot();
+                if (prev && prev.dataDate === currentDate) return false; // cached path, no filter run
+                const usesIq = (st) => !!(st && st.f_indicator_enabled && String(st.f_indicator_query || "").trim());
+                return SETUP_PRESETS.some((p) => usesIq(buildPresetFilterState(p))) || loadSavedSearches().some((sv) => usesIq(sv.state));
+            }
+
+            let _alertCheckPromise = null,
+                _alertCheckDate = null;
+            function runAlertBadgeCheck(currentDate) {
+                // One run per data date, even if called twice.
+                if (_alertCheckPromise && _alertCheckDate === currentDate) return _alertCheckPromise;
+                _alertCheckDate = currentDate;
+                _alertCheckPromise = runAlertBadgeCheckImpl(currentDate);
+                return _alertCheckPromise;
+            }
+
+            async function runAlertBadgeCheckImpl(currentDate) {
                 if (!currentDate) {
                     alertBadgeMap = {};
                     return;
@@ -13416,8 +13783,20 @@
                     return;
                 }
 
-                // Data date changed (or this is the very first run ever) —
-                // recompute every preset & saved search and diff against
+                // Data date changed (or this is the very first run ever).
+                // Presets / saved searches that use the Indicator Advance Query
+                // can only be evaluated once the indicator tails are computed
+                // and loaded, so finish that first (IndexedDB-first, so only
+                // missing values are calculated) and only THEN run the filters.
+                if (alertCheckNeedsIndicatorEngine(currentDate)) {
+                    syncIndicatorQuerySettingToHelper();
+                    ensureIndicatorEngineStarted(); // no-op if already computing / ready
+                    const engineOk = await waitForIndicatorEngine();
+                    if (!engineOk) console.warn("Alert badge: indicator engine unavailable - indicator-based searches are skipped this run");
+                    if (currentDate !== CURRENT_DATA_DATE) return; // newer data loaded while we waited
+                }
+
+                // Recompute every preset & saved search and diff against
                 // whatever we had stored from the previous data date.
                 pruneSnapshotGroups(prevSnapshot);
                 const current = await computeAlertWatchSets();
@@ -13517,13 +13896,23 @@
                         if (val === true) display = "Yes";
                         else if (Array.isArray(val)) display = val.join(", ");
                         else display = val;
-                        return `<div class="ss-preview-row"><span class="ss-preview-key">${label}:</span><span class="ss-preview-val">${display}</span></div>`;
+                        return `<div class="ss-preview-row"><span class="ss-preview-key">${escHtml(label)}:</span><span class="ss-preview-val">${escHtml(display)}</span></div>`;
                     })
                     .join("");
                 document.getElementById("saveSearchPreview").innerHTML = rows;
-                document.getElementById("saveSearchName").value = "";
+
+                // If a saved search is loaded in the panel, this is an UPDATE: pre-fill its name.
+                const editing = getActiveSavedSearch();
+                document.getElementById("saveModalTitle").textContent = editing ? "✏️ Update Saved Search" : "💾 Save Current Filters";
+                document.getElementById("saveConfirmBtn").textContent = editing ? "💾 Update Search" : "💾 Save Search";
+                document.getElementById("saveAsNewBtn").style.display = editing ? "" : "none";
+                const nameEl = document.getElementById("saveSearchName");
+                nameEl.value = editing ? editing.name : "";
                 document.getElementById("saveModal").classList.add("open");
-                setTimeout(() => document.getElementById("saveSearchName").focus(), 80);
+                setTimeout(() => {
+                    nameEl.focus();
+                    if (editing) nameEl.select();
+                }, 80);
             }
 
             function closeSaveModal() {
@@ -13533,23 +13922,56 @@
                 if (e.target === document.getElementById("saveModal")) closeSaveModal();
             }
 
-            function confirmSave() {
-                const name = document.getElementById("saveSearchName").value.trim();
+            // asNew=true -> always create a new saved search (even if one is loaded for editing)
+            function confirmSave(asNew) {
+                const nameEl = document.getElementById("saveSearchName");
+                const name = nameEl.value.trim();
                 if (!name) {
-                    document.getElementById("saveSearchName").focus();
+                    nameEl.focus();
                     return;
                 }
                 const state = captureFilters();
                 const list = loadSavedSearches();
-                list.push({
-                    id: Date.now(),
-                    name,
-                    state,
-                    saved: new Date().toLocaleDateString("en-IN"),
-                });
+                const sameName = (s) => (s.name || "").trim().toLowerCase() === name.toLowerCase();
+
+                let target = asNew === true ? null : getActiveSavedSearch();
+                if (target) {
+                    // renaming while updating must not collide with a different saved search
+                    const clash = list.find((s) => s.id !== target.id && sameName(s));
+                    if (clash) {
+                        alert(`Another saved search is already named "${clash.name}". Please choose a different name.`);
+                        nameEl.focus();
+                        return;
+                    }
+                } else {
+                    // brand-new save: never silently create a duplicate name
+                    const dup = list.find(sameName);
+                    if (dup) {
+                        if (!confirm(`A saved search named "${dup.name}" already exists.\n\nReplace it with the current filters?`)) {
+                            nameEl.focus();
+                            return;
+                        }
+                        target = dup;
+                    }
+                }
+
+                const live = list.find((s) => target && s.id === target.id);
+                if (live) {
+                    const changed = JSON.stringify(live.state || {}) !== JSON.stringify(state);
+                    live.name = name;
+                    live.state = state;
+                    live.saved = new Date().toLocaleDateString("en-IN");
+                    if (changed) dropAlertSnapshotForSaved(live.id);
+                    activeSavedSearchId = live.id;
+                } else {
+                    const entry = { id: Date.now(), name, state, saved: new Date().toLocaleDateString("en-IN") };
+                    list.push(entry);
+                    activeSavedSearchId = entry.id;
+                }
                 saveSavedSearches(list);
                 closeSaveModal();
                 renderSavedList();
+                updateActiveSsBanner();
                 // Show saved panel if hidden
                 document.getElementById("savedPanel").style.display = "";
             }
@@ -13572,14 +13994,17 @@
               <div class="ss-card" id="sscard-${s.id}">
                 <input type="checkbox" class="ss-card-check" data-id="${s.id}"
                   onchange="onSsCardCheck(this)">
-                <span class="ss-card-name ss-search-name" title="Click to rename" data-id="${s.id}" ondblclick="startRenameSavedSearch(${s.id})">${s.name}</span>
+                <span class="ss-card-name ss-search-name" title="Click to rename" data-id="${s.id}" ondblclick="startRenameSavedSearch(${s.id})">${escHtml(s.name)}</span>
                 <span class="ss-card-meta">${s.saved}</span>
                 <button class="ss-run-one" title="Run this search" onclick="runSingle(${s.id})">▶</button>
+                <button class="ss-run-one" title="Edit this search (loads it into the filter panel)" onclick="editSavedSearch(${s.id})">✏️</button>
+                <button class="ss-run-one" title="Copy share link" onclick="shareSavedSearch(${s.id})">🔗</button>
               </div>
             `,
                     )
                     .join("");
                 updateSavedActions();
+                updateActiveSsBanner();
             }
 
             function startRenameSavedSearch(id) {
@@ -13640,6 +14065,8 @@
                 if (!search) return;
                 clearMultiSearch(false); // clear any multi mode silently
                 restoreFilters(search.state);
+                activeSavedSearchId = id;
+                updateActiveSsBanner();
                 toggleSavedPanel();
             }
 
@@ -13700,6 +14127,7 @@
                 if (!confirm(`Delete ${ids.size} saved search${ids.size > 1 ? "es" : ""}?`)) return;
                 const list = loadSavedSearches().filter((s) => !ids.has(s.id));
                 saveSavedSearches(list);
+                if (ids.has(activeSavedSearchId)) activeSavedSearchId = null;
                 renderSavedList();
             }
 
@@ -16516,11 +16944,12 @@
                 { passive: true },
             );
 
-            //hide the footer on first interaction.
-            document.querySelector("#pagBar").addEventListener(
+            // hide the footer on first interaction (any click on the page)
+            document.addEventListener(
                 "click",
-                (e) => {
-                    document.querySelector("footer").style.display = "none";
+                () => {
+                    const footer = document.querySelector("footer");
+                    if (footer) footer.style.display = "none";
                 },
                 { passive: true, once: true },
             );
@@ -16836,7 +17265,13 @@
                 ·
                 <a href="https://x.com/jadeja_rajdeep" target="_blank" rel="noopener" style="color: inherit; text-decoration: none; margin: 0 8px">@jadeja_rajdeep on X</a>
             </nav>
-            <div style="margin-top: 8px" class="d-flex toolbar-scroll flex-nowrap justify-content-between justify-items-center align-items-center">
+            <nav aria-label="Preset scans" class="d-flex toolbar-scroll flex-nowrap justify-content-center align-items-center">
+                <a href="?preset=stage_2_stocks" style="color: inherit; text-decoration: none; margin: 0 8px">Stage 2 Stocks</a>
+                <a href="?preset=good_base" style="color: inherit; text-decoration: none; margin: 0 8px">Good Base</a>
+                <a href="?preset=reversal" style="color: inherit; text-decoration: none; margin: 0 8px">Reversal</a>
+                <a href="?preset=industry" style="color: inherit; text-decoration: none; margin: 0 8px">Hot Industry</a>
+            </nav>
+            <div class="d-flex toolbar-scroll flex-nowrap justify-content-between justify-items-center align-items-center">
                 <div class="text-center mx-auto">NSE Momentum Screener — Free stock screener for Indian equity markets. Data updates daily after market close 6 PM (IST).</div>
             </div>
         </footer>
@@ -16939,6 +17374,127 @@
                 deferredInstallPrompt = null;
                 if (outcome === "accepted") dismissPwaToast("install");
             });
+        </script>
+        <script>
+            /* =====================================================================
+               REUSABLE ACCORDION
+               ---------------------------------------------------------------------
+               Turn any modal body (or any container) into an accordion with HTML only:
+
+                 <div class="settings-modal-body" data-accordion="single">   <!-- or "multiple" -->
+                     <div class="settings-section">...</div>                 <!-- each = 1 accordion item -->
+                     <div class="settings-section" data-accordion-open>...   <!-- optional: open by default -->
+                     <div class="settings-section" data-accordion-title="General">...  <!-- optional: label for
+                                                                                          sections w/o a title -->
+                 </div>
+
+               Optional attributes on the container:
+                 data-accordion="single|multiple"   single = one open at a time (default)
+                 data-accordion-item=".my-class"    which direct children are items (default ".settings-section")
+                 data-accordion-reset="false"       don't reset to the default state each time the modal opens
+
+               Header detection (first match inside each item):
+                 [data-acc-header] > .settings-section-title > .chart-section-toggle
+               Clicking a checkbox / label / select inside the header does NOT toggle the item.
+               Default open item = the ones with [data-accordion-open], otherwise the first item.
+               Works with JS-rendered content inside items (elements are moved, never cloned).
+               ===================================================================== */
+            (function () {
+                const HEADER_SEL = ":scope > [data-acc-header], :scope > .settings-section-title, :scope > .chart-section-toggle";
+                const INTERACTIVE = "label, input, select, textarea, a, button:not(.acc-chevron)";
+
+                function initAccordion(container) {
+                    if (!container || container._accordion) return container && container._accordion;
+
+                    const single = (container.dataset.accordion || "single") !== "multiple";
+                    const itemSel = container.dataset.accordionItem || ".settings-section";
+                    const items = Array.from(container.children).filter((el) => el.matches(itemSel));
+                    if (!items.length) return null;
+
+                    function setOpen(item, open) {
+                        item.classList.toggle("open", open);
+                        item._accHeader.setAttribute("aria-expanded", open);
+                        item._accChevron.setAttribute("aria-expanded", open);
+                        item._accBody.toggleAttribute("inert", !open); // closed content isn't focusable/tabbable
+                    }
+
+                    function toggle(item) {
+                        const willOpen = !item.classList.contains("open");
+                        if (willOpen && single) items.forEach((o) => o !== item && setOpen(o, false));
+                        setOpen(item, willOpen);
+                        if (willOpen) setTimeout(() => item._accHeader.scrollIntoView({ block: "nearest", behavior: "smooth" }), 270);
+                    }
+
+                    function reset() {
+                        let defaults = items.filter((i) => i.hasAttribute("data-accordion-open"));
+                        if (!defaults.length) defaults = [items[0]];
+                        if (single) defaults = defaults.slice(0, 1);
+                        items.forEach((i) => setOpen(i, defaults.includes(i)));
+                    }
+
+                    items.forEach((item, idx) => {
+                        let header = item.querySelector(HEADER_SEL);
+                        if (!header) {
+                            header = document.createElement("div");
+                            header.className = "settings-section-title";
+                            header.textContent = item.dataset.accordionTitle || "Section " + (idx + 1);
+                            item.insertBefore(header, item.firstChild);
+                        }
+                        header.classList.add("acc-header");
+
+                        const chevron = document.createElement("button");
+                        chevron.type = "button";
+                        chevron.className = "acc-chevron";
+                        chevron.setAttribute("aria-label", "Toggle section");
+                        header.appendChild(chevron);
+
+                        // move everything after the header into a collapsible body
+                        const body = document.createElement("div");
+                        body.className = "acc-body";
+                        const inner = document.createElement("div");
+                        inner.className = "acc-body-inner";
+                        body.appendChild(inner);
+                        while (header.nextSibling) inner.appendChild(header.nextSibling);
+                        item.appendChild(body);
+
+                        item.classList.add("acc-item");
+                        item._accHeader = header;
+                        item._accChevron = chevron;
+                        item._accBody = body;
+
+                        header.addEventListener("click", (e) => {
+                            if (e.target.closest(INTERACTIVE)) return; // let checkboxes etc. work normally
+                            toggle(item);
+                        });
+                    });
+
+                    reset();
+
+                    // Re-apply the default state every time the surrounding modal opens
+                    const overlay = container.closest(".settings-modal-overlay");
+                    if (overlay && container.dataset.accordionReset !== "false") {
+                        let wasOpen = overlay.classList.contains("open");
+                        new MutationObserver(() => {
+                            const isOpen = overlay.classList.contains("open");
+                            if (isOpen && !wasOpen) reset();
+                            wasOpen = isOpen;
+                        }).observe(overlay, { attributes: true, attributeFilter: ["class"] });
+                    }
+
+                    container._accordion = { reset, toggle, setOpen, items };
+                    return container._accordion;
+                }
+
+                function initAll(root) {
+                    (root || document).querySelectorAll("[data-accordion]").forEach(initAccordion);
+                }
+
+                window.initAccordion = initAccordion; // call manually for dynamically created modals
+                window.initAccordions = initAll;
+
+                if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => initAll(), { once: true });
+                else initAll();
+            })();
         </script>
         <script>
             (function () {

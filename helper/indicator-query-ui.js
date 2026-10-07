@@ -414,6 +414,37 @@ function setIndicatorEngineState(state, detail) {
     indicatorEngineDetail = detail;
     indicatorEngineReady = state === "ready";
     refreshIndicatorStatus();
+    flushIndicatorWaiters();
+}
+
+// ---------------------------------------------------------------------------
+// Awaitable "engine finished" signal. Used by runAlertBadgeCheck() so that
+// presets / saved searches containing an Indicator Advance Query are only
+// evaluated once every stock's indicator tails are loaded in memory.
+//   resolves true  -> engine is READY (tails loaded)
+//   resolves false -> master switch off, or the engine ended in "error"
+// A transient "idle" (restartIndicatorEngine tears down, then starts again)
+// does NOT resolve the waiters - they keep waiting for the restarted run.
+// ---------------------------------------------------------------------------
+const indicatorReadyWaiters = [];
+function waitForIndicatorEngine() {
+    if (!isIndicatorQueryEnabled()) return Promise.resolve(false);
+    if (indicatorEngineState === "ready") return Promise.resolve(true);
+    if (indicatorEngineState === "error") return Promise.resolve(false);
+    if (indicatorEngineState === "idle" && !indicatorWorker) {
+        // Nothing running and nothing about to run (e.g. startIndicatorEngine bailed out).
+        return Promise.resolve(false);
+    }
+    return new Promise((resolve) => indicatorReadyWaiters.push(resolve));
+}
+function flushIndicatorWaiters() {
+    if (!indicatorReadyWaiters.length) return;
+    let result = null;
+    if (!isIndicatorQueryEnabled()) result = false;
+    else if (indicatorEngineState === "ready") result = true;
+    else if (indicatorEngineState === "error") result = false;
+    if (result === null) return;
+    indicatorReadyWaiters.splice(0).forEach((resolve) => resolve(result));
 }
 
 // The query box is locked (read-only) when the master switch is off or the
