@@ -9180,8 +9180,8 @@
             let industryToBasics = {}; // industry → Set of basic industries
 
             const DATA_CACHE_NAME = "nse-screener-data-v1"; // must match sw.js DATA_CACHE
-            const CHART_CACHE_NAME = "nse-screener-chart-v1"; // must match sw.js CHART_CACHE
-            const FINANCIAL_CACHE_NAME = "nse-screener-financial-v1"; // must match sw.js CHART_CACHE
+            const CHART_CACHE_NAME = "nse-screener-chart-v2"; // must match sw.js CHART_CACHE
+            const FINANCIAL_CACHE_NAME = "nse-screener-financial-v2"; // must match sw.js CHART_CACHE
             const NSE_PUBLISH_HOUR_IST = 17; // NSE publishes updated data ~5 PM IST after market close
 
             // Get current date/time in IST (Asia/Kolkata), independent of the
@@ -9277,10 +9277,9 @@
                         // opened, sw.js's cacheFirst misses and fetches the
                         // fresh file (then re-caches it) instead of quietly
                         // continuing to serve yesterday's candles.
-                        if ("caches" in window) {
-                            caches.delete(CHART_CACHE_NAME);
-                            caches.delete(FINANCIAL_CACHE_NAME);
-                        }
+                        // (Chart/financial Cache Storage purge now happens in
+                        // purgeChartCachesIfDateChanged(), awaited via
+                        // window.indicatorCacheFresh before any worker fetches.)
                         return null;
                     }
 
@@ -9423,6 +9422,20 @@
                 }
             }
 
+            // Purge per-ISIN chart + financial JSON from Cache Storage whenever the
+            // loaded data date differs from the one we last purged for. Awaited
+            // (through window.indicatorCacheFresh) before the indicator worker or
+            // any chart fetches files, so nothing can re-cache yesterday's data.
+            async function purgeChartCachesIfDateChanged(date) {
+                try {
+                    if (localStorage.getItem("chartDataDate") === date) return;
+                    if ("caches" in window) {
+                        await Promise.all([caches.delete(CHART_CACHE_NAME), caches.delete(FINANCIAL_CACHE_NAME)]);
+                    }
+                    localStorage.setItem("chartDataDate", date); // only after the delete succeeded
+                } catch (e) {}
+            }
+
             async function ensureIndicatorCacheFreshness(currentDataDate) {
                 const storedDate = await IndicatorCacheDB.getAnyStoredDate();
                 if (storedDate !== currentDataDate) {
@@ -9456,7 +9469,10 @@
                     // just spawns a worker (all the heavy work is off the main thread and
                     // it holds back until the daily IndexedDB wipe has finished).
                     CURRENT_DATA_DATE = rows[0]?.Date;
-                    window.indicatorCacheFresh = ensureIndicatorCacheFreshness(CURRENT_DATA_DATE).catch(() => {});
+                    window.indicatorCacheFresh = (async () => {
+                        await purgeChartCachesIfDateChanged(CURRENT_DATA_DATE); // Cache Storage first
+                        await ensureIndicatorCacheFreshness(CURRENT_DATA_DATE); // then IndexedDB
+                    })().catch(() => {});
                     allData = rows;
                     syncIndicatorQuerySettingToHelper();
                     ensureIndicatorEngineStarted();
