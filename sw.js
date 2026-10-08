@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v117";
+const CACHE_VERSION = "nse-screener-v118";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
@@ -20,8 +20,9 @@ const DATA_CACHE = "nse-screener-data-v1";
 // so a stale entry never lingers past that point, and we don't pay a
 // network round-trip on every single chart open in between.
 // Keep this name in sync with CHART_CACHE_NAME in index.html.
-const CHART_CACHE = "nse-screener-chart-v2";
-const FINANCIAL_CACHE = "nse-screener-financial-v2";
+const CHART_CACHE = "nse-screener-chart-v1";
+const FINANCIAL_CACHE = "nse-screener-financial-v1";
+const MARKET_STAT_CACHE="nse-screener-market-stat-v1";
 
 // Fonts (and the CSS that declares them) rarely change and are identical
 // across app versions, so they get their own cache that is NEVER deleted
@@ -148,7 +149,8 @@ self.addEventListener("activate", (event) => {
                                 k !== DATA_CACHE &&
                                 k !== FONT_CACHE &&
                                 k !== CHART_CACHE &&
-                                k !== FINANCIAL_CACHE
+                                k !== FINANCIAL_CACHE &&
+                                k !== MARKET_STAT_CACHE
                         )
                         .map((k) => {
                             console.log("[SW] Deleting old cache:", k);
@@ -191,6 +193,9 @@ self.addEventListener("fetch", (event) => {
         return;
     }else if (url.pathname.includes("/data/financial/") && url.pathname.endsWith(".json")) {
         event.respondWith(cacheFirst(event.request, FINANCIAL_CACHE));
+        return;
+    }else if (url.pathname.includes("/data/market_stat/") && url.pathname.endsWith(".json")) {
+        event.respondWith(cacheFirst(event.request, MARKET_STAT_CACHE));
         return;
     }
 

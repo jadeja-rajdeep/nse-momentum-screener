@@ -634,7 +634,7 @@
                 }
             }
 
-            @media screen and (max-width: 880px) {
+            @media screen and (max-width: 1015px) {
                 .site-header .toolbar-scroll button span:nth-of-type(2) {
                     display: none;
                 }
@@ -3194,6 +3194,50 @@
                 }
             }
 
+
+            /* ---- MARKET STATS MODAL (full screen) ---- */
+            #marketStatModal { overflow: hidden; }
+            #marketStatModal .settings-modal-header { flex: 0 0 auto; }
+            #marketStatBody {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                padding: 12px;
+                scroll-snap-type: y mandatory;
+                scroll-padding: 12px;
+                overscroll-behavior: contain;
+            }
+            /* every open section fills the whole visible body (--ms-sec-h is set by JS = body height - padding) */
+            #marketStatBody > .acc-item { flex: 0 0 auto; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; }
+            #marketStatBody > .acc-item.open { height: var(--ms-sec-h, 70vh); }
+            #marketStatBody > .acc-item > .acc-header { flex: 0 0 auto; }
+            #marketStatBody > .acc-item > .acc-body { flex: 1 1 auto; min-height: 0; }
+            #marketStatBody > .acc-item > .acc-body > .acc-body-inner { display: flex; flex-direction: column; min-height: 0; }
+            #marketStatModal .ms-chart { position: relative; width: 100%; flex: 1 1 auto; min-height: 0; }
+            #marketStatModal .ms-legend { flex: 0 0 auto; }
+            #marketStatModal .chart-tooltip { pointer-events: none; position: absolute; z-index: 5; left: 8px; top: 6px; max-width: 80%; }
+            #marketStatModal .chart-tooltip .line {
+                font-size: 12px; line-height: normal; margin-bottom: 4px; padding: 0; color: var(--text);
+                display: flex; justify-content: flex-start; align-items: center; gap: 10px;
+            }
+            #marketStatModal .chart-tooltip .line span.name { color: var(--muted); }
+            #marketStatModal .ms-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+            #marketStatModal .ms-legend-btn {
+                display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+                background: var(--surface); color: var(--text); border: 1px solid var(--border);
+                border-radius: 999px; padding: 4px 12px; font-family: var(--mono); font-size: 11px;
+                transition: opacity 0.15s ease, border-color 0.15s ease;
+            }
+            #marketStatModal .ms-legend-btn:hover { border-color: var(--muted); }
+            #marketStatModal .ms-legend-btn .ms-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: 0 0 auto; }
+            #marketStatModal .ms-legend-btn .ms-val { color: var(--muted); }
+            #marketStatModal .ms-legend-btn.off { opacity: 0.45; }
+            #marketStatModal .ms-legend-btn.off .ms-label { text-decoration: line-through; }
+            #marketStatModal .ms-legend-btn.off .ms-dot { background: transparent; border: 1px solid var(--c); }
+            #marketStatModal .ms-legend-btn.err { border-color: #ef4444; }
             /* Export / Import buttons */
             .settings-action-btn {
                 display: flex;
@@ -4035,12 +4079,32 @@
                 background: rgba(13, 110, 253, 0.15);
             }
 
+            #chartModal {
+                overflow: hidden;
+                align-items: stretch;
+                overscroll-behavior: contain;
+            }
             #chartModal .settings-modal-body {
                 position: relative;
+                flex: 1 1 auto;
+                min-height: 0;
             }
             #chartModal .settings-modal {
                 position: relative;
                 overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                min-height: 0 !important;
+                margin: 0;
+                border-radius: 0;
+            }
+            #chartModal .settings-modal-header {
+                flex: 0 0 auto;
+            }
+            #chartModal #chart-main {
+                flex: 1 1 auto;
+                min-height: 0;
             }
             #chartModal .chart-watchlist-drawer {
                 position: absolute;
@@ -4275,6 +4339,7 @@
                         <span id="watchlistBtnLabel">Watchlists</span>
                     </button>
                     <button class="btn-toggle-filters" onclick="openIndustryModal()" style="border-color: rgba(139, 92, 246, 0.4); color: #a78bfa"><span>📊</span> <span id="industryBtnLabel">Industry</span></button>
+                    <button class="btn-toggle-filters" id="marketStatBtn" onclick="openMarketStatModal()" style="border-color: rgba(34, 197, 94, 0.4); color: #4ade80"><span>🌡</span> <span id="marketStatBtnLabel">Market Stats</span></button>
                     <button class="btn-icon-only" onclick="openSettingsModal()" title="Settings & Tools" style="border-color: rgba(148, 163, 184, 0.35); color: #94a3b8">
                         <span>⚙</span>
                     </button>
@@ -8650,7 +8715,7 @@
 
         <!-- CHART MODAL -->
         <div class="settings-modal-overlay p-0" id="chartModal" onclick="closeChartModalOnOverlay(event)">
-            <div class="settings-modal" onclick="event.stopPropagation()" style="min-width: 100%; max-width: 100%; min-height: 100vh">
+            <div class="settings-modal" onclick="event.stopPropagation()" style="min-width: 100%; max-width: 100%">
                 <div class="settings-modal-header">
                     <div>
                         <div class="settings-modal-title">Script Code Goes Here</div>
@@ -8685,6 +8750,58 @@
                     <div class="chart-watchlist-drawer-list" id="chartWatchlistDrawerList"></div>
                 </aside>
                 <div class="settings-modal-body" style="padding: 5px 10px; gap: 0">Main Chart Goes Here...</div>
+            </div>
+        </div>
+
+        <!-- MARKET STATS MODAL (charts are built once on first open and reused) -->
+        <div class="settings-modal-overlay p-0" id="marketStatModal" onclick="closeMarketStatModalOnOverlay(event)">
+            <div class="settings-modal" onclick="event.stopPropagation()" style="min-width: 100%; max-width: 100%; height: 100vh; height: 100dvh; display: flex; flex-direction: column; margin: 0; border-radius: 0">
+                <div class="settings-modal-header" style="border-radius: 0">
+                    <div>
+                        <div class="settings-modal-title">🌡 Market Stats</div>
+                        <div class="tv-modal-meta" id="marketStatMeta">Market breadth &amp; momentum history</div>
+                    </div>
+                    <button type="button" class="peer-modal-close ms-auto text-success border-success bg-success" style="--bs-bg-opacity: 0.1" onclick="marketStatResetCharts()" title="Reset all charts (last 63 bars, auto price scale)">↺</button>
+                    <button type="button" class="peer-modal-close" onclick="marketStatToggleAll(true)" title="Expand all panels">⊞</button>
+                    <button type="button" class="peer-modal-close" onclick="marketStatToggleAll(false)" title="Collapse all panels">⊟</button>
+                    <button type="button" class="peer-modal-close" onclick="closeMarketStatModal()" title="Close (Esc)">✕</button>
+                </div>
+                <div class="settings-modal-body" id="marketStatBody" data-accordion="multiple" data-accordion-reset="false">
+                    <div class="settings-section" data-accordion-open data-accordion-title="1. Stocks Above SMA 20 / 50 / 100 / 200 (%)">
+                        <div class="ms-chart" id="msChart_sma"></div>
+                        <div class="ms-legend" id="msLegend_sma"></div>
+                    </div>
+
+                    <div class="settings-section" data-accordion-open data-accordion-title="2. Stocks Up / Down 4% or More in One Day">
+                        <div class="ms-chart" id="msChart_ud4"></div>
+                        <div class="ms-legend" id="msLegend_ud4"></div>
+                    </div>
+
+                    <div class="settings-section" data-accordion-open data-accordion-title="3. Stage 2 Stocks (%)">
+                        <div class="ms-chart" id="msChart_st2"></div>
+                        <div class="ms-legend" id="msLegend_st2"></div>
+                    </div>
+
+                    <div class="settings-section" data-accordion-open data-accordion-title="4. Stocks Above All AFH / Within 21% of 252-Day High (%)">
+                        <div class="ms-chart" id="msChart_afh"></div>
+                        <div class="ms-legend" id="msLegend_afh"></div>
+                    </div>
+
+                    <div class="settings-section" data-accordion-open data-accordion-title="5. 3 Months Advancing Stocks (%)">
+                        <div class="ms-chart" id="msChart_adv3m"></div>
+                        <div class="ms-legend" id="msLegend_adv3m"></div>
+                    </div>
+
+                    <div class="settings-section" data-accordion-open data-accordion-title="6. 1M / 3M Higher Low Structure (%)">
+                        <div class="ms-chart" id="msChart_hl"></div>
+                        <div class="ms-legend" id="msLegend_hl"></div>
+                    </div>
+
+                    <div class="settings-section" data-accordion-open data-accordion-title="7. Daily Advancing / Declining Net Turnover (%)">
+                        <div class="ms-chart" id="msChart_nt"></div>
+                        <div class="ms-legend" id="msLegend_nt"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -9180,8 +9297,9 @@
             let industryToBasics = {}; // industry → Set of basic industries
 
             const DATA_CACHE_NAME = "nse-screener-data-v1"; // must match sw.js DATA_CACHE
-            const CHART_CACHE_NAME = "nse-screener-chart-v2"; // must match sw.js CHART_CACHE
-            const FINANCIAL_CACHE_NAME = "nse-screener-financial-v2"; // must match sw.js CHART_CACHE
+            const CHART_CACHE_NAME = "nse-screener-chart-v1"; // must match sw.js CHART_CACHE
+            const FINANCIAL_CACHE_NAME = "nse-screener-financial-v1"; // must match sw.js CHART_CACHE
+            const MARKET_STAT_CACHE = "nse-screener-market-stat-v1";
             const NSE_PUBLISH_HOUR_IST = 17; // NSE publishes updated data ~5 PM IST after market close
 
             // Get current date/time in IST (Asia/Kolkata), independent of the
@@ -9430,7 +9548,7 @@
                 try {
                     if (localStorage.getItem("chartDataDate") === date) return;
                     if ("caches" in window) {
-                        await Promise.all([caches.delete(CHART_CACHE_NAME), caches.delete(FINANCIAL_CACHE_NAME)]);
+                        await Promise.all([caches.delete(CHART_CACHE_NAME), caches.delete(FINANCIAL_CACHE_NAME), caches.delete(MARKET_STAT_CACHE)]);
                     }
                     localStorage.setItem("chartDataDate", date); // only after the delete succeeded
                 } catch (e) {}
@@ -11197,6 +11315,7 @@
                     closeSettingsModal();
                     closeColumnModal();
                     closeChartSettingsModal();
+                    closeMarketStatModal();
                     closeChartModal();
                 }
             });
@@ -16042,7 +16161,8 @@
                 const chartMain = document.createElement("div");
                 chartMain.id = "chart-main";
                 chartMain.style.width = "100%";
-                chartMain.style.height = "calc(100vh - 85px)";
+                chartMain.style.flex = "1 1 auto";
+                chartMain.style.minHeight = "0";
                 chartMain.style.position = "relative";
 
                 chartModal.querySelector(".settings-modal-body").appendChild(chartMain);
@@ -16069,7 +16189,7 @@
                         const { data, ind: chartInd } = bundle;
 
                         const chartWidth = screenWidth;
-                        const mainChartHeight = screenHeight - 85;
+                        const mainChartHeight = getMainChartHeight();
 
                         // Helper function to create chart with common options
                         const createChart = (container, height, options = {}) => {
@@ -16681,7 +16801,7 @@
                         if (panes.length > 1) {
                             // main pane gets the remaining height; each extra pane starts at 15% of screen
                             const extraH = screenHeight * 0.15;
-                            const mainH = Math.max(screenHeight - 85 - extraH * (panes.length - 1), extraH);
+                            const mainH = Math.max(getMainChartHeight() - extraH * (panes.length - 1), extraH);
                             panes.forEach((p, i) => p.setStretchFactor(i === 0 ? mainH : extraH));
                         }
 
@@ -16860,6 +16980,15 @@
                 })();
             }
 
+            // Real height of the chart area (header height + address bar already accounted for by layout)
+            function getMainChartHeight() {
+                const el = document.getElementById("chart-main");
+                const h = el ? el.clientHeight : 0;
+                if (h > 0) return h;
+                const vv = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                return Math.round(vv) - 85;
+            }
+
             function resizeMainChart() {
                 if (!document.querySelector("#chartModal").classList.contains("open")) return;
                 screenWidth = window.innerWidth;
@@ -16867,7 +16996,7 @@
                 if (charts.main) {
                     charts.main.applyOptions({
                         width: screenWidth,
-                        height: screenHeight - 85,
+                        height: getMainChartHeight(),
                     });
                 }
             }
@@ -16945,6 +17074,10 @@
                 },
                 { once: true },
             );
+
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener("resize", () => resizeMainChart(), { passive: true });
+            }
 
             let resizeTimer = 0;
             window.addEventListener(
@@ -17140,6 +17273,7 @@
                 if (/^[a-zA-Z0-9]$/.test(e.key) == false) return;
 
                 const isChartModalOpen = document.querySelector("#chartModal").classList.contains("open");
+                if (document.getElementById("marketStatModal")?.classList.contains("open")) return;
                 if (isChartModalOpen && e.key !== "s" && e.key !== "S") return;
 
                 if (filtersVisible || isStockSearchOpen()) return;
@@ -17510,6 +17644,222 @@
 
                 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => initAll(), { once: true });
                 else initAll();
+            })();
+        </script>
+        <script>
+            /* =====================================================================
+               MARKET STATS MODAL
+               Charts are created ONCE on first open and kept alive (hidden with the
+               modal) so reopening is instant. Series data is fetched from
+               data/market_stat/*.json ([{time, value}, ...]); the service worker
+               caches those files and index.html purges them when the data date moves.
+               To add/rename a chart edit MS_CHARTS here + add a matching panel
+               (ids msChart_<id> / msLegend_<id>) in the #marketStatBody markup.
+               ===================================================================== */
+            (function () {
+                const MS_BASE = "data/market_stat/";
+                const MS_VISIBLE_BARS = 63; // initial visible range = latest 63 records (~3 months)
+                const MS_CHARTS = [
+                    { id: "sma", unit: "%", series: [
+                        { key: "sma20", file: "per_sma20_up.json", label: "SMA 20", color: "#22c55e" },
+                        { key: "sma50", file: "per_sma50_up.json", label: "SMA 50", color: "#3b82f6" },
+                        { key: "sma100", file: "per_sma100_up.json", label: "SMA 100", color: "#f59e0b" },
+                        { key: "sma200", file: "per_sma200_up.json", label: "SMA 200", color: "#ef4444" } ] },
+                    { id: "ud4", unit: "", series: [
+                        { key: "up", file: "val_up_1_4.json", label: "Up 4%+", color: "#26a69a" },
+                        { key: "down", file: "val_down_1_4.json", label: "Down 4%+", color: "#ef5350" } ] },
+                    { id: "st2", unit: "%", series: [
+                        { key: "st2", file: "per_stage2.json", label: "Stage 2", color: "#a78bfa" } ] },
+                    { id: "afh", unit: "%", series: [
+                        { key: "all", file: "per_above_all_afh.json", label: "Above All AFH", color: "#22c55e" },
+                        { key: "w21", file: "per_within_21_afh_189.json", label: "Within 21% AFH (189)", color: "#f59e0b" } ] },
+                    { id: "adv3m", unit: "%", series: [
+                        { key: "adv", file: "per_adv_neu_dec_63_adv.json", label: "3M Advancing", color: "#38bdf8" } ] },
+                    { id: "hl", unit: "%", series: [
+                        { key: "hl", file: "per_higher_low_structure.json", label: "Higher Low Structure", color: "#f472b6" } ] },
+                    { id: "nt", unit: "%", series: [
+                        { key: "nt", file: "per_net_turnover.json", label: "Net Turnover", color: "#fb923c" } ] },
+                ];
+
+                const state = {}; // chartId -> { cfg, chart, tip, series: { key: { api, map, loaded, visible, btn, valEl, loading } } }
+                const modal = () => document.getElementById("marketStatModal");
+
+                const normTime = (t) => {
+                    if (t == null) return null;
+                    if (typeof t === "object") return `${t.year}-${String(t.month).padStart(2, "0")}-${String(t.day).padStart(2, "0")}`;
+                    return t;
+                };
+                const fmt = (cfg, v) => (cfg.unit === "%" ? v.toFixed(2) + "%" : Number.isInteger(v) ? String(v) : v.toFixed(2));
+
+                function cleanRows(rows) {
+                    if (!Array.isArray(rows)) return [];
+                    const out = rows.filter((r) => r && typeof r.time === "string" && typeof r.value === "number" && isFinite(r.value));
+                    out.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+                    return out.filter((r, i) => i === 0 || r.time !== out[i - 1].time); // chart requires unique, ascending times
+                }
+
+                function renderTip(st, time) {
+                    const rows = [];
+                    st.cfg.series.forEach((s) => {
+                        const e = st.series[s.key];
+                        if (!e.visible) return;
+                        const v = e.map.get(time);
+                        if (v == null) return;
+                        rows.push(`<div class="line"><span class="name">${s.label} : </span><span style="color:${s.color}">${fmt(st.cfg, v)}</span></div>`);
+                    });
+                    st.tip.innerHTML = rows.length ? `<div class="line"><span class="name">${time}</span></div>${rows.join("")}` : "";
+                }
+
+                function lastTime(st) {
+                    let last = null;
+                    st.cfg.series.forEach((s) => {
+                        const e = st.series[s.key];
+                        if (e.visible && e.lastTime && (!last || e.lastTime > last)) last = e.lastTime;
+                    });
+                    return last;
+                }
+
+                function buildChart(cfg) {
+                    const LW = window.LightweightCharts;
+                    const el = document.getElementById("msChart_" + cfg.id);
+                    const legend = document.getElementById("msLegend_" + cfg.id);
+                    const chart = LW.createChart(el, {
+                        autoSize: true,
+                        layout: { background: { type: LW.ColorType.Solid, color: "transparent" }, textColor: "#6B7280", attributionLogo: false },
+                        grid: { vertLines: { visible: false }, horzLines: { color: "rgba(128, 128, 128, 0.12)" } },
+                        crosshair: {
+                            mode: LW.CrosshairMode.Normal,
+                            vertLine: { color: "#8a98b4", labelBackgroundColor: "#44506a" },
+                            horzLine: { color: "#8a98b4", labelBackgroundColor: "#44506a" },
+                        },
+                        rightPriceScale: { borderColor: "#3b4862" },
+                        timeScale: { borderColor: "#3b4862", timeVisible: false, secondsVisible: false, rightOffset: 5, barSpacing: 6, minBarSpacing: 1 },
+                    });
+                    const tip = document.createElement("div");
+                    tip.className = "chart-tooltip";
+                    el.appendChild(tip);
+
+                    const st = { cfg, chart, tip, series: {} };
+                    const priceFormat = cfg.unit === "%"
+                        ? { type: "custom", minMove: 0.01, formatter: (v) => v.toFixed(1) + "%" }
+                        : { type: "price", precision: 0, minMove: 1 };
+
+                    cfg.series.forEach((s) => {
+                        const api = chart.addSeries(LW.LineSeries, {
+                            color: s.color, lineWidth: 2, priceLineVisible: false, lastValueVisible: true,
+                            crosshairMarkerRadius: 3, priceFormat,
+                        });
+                        const btn = document.createElement("button");
+                        btn.type = "button";
+                        btn.className = "ms-legend-btn";
+                        btn.style.setProperty("--c", s.color);
+                        btn.title = "Click to show / hide";
+                        btn.innerHTML = `<span class="ms-dot"></span><span class="ms-label">${s.label}</span><span class="ms-val"></span>`;
+                        legend.appendChild(btn);
+                        const e = { api, map: new Map(), loaded: false, visible: true, btn, valEl: btn.querySelector(".ms-val"), loading: null, lastTime: null };
+                        st.series[s.key] = e;
+                        btn.addEventListener("click", () => {
+                            e.visible = !e.visible;
+                            api.applyOptions({ visible: e.visible });
+                            btn.classList.toggle("off", !e.visible);
+                            btn.setAttribute("aria-pressed", String(e.visible));
+                            renderTip(st, lastTime(st));
+                        });
+                        btn.setAttribute("aria-pressed", "true");
+                    });
+
+                    chart.subscribeCrosshairMove((param) => {
+                        const t = param && param.time ? normTime(param.time) : null;
+                        renderTip(st, t || lastTime(st)); // pointer left the chart -> show latest values
+                    });
+                    return st;
+                }
+
+                function loadSeries(st, s) {
+                    const e = st.series[s.key];
+                    if (e.loaded) return Promise.resolve();
+                    if (e.loading) return e.loading;
+                    e.loading = (async () => {
+                        try {
+                            const res = await fetch(MS_BASE + s.file);
+                            if (!res.ok) throw new Error("HTTP " + res.status);
+                            const rows = cleanRows(await res.json());
+                            if (!rows.length) throw new Error("no usable rows");
+                            e.api.setData(rows);
+                            e.map = new Map(rows.map((r) => [r.time, r.value]));
+                            e.lastTime = rows[rows.length - 1].time;
+                            e.count = rows.length;
+                            e.valEl.textContent = fmt(st.cfg, rows[rows.length - 1].value);
+                            e.btn.classList.remove("err");
+                            e.btn.title = "Click to show / hide";
+                            e.loaded = true; // failed series stay unloaded and are retried on next open
+                        } catch (err) {
+                            console.warn("[MarketStats] failed to load", s.file, err);
+                            e.btn.classList.add("err");
+                            e.btn.title = "Could not load " + s.file + " — will retry next time the modal opens";
+                        } finally {
+                            e.loading = null;
+                        }
+                    })();
+                    return e.loading;
+                }
+
+                // Initial view: latest MS_VISIBLE_BARS records + automatic price scale.
+                function resetChartView(st) {
+                    const n = Math.max(0, ...st.cfg.series.map((s) => st.series[s.key].count || 0));
+                    if (!n) return false;
+                    st.chart.priceScale("right").applyOptions({ autoScale: true });
+                    st.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - MS_VISIBLE_BARS), to: n - 1 + 5 });
+                    return true;
+                }
+
+                async function ensureCharts() {
+                    if (!window.LightweightCharts) { console.warn("[MarketStats] LightweightCharts not loaded yet"); return; }
+                    // build once (modal must be visible so autoSize sees a real width)
+                    MS_CHARTS.forEach((cfg) => { if (!state[cfg.id]) state[cfg.id] = buildChart(cfg); });
+                    await Promise.all(MS_CHARTS.flatMap((cfg) => cfg.series.map((s) => loadSeries(state[cfg.id], s))));
+                    MS_CHARTS.forEach((cfg) => {
+                        const st = state[cfg.id];
+                        if (!st.ranged && resetChartView(st)) st.ranged = true;
+                        renderTip(st, lastTime(st));
+                    });
+                    let newest = null;
+                    MS_CHARTS.forEach((cfg) => cfg.series.forEach((s) => { const t = state[cfg.id].series[s.key].lastTime; if (t && (!newest || t > newest)) newest = t; }));
+                    if (newest) document.getElementById("marketStatMeta").textContent = "Market breadth & momentum history · latest data: " + newest;
+                }
+
+                // Section height = visible body height. Re-run on any size change (window resize, rotation,
+                // mobile browser bars); the charts themselves resize through their own autoSize observers.
+                function updateSectionHeight() {
+                    const body = document.getElementById("marketStatBody");
+                    if (!body || !body.clientHeight) return;
+                    const cs = getComputedStyle(body);
+                    const h = body.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+                    body.style.setProperty("--ms-sec-h", Math.max(h, 240) + "px");
+                }
+                if (window.ResizeObserver) new ResizeObserver(updateSectionHeight).observe(document.getElementById("marketStatBody"));
+                window.addEventListener("resize", updateSectionHeight);
+
+                window.openMarketStatModal = function () {
+                    modal().classList.add("open");
+                    updateSectionHeight(); // before charts are built so they get their final size immediately
+                    ensureCharts();
+                };
+                // Closing only hides the modal: charts stay alive, nothing to rebuild on reopen.
+                window.closeMarketStatModal = function () {
+                    const el = modal();
+                    if (el) el.classList.remove("open");
+                };
+                window.closeMarketStatModalOnOverlay = function (e) {
+                    if (e.target === modal()) window.closeMarketStatModal();
+                };
+                window.marketStatResetCharts = function () {
+                    MS_CHARTS.forEach((cfg) => { if (state[cfg.id]) resetChartView(state[cfg.id]); });
+                };
+                window.marketStatToggleAll = function (open) {
+                    const acc = document.getElementById("marketStatBody")._accordion;
+                    if (acc) acc.items.forEach((i) => acc.setOpen(i, open));
+                };
             })();
         </script>
         <script>
