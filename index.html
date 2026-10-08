@@ -11305,6 +11305,7 @@
             document.addEventListener("keydown", (e) => {
                 if (e.key === "Escape") {
                     closeFinancialModal();
+                    closeStockDetailSingleModal();
                     closePeerModal();
                     closeSaveModal();
                     closeTvModal();
@@ -11316,6 +11317,10 @@
                     closeColumnModal();
                     closeChartSettingsModal();
                     closeMarketStatModal();
+                    closeCompareModal();
+                    closeFilteredIndustryModal();
+                    closeAlertBadgeModal();
+                    if (typeof closePriceAlertModal === "function") closePriceAlertModal();
                     closeChartModal();
                 }
             });
@@ -17285,16 +17290,30 @@
                 openStockSearchModal(string);
             });
 
-            // clear the current filter with Delete / Escape when the filter panel is hidden.
-            document.addEventListener("keydown", (e) => {
-                if (e.key !== "Delete" && e.key !== "Escape") return;
-                if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || e.isComposing) return;
-                if (filtersVisible || isStockSearchOpen()) return;
-                const t = e.target;
-                if (t && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))) return;
-                e.preventDefault();
-                clearFilters();
-            });
+            // Is anything layered on top of the main table?
+            function isAnyOverlayOpen() {
+                // All app modals use a "*-modal-overlay" class plus ".open" when visible
+                // (ss-, peer-, tv-, ind-, help-, settings-, author-modal-overlay, incl. chartModal & marketStatModal)
+                if (document.querySelector('[class*="modal-overlay"].open')) return true;
+                // Watchlist star popover + any Bootstrap modal/offcanvas
+                return !!document.querySelector("#wlPopover.open, .modal.show, .offcanvas.show");
+            }
+
+            // Clear the current filter with Delete / Escape, only on the plain main table view:
+            // filter panel hidden, no modal/popover open, not typing in a field.
+            document.addEventListener(
+                "keydown",
+                (e) => {
+                    if (e.key !== "Delete" && e.key !== "Escape") return;
+                    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || e.isComposing) return;
+                    if (filtersVisible || isStockSearchOpen() || isAnyOverlayOpen()) return;
+                    const t = e.target;
+                    if (t && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))) return;
+                    e.preventDefault();
+                    clearFilters();
+                },
+                true, // capture: evaluate BEFORE the global Esc handler closes any modal
+            );
 
             // ============ INIT ============
             document.getElementById("tableBody").addEventListener("click", (e) => {
