@@ -46,8 +46,8 @@ importScripts("./indicator-calculators.js");  // defines computeIndicatorRaw() e
 // function, and a const of the same name throws "Identifier has already been
 // declared" and kills the worker.
 
-const YIELD_EVERY_N_STOCKS = 36;
-const FETCH_CONCURRENCY = 36;      // fetch + compute lanes (IndexedDB is NOT the limit any more: one writer)
+const YIELD_EVERY_N_STOCKS = 32;
+const FETCH_CONCURRENCY = 32;      // fetch + compute lanes (IndexedDB is NOT the limit any more: one writer)
 const WRITE_BATCH_STOCKS = 100;  // stocks per IndexedDB write transaction (1 packed record per stock)
 const MAX_QUEUED_BATCHES = 4;    // lanes pause only if the writer falls this far behind (tail records are small)
 
