@@ -540,7 +540,7 @@ async function cacheGet(isin, key, date) {
 }
 async function cacheSet(isin, key, date, val) {
     if (!cacheOK()) return;
-    try { await IndicatorCacheDB.set(isin, key, date, val); } catch (e) { /* cache is best-effort */ }
+    try { IndicatorCacheDB.writeBehind(date, [{ isin, key, payload: val }]); } catch (e) { /* cache is best-effort; write is queued, not awaited */ }
 }
 
 async function handleChart(m) {

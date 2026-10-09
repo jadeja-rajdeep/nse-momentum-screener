@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v119";
+const CACHE_VERSION = "nse-screener-v120";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
@@ -189,13 +189,13 @@ self.addEventListener("fetch", (event) => {
     // as it detects the day's data has moved on (see tryLoadFromCacheIfFresh
     // in index.html), so whatever's cached here is trusted as-is.
     if (url.pathname.includes("/data/chart/") && url.pathname.endsWith(".json")) {
-        event.respondWith(cacheFirst(event.request, CHART_CACHE));
+        event.respondWith(cacheFirst(event.request, CHART_CACHE, event));
         return;
     }else if (url.pathname.includes("/data/financial/") && url.pathname.endsWith(".json")) {
-        event.respondWith(cacheFirst(event.request, FINANCIAL_CACHE));
+        event.respondWith(cacheFirst(event.request, FINANCIAL_CACHE, event));
         return;
     }else if (url.pathname.includes("/data/market_stat/") && url.pathname.endsWith(".json")) {
-        event.respondWith(cacheFirst(event.request, MARKET_STAT_CACHE));
+        event.respondWith(cacheFirst(event.request, MARKET_STAT_CACHE, event));
         return;
     }
 
@@ -256,9 +256,13 @@ async function networkFirstData(request) {
 }
 
 // Cache-first: serve from cache instantly, fall back to network + cache
-async function cacheFirst(request, cacheName = CACHE_VERSION) {
+async function cacheFirst(request, cacheName = CACHE_VERSION, event) {
     const cache = await caches.open(cacheName);
-    const cached = await cache.match(request);
+    // A shared link opens the page as "./?scan=..." or "./?preset=...". Those
+    // query strings are never in the precache, so for page navigations match
+    // ignoring the query — otherwise a shared link fails when offline.
+    const isPageNav = request.mode === "navigate";
+    const cached = await cache.match(request, isPageNav ? { ignoreSearch: true } : undefined);
 
     if (cached) return cached;
 
@@ -278,8 +282,14 @@ async function cacheFirst(request, cacheName = CACHE_VERSION) {
         // straight through without attempting to cache them.
         const cacheable =
             (response.ok || response.type === "opaque") && response.status !== 206;
-        if (cacheable && request.url.startsWith("http")) {
-            await cache.put(request, response.clone());
+        // Don't store every distinct ?scan=... page URL as its own cache entry.
+        const hasQuery = isPageNav && new URL(request.url).search !== "";
+        if (cacheable && !hasQuery && request.url.startsWith("http")) {
+            // Don't make the page wait for the disk write: hand the response back now and
+            // finish cache.put() in the background (waitUntil keeps the SW alive for it).
+            const putPromise = cache.put(request, response.clone()).catch(() => {});
+            if (event) { try { event.waitUntil(putPromise); } catch (e) { /* event already settled */ } }
+            else await putPromise;
         }
 
         return response;

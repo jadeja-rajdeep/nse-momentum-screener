@@ -9856,18 +9856,27 @@
                     sd = sortDir;
 
                 DataEngine.filter({ state, wlCodes: wlCodesForState(state), sortCol: sc, sortDir: sd, doSort: callRenderPage })
-                    .then((res) => {
+                    .then(async (res) => {
                         if (reqId !== filterReqSeq) return; // a newer applyFilters() superseded this one
-                        filteredData = rowsFromIdx(res.idx);
+                        let rows = rowsFromIdx(res.idx);
 
                         // Indicator Advance Query runs last, on the main thread (the indicator
                         // series live in memory here, not in the data worker). Row order is
                         // preserved, so the worker's sort stays valid.
                         if (state.f_indicator_enabled && state.f_indicator_query) {
                             if (isIndicatorQuerySettingOn()) {
-                                filteredData = applyIndicatorQueryFilter(filteredData, state.f_indicator_query);
+                                // Indicators still calculating? Prioritise just the stocks that
+                                // passed the normal filters instead of waiting for all of them.
+                                if (!indicatorEngineReady) {
+                                    const missing = rows.filter((r) => !indicatorPriorityDone.has(r["ISIN"])).length;
+                                    if (missing) showMiniToast(`⏳ Calculating indicators for ${missing.toLocaleString("en-IN")} stocks…`);
+                                    await prepareIndicatorsForRows(rows);
+                                    if (reqId !== filterReqSeq) return; // superseded while we waited
+                                }
+                                rows = applyIndicatorQueryFilter(rows, state.f_indicator_query);
                             }
                         }
+                        filteredData = rows;
                         // One function owns the status text (disabled / calculating / ready / valid).
                         if (typeof refreshIndicatorStatus === "function") refreshIndicatorStatus();
 
@@ -13775,12 +13784,16 @@
                 // uses the Indicator Advance Query is narrowed here afterwards. If the
                 // indicator engine isn't ready the entry becomes null ("run failed")
                 // rather than an unfiltered list.
-                return lists.map((codes, i) => {
+                // While the main worker is still calculating, the stocks of ALL states
+                // are prioritised together in one batch (see prepareIndicatorsFor).
+                return Promise.all(lists.map(async (codes, i) => {
                     const st = states[i] || {};
                     const q = st.f_indicator_enabled && st.f_indicator_query ? String(st.f_indicator_query).trim() : "";
                     if (q && !isIndicatorQuerySettingOn()) return null; // master switch off -> "run failed", not an unfiltered list
-                    return q ? filterCodesByIndicatorQuery(codes, q) : codes;
-                });
+                    if (!q) return codes;
+                    if (codes && !indicatorEngineReady) await prepareIndicatorsForCodes(codes);
+                    return filterCodesByIndicatorQuery(codes, q);
+                }));
             }
 
             let _rowByCode = null,
@@ -17104,6 +17117,10 @@
                 () => {
                     const footer = document.querySelector("footer");
                     if (footer) footer.style.display = "none";
+                    requestAnimationFrame(()=>{
+                        //resize the thumbchart.
+                        resizeThumbnailChart();
+                    });
                 },
                 { passive: true, once: true },
             );

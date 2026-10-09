@@ -709,7 +709,7 @@
                 if (hit) return hit;
             }
             const result = compute(await loadData());
-            if (db && result) await db.set(isin, key, date, result);
+            if (db && result) db.set(isin, key, date, result).catch(() => {}); // queued write, not awaited
             return result;
         } catch (e) {
             console.warn("[alert.js] indicator failed", key, isin, e && e.message);

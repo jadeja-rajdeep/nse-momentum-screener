@@ -1,8 +1,10 @@
 {
+  "id": "./index.html",
   "name": "NSE Momentum Screener",
   "short_name": "NSE Screener",
   "description": "NSE stock screener with RS ratings, sector filters, momentum analytics and peer comparison.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0b0f1a",
   "theme_color": "#00d4aa",
@@ -15,6 +17,16 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["finance", "business"],
-  "lang": "en-IN"
+  "categories": [
+    "finance",
+    "business"
+  ],
+  "lang": "en-IN",
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  }
 }

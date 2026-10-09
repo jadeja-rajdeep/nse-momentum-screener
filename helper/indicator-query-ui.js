@@ -90,6 +90,44 @@ let indicatorEngineState = "idle";
 let indicatorEngineDetail = null;
 let indicatorEngineReady = false;
 let indicatorLastKeys = "";           // enabled-key signature of the last run
+let indicatorMainProgress = { done: 0, total: 0 };   // main worker: stocks finished / total
+let indicatorPriorityProgress = null;                // priority worker: { done, total } while it runs
+
+// ISIN -> position in the list the main worker walks (same order it receives).
+let _isinOrder = null, _isinOrderSrc = null;
+function getIndicatorIsinOrder() {
+    if (_isinOrderSrc !== allData) {
+        _isinOrder = new Map();
+        allData.map((r) => r["ISIN"]).filter(Boolean).forEach((isin, i) => _isinOrder.set(isin, i));
+        _isinOrderSrc = allData;
+    }
+    return _isinOrder;
+}
+
+// Stocks with data = main worker's finished ones + priority stocks it has NOT reached yet
+// (the main worker walks in order, so priority stocks before its position are already counted).
+function indicatorCalculatedCount() {
+    const { done, total } = indicatorMainProgress;
+    let extra = 0;
+    if (indicatorPriorityDone.size) {
+        const order = getIndicatorIsinOrder();
+        indicatorPriorityDone.forEach((isin) => { if ((order.get(isin) ?? -1) >= done) extra++; });
+    }
+    return Math.min(total, done + extra);
+}
+
+// "1,240 / 2,010 stocks calculated · 770 remaining (your filter: 120 / 300)"
+function indicatorProgressText() {
+    const total = indicatorMainProgress.total;
+    if (!total) return "";
+    const fmt = (n) => n.toLocaleString("en-IN");
+    const calc = indicatorCalculatedCount();
+    let t = `${fmt(calc)} / ${fmt(total)} stocks calculated · ${fmt(total - calc)} remaining`;
+    if (indicatorPriorityWorker && indicatorPriorityProgress) {
+        t += ` (your filter: ${fmt(indicatorPriorityProgress.done)} / ${fmt(indicatorPriorityProgress.total)})`;
+    }
+    return t;
+}
 
 function getOHLCVSeries(isin, key) {
     const o = indicatorOhlcvStore.get(isin);
@@ -185,7 +223,9 @@ function startIndicatorEngine() {
 // first and only computes what is missing - so passing keys that already exist
 // costs only cheap lookups, never a recalculation.
 function spawnIndicatorWorker(keys, kind) {
+    cancelPriorityWork(); // a new main run starts with a clean priority state
     const requestId = ++indicatorRequestId;
+    indicatorMainProgress = { done: 0, total: getIndicatorIsinOrder().size };
     const worker = new Worker("./helper/indicator-worker.js");
     indicatorWorker = worker;
     indicatorRunKind = kind;
@@ -221,6 +261,7 @@ function launchIndicatorWorker(worker, enabledIndicatorKeys, requestId) {
 
 // Terminate worker, invalidate in-flight work and free all query data.
 function teardownIndicatorEngine() {
+    cancelPriorityWork();
     if (indicatorWorker) {
         indicatorWorker.terminate();
         indicatorWorker = null;
@@ -310,7 +351,8 @@ function handleIndicatorWorkerMessage(e) {
     if (msg.requestId !== indicatorRequestId) return;
 
     if (msg.type === "PROGRESS") {
-        setIndicatorEngineState("computing", `${msg.done.toLocaleString("en-IN")} / ${msg.total.toLocaleString("en-IN")}`);
+        indicatorMainProgress = { done: msg.done, total: msg.total };
+        setIndicatorEngineState("computing", null); // status line builds its own progress text
         return;
     }
     if (msg.type === "ERROR") {
@@ -322,12 +364,13 @@ function handleIndicatorWorkerMessage(e) {
         if (msg.errors && msg.errors.length) {
             console.warn(`[indicator-worker] ${msg.errors.length} calc/fetch errors:`, msg.errors.slice(0, 20));
         }
+        if (msg.stats) console.info("[indicator-worker] where the time went (ms; fetch/compute are summed over parallel lanes, idbWrite = the single writer, wall = real elapsed):", msg.stats);
         const doneRequestId = msg.requestId;
         const full = indicatorRunKind === "full";
         // The worker has nothing left to do - release its heap.
         if (indicatorWorker) { indicatorWorker.terminate(); indicatorWorker = null; }
 
-        loadIndicatorTailsIntoMemory(doneRequestId, msg.keys, full).then((completed) => {
+        loadIndicatorTailsIntoMemory(doneRequestId, msg.keys, full, undefined, indicatorRunKeys).then((completed) => {
             if (!completed || doneRequestId !== indicatorRequestId) return; // superseded
             indicatorStockCount = msg.count;
             rebuildIndicatorFieldList();
@@ -348,36 +391,36 @@ function handleIndicatorWorkerMessage(e) {
 // Load ONLY the small tail records for `keys` from IndexedDB (no raw payloads, no candles).
 //   full=true  -> replaces everything in memory (and loads the OHLCV tails)
 //   full=false -> merges just these keys into what is already in memory
-async function loadIndicatorTailsIntoMemory(requestId, keys, full) {
+//   onlyIsins  -> (priority batch) load just these stocks and always MERGE (the
+//                 main run later replaces everything with the full data).
+async function loadIndicatorTailsIntoMemory(requestId, keys, full, onlyIsins, runKeys) {
     const additions = new Map();            // isin -> Map<field, number[]>
     const ohlcv = full ? new Map() : null;
     const fieldsByKey = new Map();          // key -> Set<field>
     const BATCH = 60;
-    const isins = allData.map((r) => r["ISIN"]).filter(Boolean);
-    const prefix = indicatorTailPrefix();
+    const isins = onlyIsins || allData.map((r) => r["ISIN"]).filter(Boolean);
+    // ONE packed record per stock (all keys of the run + the OHLCV tail), written by indicator-worker.js.
+    const packKey = IndicatorCacheDB.packKey(indicatorActiveTailBars, runKeys || indicatorRunKeys || keys);
 
     async function loadOne(isin) {
         const fields = new Map();
-        await Promise.all(keys.map(async (key) => {
-            try {
-                const t = await IndicatorCacheDB.get(isin, prefix + key, CURRENT_DATA_DATE);
-                if (t && t.series) {
-                    for (const [name, arr] of Object.entries(t.series)) {
-                        const f = name.toLowerCase();
-                        fields.set(f, arr);
-                        if (!fieldsByKey.has(key)) fieldsByKey.set(key, new Set());
-                        fieldsByKey.get(key).add(f);
-                    }
+        let pack;
+        try { pack = await IndicatorCacheDB.get(isin, packKey, CURRENT_DATA_DATE); }
+        catch { return; /* this stock just won't resolve */ }
+        if (!pack) return;
+        for (const key of keys) {
+            const t = pack.tails && pack.tails[key];
+            if (t && t.series) {
+                for (const [name, arr] of Object.entries(t.series)) {
+                    const f = name.toLowerCase();
+                    fields.set(f, arr);
+                    if (!fieldsByKey.has(key)) fieldsByKey.set(key, new Set());
+                    fieldsByKey.get(key).add(f);
                 }
-            } catch { /* missing field just won't resolve */ }
-        }));
-        if (fields.size) additions.set(isin, fields);
-        if (full) {
-            try {
-                const o = await IndicatorCacheDB.get(isin, prefix + "ohlcv", CURRENT_DATA_DATE);
-                if (o) ohlcv.set(isin, o);
-            } catch { /* OHLCV just won't resolve for this stock */ }
+            }
         }
+        if (fields.size) additions.set(isin, fields);
+        if (full && pack.ohlcv) ohlcv.set(isin, pack.ohlcv);
     }
 
     for (let i = 0; i < isins.length; i += BATCH) {
@@ -387,6 +430,23 @@ async function loadIndicatorTailsIntoMemory(requestId, keys, full) {
     if (requestId !== indicatorRequestId) return false;
 
     // Commit atomically (no awaits below).
+    if (onlyIsins) {
+        additions.forEach((fields, isin) => {
+            let dst = indicatorTailStore.get(isin);
+            if (!dst) indicatorTailStore.set(isin, (dst = new Map()));
+            fields.forEach((arr, f) => dst.set(f, arr));
+        });
+        if (ohlcv) ohlcv.forEach((o, isin) => indicatorOhlcvStore.set(isin, o));
+        // Register the fields so pills + "unknown field" validation work before the main run ends.
+        // (A full main run clears and rebuilds this when it commits.)
+        fieldsByKey.forEach((set, key) => {
+            const known = indicatorFieldsByKey.get(key);
+            if (known) set.forEach((f) => known.add(f));
+            else indicatorFieldsByKey.set(key, set);
+            indicatorLoadedKeys.add(key);
+        });
+        return true;
+    }
     if (full) {
         indicatorTailStore = additions;
         indicatorOhlcvStore = ohlcv;
@@ -407,6 +467,132 @@ async function loadIndicatorTailsIntoMemory(requestId, keys, full) {
 }
 
 // ---------------------------------------------------------------------------
+// 3b. PRIORITY WORKER
+//
+// The main worker walks ALL stocks from the first one. A filter run (saved
+// search, multi-run, shared link, typed query) only needs the stocks that
+// survived the NORMAL filters, so while the main worker is still busy we start
+// ONE extra worker for just those stocks:
+//
+//   prepareIndicatorsForRows(rows)  ->  Promise<boolean>
+//     true  = every row now has indicator data (priority worker OR main run
+//             finished, whichever came first) -> safe to run the query now
+//     false = engine off / failed -> caller keeps its old "not available" path
+//
+// It reuses indicator-worker.js unchanged, writes to the same IndexedDB, and
+// the main worker skips anything already stored, so no work is wasted.
+// ---------------------------------------------------------------------------
+const indicatorPriorityDone = new Set();  // ISINs whose tails are already loaded in memory
+let indicatorPriorityWaiters = [];        // [{ isins, resolve }] callers waiting for their stocks
+let indicatorPriorityWorker = null;       // never more than one at a time
+
+function prepareIndicatorsForRows(rows) {
+    return prepareIndicatorsFor(rows.map((r) => r["ISIN"]).filter(Boolean));
+}
+
+function prepareIndicatorsForCodes(codes) {
+    const codeMap = getIndicatorCodeMap();
+    return prepareIndicatorsFor(codes.map((c) => codeMap.has(c) && codeMap.get(c)["ISIN"]).filter(Boolean));
+}
+
+function prepareIndicatorsFor(isins) {
+    const mainRun = waitForIndicatorEngine(); // true once the main worker has finished everything
+    const mainIsBusy = indicatorEngineState === "computing" && indicatorWorker;
+    if (!mainIsBusy) return mainRun;          // ready / error / off -> nothing to prioritise
+
+    const missing = isins.filter((isin) => !indicatorPriorityDone.has(isin));
+    if (!missing.length) return Promise.resolve(true);
+
+    const priorityRun = new Promise((resolve) => indicatorPriorityWaiters.push({ isins: missing, resolve }));
+    Promise.resolve().then(pumpPriorityWorker); // microtask: lets several callers (multi-run) join ONE batch
+    return firstTrue([mainRun, priorityRun]);
+}
+
+// Resolves true as soon as any promise says true; false only if all say false.
+function firstTrue(promises) {
+    return new Promise((resolve) => {
+        let left = promises.length;
+        const miss = () => { if (--left === 0) resolve(false); };
+        promises.forEach((p) => p.then((ok) => (ok ? resolve(true) : miss()), miss));
+    });
+}
+
+// Runs one batch for everything currently waiting, then loops if more arrived meanwhile.
+async function pumpPriorityWorker() {
+    if (indicatorPriorityWorker || !indicatorPriorityWaiters.length) return;
+
+    const runId = indicatorRequestId; // engine generation: teardown/restart bumps it
+    const batch = [...new Set(indicatorPriorityWaiters.flatMap((w) => w.isins))].filter((i) => !indicatorPriorityDone.has(i));
+    const keys = indicatorRunKeys;    // exactly what the main run is computing
+    const full = indicatorRunKind === "full";
+    const worker = new Worker("./helper/indicator-worker.js");
+    indicatorPriorityWorker = worker;
+
+    try {
+        await Promise.resolve(window.indicatorCacheFresh).catch(() => {}); // same daily-wipe guard as the main run
+        if (worker !== indicatorPriorityWorker) return;                     // cancelled meanwhile
+
+        await new Promise((resolve, reject) => {
+            worker.onmessage = (e) => {
+                const m = e.data || {};
+                if (m.type === "DONE") resolve();
+                else if (m.type === "ERROR") reject(new Error(m.error));
+                else if (m.type === "PROGRESS") {
+                    indicatorPriorityProgress = { done: m.done, total: m.total };
+                    refreshIndicatorStatus();
+                }
+            };
+            worker.onerror = (e) => reject(new Error(e.message || "priority worker failed"));
+            worker.postMessage({
+                type: "COMPUTE_INDICATORS",
+                requestId: runId,
+                isins: batch,
+                chartBaseUrl: new URL("data/chart/", window.location.href).href,
+                enabledIndicatorKeys: keys,
+                indicatorSettings: getEnabledChartIndicators().settingsByKey,
+                dataDate: CURRENT_DATA_DATE,
+                tailBars: indicatorActiveTailBars,
+            });
+        });
+        if (worker !== indicatorPriorityWorker) return;
+
+        const loaded = await loadIndicatorTailsIntoMemory(runId, keys, full, batch, keys);
+        if (!loaded || worker !== indicatorPriorityWorker) return; // superseded
+
+        batch.forEach((isin) => indicatorPriorityDone.add(isin));
+        indicatorPriorityProgress = null;
+        rebuildIndicatorFieldList();  // pills appear now, not when the whole universe is done
+        refreshIndicatorStatus();     // query box un-dims ("partial" state)
+        indicatorPriorityWaiters = indicatorPriorityWaiters.filter((w) => {
+            if (!w.isins.every((isin) => indicatorPriorityDone.has(isin))) return true; // still waiting
+            w.resolve(true);
+            return false;
+        });
+    } catch (err) {
+        console.warn("[indicator-priority]", err.message);
+        // Give up on priority; callers still get the answer when the main run finishes.
+        indicatorPriorityWaiters.splice(0).forEach((w) => w.resolve(false));
+    } finally {
+        if (worker === indicatorPriorityWorker) {
+            worker.terminate();
+            indicatorPriorityWorker = null;
+            if (indicatorPriorityWaiters.length) pumpPriorityWorker(); // more callers queued up meanwhile
+        }
+    }
+}
+
+// Main run finished / failed / restarted: drop the helper and release any waiters.
+function cancelPriorityWork() {
+    if (indicatorPriorityWorker) {
+        indicatorPriorityWorker.terminate();
+        indicatorPriorityWorker = null;
+    }
+    indicatorPriorityWaiters.splice(0).forEach((w) => w.resolve(false));
+    indicatorPriorityDone.clear();
+    indicatorPriorityProgress = null;
+}
+
+// ---------------------------------------------------------------------------
 // 4. UI state + pills
 // ---------------------------------------------------------------------------
 function setIndicatorEngineState(state, detail) {
@@ -415,6 +601,7 @@ function setIndicatorEngineState(state, detail) {
     indicatorEngineReady = state === "ready";
     refreshIndicatorStatus();
     flushIndicatorWaiters();
+    if (state === "ready" || state === "error") cancelPriorityWork(); // main run covers everything now
 }
 
 // ---------------------------------------------------------------------------
@@ -474,6 +661,7 @@ function refreshIndicatorStatus() {
     if (!section) return;
 
     let uiState, text, cls = "adv-query-status";
+    const partial = indicatorEngineState === "computing" && indicatorPriorityDone.size > 0;
     if (!isIndicatorQueryEnabled()) {
         uiState = "disabled";
         text = "⚠ Disabled in Settings — turn on “Enable Indicator Advance Query” to use this filter";
@@ -482,11 +670,15 @@ function refreshIndicatorStatus() {
         uiState = "error";
         text = `⚠ ${indicatorEngineDetail || "indicator engine failed"}`;
         cls += " adv-query-err";
-    } else if (indicatorEngineState === "ready") {
-        uiState = "ready";
+    } else if (indicatorEngineState === "ready" || partial) {
+        // "partial" = main run still going, but the priority worker already has data
+        // for the stocks of the current filter -> the box is usable right away.
+        uiState = partial ? "partial" : "ready";
         const q = getIndicatorQueryText();
         if (!q) {
-            text = `✓ Ready — ${indicatorQueryFields.length} fields available · ${indicatorStockCount.toLocaleString("en-IN")} stocks`;
+            text = partial
+                ? `✓ Ready for your filtered stocks — ${indicatorQueryFields.length} fields available`
+                : `✓ Ready — ${indicatorQueryFields.length} fields available · ${indicatorStockCount.toLocaleString("en-IN")} stocks`;
             cls += " adv-query-ok";
         } else {
             const v = IndicatorQuery.validateIndicatorQuery(q);
@@ -518,9 +710,11 @@ function refreshIndicatorStatus() {
             ? `${indicatorRunKeys.length} new indicator${indicatorRunKeys.length > 1 ? "s" : ""}`
             : "indicators";
         text = indicatorEngineState === "computing"
-            ? `⏳ Calculating ${what}… ${indicatorEngineDetail || ""}`
+            ? `⏳ Calculating ${what}… ${indicatorProgressText()}`
             : "⏳ Waiting for stock data…";
     }
+    // Main run still going: always show how much is calculated and what is left.
+    if (partial) text += ` · ⏳ ${indicatorProgressText()}`;
 
     section.dataset.state = uiState;
     if (statusEl) {
@@ -596,7 +790,8 @@ function clearIndicatorQuery() {
 // Narrow an already-filtered row array by an indicator query. Returns rows
 // unchanged when the engine is off / not ready / text is empty or invalid.
 function applyIndicatorQueryFilter(rows, text) {
-    if (!isIndicatorQueryEnabled() || !indicatorEngineReady) return rows;
+    if (!isIndicatorQueryEnabled()) return rows;
+    if (!indicatorEngineReady && !rows.every((r) => indicatorPriorityDone.has(r["ISIN"]))) return rows; // data not there yet
     const q = (text !== undefined ? text : getIndicatorQueryText()).trim();
     if (!q) return rows;
 
@@ -613,13 +808,18 @@ function applyIndicatorQueryFilter(rows, text) {
 // Saved-search / preset runs: returns null ("run failed") when the engine
 // isn't ready so callers never treat an UNFILTERED list as the result.
 let _indicatorCodeMap = null, _indicatorCodeMapSrc = null;
-function filterCodesByIndicatorQuery(codes, text) {
-    if (!codes) return codes;
-    if (!isIndicatorQueryEnabled() || !indicatorEngineReady) return null;
+function getIndicatorCodeMap() {
     if (_indicatorCodeMapSrc !== allData) {
         _indicatorCodeMap = new Map(allData.map((r) => [r.Code, r]));
         _indicatorCodeMapSrc = allData;
     }
+    return _indicatorCodeMap;
+}
+function filterCodesByIndicatorQuery(codes, text) {
+    if (!codes) return codes;
+    if (!isIndicatorQueryEnabled()) return null;
+    const codeMap = getIndicatorCodeMap();
+    if (!indicatorEngineReady && !codes.every((c) => codeMap.has(c) && indicatorPriorityDone.has(codeMap.get(c)["ISIN"]))) return null;
     let predicate;
     try {
         predicate = IndicatorQuery.compileIndicatorQuery(text, { getOHLCVSeries, getIndicatorSeries });
@@ -629,7 +829,7 @@ function filterCodesByIndicatorQuery(codes, text) {
     }
     if (!predicate) return codes;
     return codes.filter((c) => {
-        const row = _indicatorCodeMap.get(c);
+        const row = codeMap.get(c);
         return row && predicate(row["ISIN"]);
     });
 }
