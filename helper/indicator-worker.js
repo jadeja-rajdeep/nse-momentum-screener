@@ -5,7 +5,7 @@
    Message in:
      postMessage({
        type: "COMPUTE_INDICATORS",
-       requestId, isins, chartBaseUrl, enabledIndicatorKeys, dataDate,
+       requestId, isins, enabledIndicatorKeys, dataDate,
        tailBars            // how many most-recent bars the query engine keeps
      })
 
@@ -22,12 +22,17 @@
    `${isin}::tail<N>::pack::<keySetSignature>` = { tails: { key: {series} }, ohlcv }
    - far fewer IndexedDB puts/index updates than one record per indicator.
 
+   Candles come from ChartDataDB (helper/chart-db.js), which chart-sync-worker.js
+   keeps filled - nothing is downloaded here any more.
+
    How a run works (IndexedDB is the slow part, so it is touched as little as
    possible - one transaction at a time is all it can do anyway):
      1. ONE read lists the ids already stored for this dataDate (keys only).
-     2. Lanes (FETCH_CONCURRENCY in parallel) go through the stocks:
-          - tails already stored  -> skipped, no fetch, no IndexedDB access
-          - else fetch candles, compute the missing indicators in memory
+     2. Stocks are walked in batches of READ_BATCH:
+          - tails already stored  -> skipped, no candle read
+          - else the batch's candles are read in ONE ChartDataDB transaction
+            (the NEXT batch is being read while this one is computed), mapped
+            to candle objects and every missing indicator is computed in memory
      3. Results are queued and written by ONE writer in big batches
         (WRITE_BATCH_STOCKS stocks per transaction) - not one commit per record.
      4. DONE is posted only after the last batch is committed.
@@ -39,6 +44,7 @@
    ========================================================================= */
 
 importScripts("./indicator-db.js");           // defines IndicatorCacheDB (global const)
+importScripts("./chart-db.js");               // defines ChartDataDB (global const)
 importScripts("./indicator-calculators.js");  // defines computeIndicatorRaw() etc. as globals
 
 // Do NOT write `const { computeIndicatorRaw } = self.IndicatorCalculators;` -
@@ -46,8 +52,7 @@ importScripts("./indicator-calculators.js");  // defines computeIndicatorRaw() e
 // function, and a const of the same name throws "Identifier has already been
 // declared" and kills the worker.
 
-const YIELD_EVERY_N_STOCKS = 32;
-const FETCH_CONCURRENCY = 32;      // fetch + compute lanes (IndexedDB is NOT the limit any more: one writer)
+const READ_BATCH = 48;             // stocks read from ChartDataDB per transaction (also the progress step)
 const WRITE_BATCH_STOCKS = 100;  // stocks per IndexedDB write transaction (1 packed record per stock)
 const MAX_QUEUED_BATCHES = 4;    // lanes pause only if the writer falls this far behind (tail records are small)
 
@@ -58,8 +63,8 @@ const MAX_QUEUED_BATCHES = 4;    // lanes pause only if the writer falls this fa
 // cost - so sharing is OFF. Set to true to pre-fill the chart's cache again.
 const SHARE_RAW_WITH_CHART = false;
 
-// Where the time went. fetch / compute are SUMMED over parallel lanes;
-// idbWrite is the single writer's time; wall is real elapsed time.
+// Where the time went. fetch = time spent waiting on ChartDataDB reads, compute = indicator
+// maths, idbWrite = the single writer's time, wall = real elapsed time.
 const stats = { wall: 0, fetch: 0, compute: 0, idbList: 0, idbWrite: 0, flushes: 0, stocksComputed: 0, stocksSkipped: 0 };
 const now = () => performance.now();
 
@@ -79,14 +84,15 @@ function buildTail(key, raw, tailBars) {
     return { series };
 }
 
-function buildOhlcvTail(candles, tailBars) {
-    const t = candles.length > tailBars ? candles.slice(-tailBars) : candles;
+// Straight from the stored value-array rows [time,open,high,low,close,volume] - no objects needed.
+function buildOhlcvTail(rows, tailBars) {
+    const t = rows.length > tailBars ? rows.slice(-tailBars) : rows;
     return {
-        open: t.map((c) => c.open),
-        high: t.map((c) => c.high),
-        low: t.map((c) => c.low),
-        close: t.map((c) => c.close),
-        volume: t.map((c) => c.v),
+        open: t.map((r) => r[1]),
+        high: t.map((r) => r[2]),
+        low: t.map((r) => r[3]),
+        close: t.map((r) => r[4]),
+        volume: t.map((r) => r[5]),
     };
 }
 
@@ -96,7 +102,7 @@ self.onmessage = async function (e) {
     const requestId = msg.requestId;
 
     try {
-        const { isins, chartBaseUrl, enabledIndicatorKeys, dataDate } = msg;
+        const { isins, enabledIndicatorKeys, dataDate } = msg;
         const tailBars = msg.tailBars || 60;
         const indicatorSettings = msg.indicatorSettings || {};
         // ONE packed record per stock: { tails: { key: {series} }, ohlcv: {...} }.
@@ -143,73 +149,66 @@ self.onmessage = async function (e) {
             if (++pendingStocks >= WRITE_BATCH_STOCKS) flushNow();
         }
 
-        // 2. Per stock: skip if its packed record exists, else fetch + compute in memory + queue ONE write.
-        async function processOne(isin) {
-            if (existing.has(idOf(isin, PACK_KEY))) {
-                enabledIndicatorKeys.forEach((k) => keySet.add(k));
-                stats.stocksSkipped++;
-                return;
-            }
-
-            let candles;
-            const tFetch = now();
-            try {
-                const res = await fetch(`${chartBaseUrl}${isin}.json`, { cache: "force-cache" });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                candles = await res.json();
-            } catch (err) {
-                errors.push(`${isin}: chart fetch failed — ${(err && err.message) || err}`);
-                return;
-            } finally {
-                stats.fetch += now() - tFetch;
-            }
-            if (!Array.isArray(candles) || !candles.length) return;
+        // 2. Per stock: compute from its stored rows and queue ONE packed write.
+        function processStock(isin, rows) {
             stats.stocksComputed++;
-
-            // Optional: reuse raw payloads the chart already cached (read only the ones that exist).
-            let rawHave = new Map();
-            if (SHARE_RAW_WITH_CHART) {
-                const cachedRaw = enabledIndicatorKeys.filter((k) => existing.has(idOf(isin, k)));
-                if (cachedRaw.length) {
-                    try { rawHave = await IndicatorCacheDB.getMany(isin, cachedRaw, dataDate); } catch { /* recompute */ }
-                }
-            }
+            const tCompute = now();
+            const candles = ChartDataDB.rowsToCandles(rows); // value arrays -> {time,open,high,low,close,v}
 
             const entries = [];
             const tails = {};
-            const tCompute = now();
             for (const key of enabledIndicatorKeys) {
                 try {
-                    let raw = rawHave.get(key);
-                    if (!raw) {
-                        raw = computeIndicatorRaw(key, candles, indicatorSettings[key]); // full settings -> same options as the chart worker
-                        if (raw && SHARE_RAW_WITH_CHART) entries.push({ isin, key, payload: raw });
-                    }
+                    const raw = computeIndicatorRaw(key, candles, indicatorSettings[key]); // full settings -> same options as the chart worker
+                    if (raw && SHARE_RAW_WITH_CHART) entries.push({ isin, key, payload: raw });
                     const tail = raw ? buildTail(key, raw, tailBars) : { series: {} };
                     if (hasData(tail)) { tails[key] = tail; keySet.add(key); }
                 } catch (err) {
                     errors.push(`${isin} / ${key}: ${(err && err.message) || err}`);
                 }
             }
-            entries.push({ isin, key: PACK_KEY, payload: { tails, ohlcv: buildOhlcvTail(candles, tailBars) } });
+            entries.push({ isin, key: PACK_KEY, payload: { tails, ohlcv: buildOhlcvTail(rows, tailBars) } });
             stats.compute += now() - tCompute;
-
             queueWrites(entries);
         }
 
-        let cursor = 0;
-        async function lane() {
-            while (cursor < isins.length) {
-                const isin = isins[cursor++];
-                await processOne(isin);
-                done++;
-                if (done % YIELD_EVERY_N_STOCKS === 0) {
-                    self.postMessage({ type: "PROGRESS", requestId, done, total: isins.length });
-                }
-                if (queuedBatches > MAX_QUEUED_BATCHES) await IndicatorCacheDB.flush(); // writer is far behind: let it catch up (rare)
+        // Read one batch: drop stocks whose pack is already stored, fetch the rest in ONE transaction.
+        async function readBatch(start) {
+            const slice = isins.slice(start, start + READ_BATCH);
+            const todo = [];
+            for (const isin of slice) {
+                if (existing.has(idOf(isin, PACK_KEY))) {
+                    enabledIndicatorKeys.forEach((k) => keySet.add(k));
+                    stats.stocksSkipped++;
+                } else todo.push(isin);
             }
+            let rowsList = [];
+            if (todo.length) {
+                const t0 = now();
+                try { rowsList = await ChartDataDB.getManyRows(todo); }
+                catch (err) {
+                    errors.push(`candle read failed — ${(err && err.message) || err}`);
+                    rowsList = todo.map(() => null);
+                }
+                stats.fetch += now() - t0;
+            }
+            return { count: slice.length, todo, rowsList };
         }
-        await Promise.all(Array.from({ length: FETCH_CONCURRENCY }, lane));
+
+        // Pipeline: while batch N is being computed, batch N+1 is already being read.
+        let next = readBatch(0);
+        for (let start = 0; start < isins.length; start += READ_BATCH) {
+            const cur = await next;
+            next = start + READ_BATCH < isins.length ? readBatch(start + READ_BATCH) : null;
+            cur.todo.forEach((isin, i) => {
+                const rows = cur.rowsList[i];
+                if (!rows) { errors.push(`${isin}: no stored chart data`); return; }
+                processStock(isin, rows);
+            });
+            done += cur.count;
+            self.postMessage({ type: "PROGRESS", requestId, done, total: isins.length });
+            if (queuedBatches > MAX_QUEUED_BATCHES) await IndicatorCacheDB.flush(); // writer is far behind: let it catch up (rare)
+        }
         flushNow();
         await IndicatorCacheDB.flush(); // the ONLY wait: DONE must mean "everything is committed" - the page reads it back from IndexedDB
 

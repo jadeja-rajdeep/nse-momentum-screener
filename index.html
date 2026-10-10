@@ -4308,6 +4308,9 @@
         </style>
         <link rel="stylesheet" href="./assets/css/mobile.css" media="screen and (max-width:767px)" />
         <script src="./helper/indicator-db.js" async></script>
+        <!-- Price history: ChartDataDB (IndexedDB, one record per ISIN) + the sync client that fills / updates it -->
+        <script src="./helper/chart-db.js"></script>
+        <script src="./helper/chart-sync.js"></script>
         <!-- Indicator maths: single source of truth (also importScripts()'d by data-worker.js and indicator-worker.js) -->
         <script src="./helper/indicator-calculators.js"></script>
         <script src="./helper/indicator-query.js"></script>
@@ -9297,7 +9300,7 @@
             let industryToBasics = {}; // industry → Set of basic industries
 
             const DATA_CACHE_NAME = "nse-screener-data-v1"; // must match sw.js DATA_CACHE
-            const CHART_CACHE_NAME = "nse-screener-chart-v1"; // must match sw.js CHART_CACHE
+            const LEGACY_CHART_CACHE_NAME = "nse-screener-chart-v1"; // old per-ISIN chart files; sw.js no longer uses it, deleted once below
             const FINANCIAL_CACHE_NAME = "nse-screener-financial-v1"; // must match sw.js CHART_CACHE
             const MARKET_STAT_CACHE = "nse-screener-market-stat-v1";
             const NSE_PUBLISH_HOUR_IST = 17; // NSE publishes updated data ~5 PM IST after market close
@@ -9389,15 +9392,11 @@
                     const canServeFromCache = isToday || isOlderButPrePublish || isSaturdayFriday || isSaturdayOlderPrePublish || isSundayFriday || isSundayOlderPrePublish || isMondayFriday;
 
                     if (!canServeFromCache) {
-                        // Day's data has moved on — every ISIN chart cached
-                        // under the old date is now stale too. Purge the
-                        // whole chart cache so the next time each chart is
-                        // opened, sw.js's cacheFirst misses and fetches the
-                        // fresh file (then re-caches it) instead of quietly
-                        // continuing to serve yesterday's candles.
-                        // (Chart/financial Cache Storage purge now happens in
-                        // purgeChartCachesIfDateChanged(), awaited via
-                        // window.indicatorCacheFresh before any worker fetches.)
+                        // Day's data has moved on. Financial / market-stat Cache
+                        // Storage is purged in purgeChartCachesIfDateChanged(); the
+                        // price history is brought up to date by ChartSync (daily
+                        // files appended into IndexedDB) - both awaited through
+                        // window.indicatorCacheFresh before any worker reads data.
                         return null;
                     }
 
@@ -9540,15 +9539,17 @@
                 }
             }
 
-            // Purge per-ISIN chart + financial JSON from Cache Storage whenever the
+            // Purge financial + market-stat JSON from Cache Storage whenever the
             // loaded data date differs from the one we last purged for. Awaited
-            // (through window.indicatorCacheFresh) before the indicator worker or
-            // any chart fetches files, so nothing can re-cache yesterday's data.
+            // (through window.indicatorCacheFresh) before any worker reads data,
+            // so nothing can re-cache yesterday's data. (Price history is no longer
+            // in Cache Storage - see ChartSync / ChartDataDB.) The legacy per-ISIN
+            // chart cache is dropped here too, so existing users free that disk space.
             async function purgeChartCachesIfDateChanged(date) {
                 try {
                     if (localStorage.getItem("chartDataDate") === date) return;
                     if ("caches" in window) {
-                        await Promise.all([caches.delete(CHART_CACHE_NAME), caches.delete(FINANCIAL_CACHE_NAME), caches.delete(MARKET_STAT_CACHE)]);
+                        await Promise.all([caches.delete(LEGACY_CHART_CACHE_NAME), caches.delete(FINANCIAL_CACHE_NAME), caches.delete(MARKET_STAT_CACHE)]);
                     }
                     localStorage.setItem("chartDataDate", date); // only after the delete succeeded
                 } catch (e) {}
@@ -9587,10 +9588,20 @@
                     // just spawns a worker (all the heavy work is off the main thread and
                     // it holds back until the daily IndexedDB wipe has finished).
                     CURRENT_DATA_DATE = rows[0]?.Date;
-                    window.indicatorCacheFresh = (async () => {
-                        await purgeChartCachesIfDateChanged(CURRENT_DATA_DATE); // Cache Storage first
-                        await ensureIndicatorCacheFreshness(CURRENT_DATA_DATE); // then IndexedDB
-                    })().catch(() => {});
+                    // indicatorCacheFresh = "everything the chart / indicator workers read is
+                    // ready for CURRENT_DATA_DATE". Every consumer already awaits it:
+                    //   1. Cache Storage purge, then the indicator-cache wipe (if the date moved)
+                    //   2. ChartSync, in its own worker, IN PARALLEL with step 1:
+                    //        first visit  -> download every chunk into ChartDataDB
+                    //        later visits -> download only the missing daily/<date>.json files
+                    // It never rejects: a failed sync is logged and charts then report missing data.
+                    window.indicatorCacheFresh = Promise.all([
+                        (async () => {
+                            await purgeChartCachesIfDateChanged(CURRENT_DATA_DATE);
+                            await ensureIndicatorCacheFreshness(CURRENT_DATA_DATE);
+                        })().catch(() => {}),
+                        ChartSync.start(CURRENT_DATA_DATE),
+                    ]).catch(() => {});
                     allData = rows;
                     syncIndicatorQuerySettingToHelper();
                     ensureIndicatorEngineStarted();
@@ -16865,6 +16876,19 @@
                             }
                         });
                         placeTooltips();
+
+                        // Safety net: a separator drag does not always fire the ResizeObserver above,
+                        // so also re-pin on pointer / touch movement and release (one update per frame).
+                        // Assigned as properties (not addEventListener) so re-opening the modal replaces them.
+                        let tipRaf = 0;
+                        const schedulePlaceTooltips = () => {
+                            if (tipRaf) return;
+                            tipRaf = requestAnimationFrame(() => {
+                                tipRaf = 0;
+                                placeTooltips();
+                            });
+                        };
+                        chartMainEl.onpointermove = chartMainEl.onpointerup = chartMainEl.ontouchmove = chartMainEl.ontouchend = schedulePlaceTooltips;
 
                         charts.main.subscribeCrosshairMove((param) => {
                             if (!param || !param.time || param.time === "undefined") return;

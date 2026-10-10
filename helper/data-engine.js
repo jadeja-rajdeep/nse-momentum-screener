@@ -126,10 +126,11 @@
        Resolves { data, ind } where `ind` maps each IndicatorCacheDB key the
        chart settings need (e.g. "ema_50_close") to its computed result.
        Resolves null when a newer thumbnail pass superseded this request.
-       Rejects if the worker cannot fetch the candles or build an indicator. */
+       Rejects if the stock has no stored candles or an indicator fails. */
     E.loadChartBundle = async function (isin, mode, settings, sliceLen, gen) {
         try {
-            if (window.indicatorCacheFresh) await window.indicatorCacheFresh; // let the daily cache wipe finish first
+            // daily indicator-cache wipe + ChartDataDB sync (first-visit download / daily append) must finish first
+            if (window.indicatorCacheFresh) await window.indicatorCacheFresh;
         } catch (e) {}
 
         const r = await E.chart({
@@ -139,7 +140,6 @@
             sliceLen: sliceLen || 0,
             gen: gen || 0,
             dataDate: CURRENT_DATA_DATE,
-            baseUrl: new URL("data/chart/", location.href).href,
         });
         if (r.cancelled) return null;
         if (r.errors && r.errors.length) throw new Error("indicator error for " + isin + ": " + r.errors.join("; "));

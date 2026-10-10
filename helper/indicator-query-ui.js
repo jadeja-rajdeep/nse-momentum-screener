@@ -232,7 +232,8 @@ function spawnIndicatorWorker(keys, kind) {
     indicatorRunKeys = keys;
     setIndicatorEngineState("computing", null);
 
-    // Let the daily IndexedDB wipe finish first, otherwise clearAll() could erase results mid-run.
+    // Let the daily IndexedDB wipe AND the chart-data sync finish first: clearAll() could erase results
+    // mid-run, and the worker reads every stock's candles from ChartDataDB.
     Promise.resolve(window.indicatorCacheFresh)
         .catch(() => {})
         .then(() => {
@@ -251,7 +252,6 @@ function launchIndicatorWorker(worker, enabledIndicatorKeys, requestId) {
         type: "COMPUTE_INDICATORS",
         requestId,
         isins: allData.map((row) => row["ISIN"]).filter(Boolean),
-        chartBaseUrl: new URL("data/chart/", window.location.href).href,
         enabledIndicatorKeys,
         indicatorSettings: getEnabledChartIndicators().settingsByKey, // full settings per key -> calculators
         dataDate: CURRENT_DATA_DATE,
@@ -547,7 +547,6 @@ async function pumpPriorityWorker() {
                 type: "COMPUTE_INDICATORS",
                 requestId: runId,
                 isins: batch,
-                chartBaseUrl: new URL("data/chart/", window.location.href).href,
                 enabledIndicatorKeys: keys,
                 indicatorSettings: getEnabledChartIndicators().settingsByKey,
                 dataDate: CURRENT_DATA_DATE,

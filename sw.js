@@ -9,18 +9,14 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v129";
+const CACHE_VERSION = "nse-screener-v130";
 const DATA_CACHE = "nse-screener-data-v1";
 
-// Per-ISIN chart JSON (data/chart/{isin}.json) gets its own cache, kept
-// separate from DATA_CACHE so it can be bulk-purged independently. These
-// are cache-first (fast repeat opens) rather than network-first like
-// m.json, because the page (index.html) purges this whole cache the
-// moment tryLoadFromCacheIfFresh() decides the day's data is stale —
-// so a stale entry never lingers past that point, and we don't pay a
-// network round-trip on every single chart open in between.
-// Keep this name in sync with CHART_CACHE_NAME in index.html.
-const CHART_CACHE = "nse-screener-chart-v1";
+// Price history (data/chart/chunks/*, data/daily/*) is NOT cached here any more:
+// helper/chart-sync-worker.js downloads it once into IndexedDB (ChartDataDB) and
+// appends one small daily file afterwards, so a second copy in Cache Storage would
+// only waste disk. The old "nse-screener-chart-v1" cache is no longer in the keep
+// list below, so activate() deletes it.
 const FINANCIAL_CACHE = "nse-screener-financial-v1";
 const MARKET_STAT_CACHE="nse-screener-market-stat-v1";
 
@@ -55,6 +51,9 @@ const STATIC_ASSETS = [
     "./assets/vendor/bootstrap/prod.bootstrap.min.css",
     "./assets/vendor/lightweight-charts/lightweight-charts.standalone.production.js",
     "./helper/indicator-db.js",
+    "./helper/chart-db.js",
+    "./helper/chart-sync.js",
+    "./helper/chart-sync-worker.js",
     "./helper/data-engine.js",
     "./helper/data-worker.js",
     "./helper/alert.js",
@@ -148,7 +147,6 @@ self.addEventListener("activate", (event) => {
                                 k !== CACHE_VERSION &&
                                 k !== DATA_CACHE &&
                                 k !== FONT_CACHE &&
-                                k !== CHART_CACHE &&
                                 k !== FINANCIAL_CACHE &&
                                 k !== MARKET_STAT_CACHE
                         )
@@ -184,17 +182,17 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
-    // Per-ISIN chart JSON → Cache-first into its own CHART_CACHE. Freshness
-    // is NOT handled here — index.html purges CHART_CACHE entirely as soon
-    // as it detects the day's data has moved on (see tryLoadFromCacheIfFresh
-    // in index.html), so whatever's cached here is trusted as-is.
-    if (url.pathname.includes("/data/chart/") && url.pathname.endsWith(".json")) {
-        event.respondWith(cacheFirst(event.request, CHART_CACHE, event));
+    // Chart history (chunks + index + daily files) goes straight to the network:
+    // chart-sync-worker.js stores it in IndexedDB itself and revalidates with
+    // cache:"no-cache", so the SW must not answer from (or add to) any cache.
+    if (url.pathname.includes("/data/chart/") || url.pathname.includes("/data/daily/")) {
         return;
-    }else if (url.pathname.includes("/data/financial/") && url.pathname.endsWith(".json")) {
+    }
+
+    if (url.pathname.includes("/data/financial/") && url.pathname.endsWith(".json")) {
         event.respondWith(cacheFirst(event.request, FINANCIAL_CACHE, event));
         return;
-    }else if (url.pathname.includes("/data/market_stat/") && url.pathname.endsWith(".json")) {
+    } else if (url.pathname.includes("/data/market_stat/") && url.pathname.endsWith(".json")) {
         event.respondWith(cacheFirst(event.request, MARKET_STAT_CACHE, event));
         return;
     }

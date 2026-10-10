@@ -681,16 +681,20 @@
         ];
     }
 
-    // One in-flight request per ISIN, shared by all three indicator builders
-    // (they run at the same time in startCycle) instead of 3 identical downloads.
+    // Candles now come from ChartDataDB (IndexedDB, filled by helper/chart-sync-worker.js).
+    // One in-flight read per ISIN, shared by all three indicator builders
+    // (they run at the same time in startCycle). Waits for the chart sync first, so
+    // an alert pass that starts during the first-visit download never sees an empty DB.
     const inflightChart = new Map();
     function fetchChartData(isin) {
         let p = inflightChart.get(isin);
         if (!p) {
-            p = fetch(`data/chart/${isin}.json`)
-                .then((res) => {
-                    if (!res.ok) throw new Error(`HTTP ${res.status} for ${isin}`);
-                    return res.json();
+            p = Promise.resolve(window.indicatorCacheFresh)
+                .catch(() => {})
+                .then(() => ChartDataDB.getCandles(isin))
+                .then((candles) => {
+                    if (!candles) throw new Error(`no chart data stored for ${isin}`);
+                    return candles;
                 })
                 .finally(() => inflightChart.delete(isin));
             inflightChart.set(isin, p);

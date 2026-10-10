@@ -13,9 +13,10 @@
                   (used by the daily alert-badge pass and "Run Selected")
 
    CHART role (pool of copies, stateless)
-     CHART        fetch data/chart/{isin}.json, compute every indicator the
-                  chart settings need (reading / writing IndicatorCacheDB,
-                  which works inside workers), reply with candles + results.
+     CHART        read the stock's rows from ChartDataDB (IndexedDB), map them to
+                  candle objects, compute every indicator the chart settings need
+                  (reading / writing IndicatorCacheDB, which works inside workers),
+                  reply with candles + results.
 
    Rows are never sent back to the page: replies carry row INDICES (positions
    in the array the page passed to INIT), so the page maps them onto its own
@@ -29,6 +30,15 @@ try {
     importScripts("indicator-db.js"); // defines IndicatorCacheDB (global const)
 } catch (e) {
     IDB_OK = false;
+}
+
+// Price history lives in IndexedDB (ChartDataDB, one record per ISIN, value-only
+// rows). The chart role reads it directly - no per-ISIN file downloads any more.
+let CHARTDB_OK = true;
+try {
+    importScripts("chart-db.js"); // defines ChartDataDB (global const)
+} catch (e) {
+    CHARTDB_OK = false;
 }
 
 // The indicator maths lives in ONE place: helper/indicator-calculators.js.
@@ -547,10 +557,11 @@ async function handleChart(m) {
     if (!CALC_OK || typeof calculateSMA !== "function") {
         throw new Error("helper/indicator-calculators.js failed to load in data-worker.js");
     }
-    const { isin, mode, settings: S, sliceLen, gen, dataDate, baseUrl } = m;
-    const res = await fetch(baseUrl + isin + ".json");
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
+    if (!CHARTDB_OK) throw new Error("helper/chart-db.js failed to load in data-worker.js");
+    const { isin, mode, settings: S, sliceLen, gen, dataDate } = m;
+    // [[time,o,h,l,c,v], ...] -> [{time,open,high,low,close,v}, ...] (what the calculators and the chart code expect)
+    const data = await ChartDataDB.getCandles(isin);
+    if (!data) throw new Error("no chart data stored for " + isin);
 
     // A newer thumbnail pass started while we were downloading — skip the maths.
     if (mode === "thumb" && gen < chartGen) return { cancelled: true };
