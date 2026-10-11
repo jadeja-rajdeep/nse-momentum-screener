@@ -543,7 +543,12 @@ let chartGen = 0; // newest thumbnail generation announced by the page
 
 
 /* ---- IndicatorCacheDB wrappers (same keys / payloads the page always used) ---- */
-const cacheOK = () => IDB_OK && typeof IndicatorCacheDB !== "undefined";
+// Full per-bar indicator payloads (ScreenerIndicatorCache "isin::key" records) are NOT stored or read any more:
+// recomputing a stock's indicators takes about as long as deserializing a cached payload, and the
+// write-behind of 25-300 KB per key competed with thumbnail reads. Flip to true to restore the old
+// cache-first behaviour. (The query tail packs written by indicator-worker.js are unaffected.)
+const SHARE_RAW_CACHE = false;
+const cacheOK = () => SHARE_RAW_CACHE && IDB_OK && typeof IndicatorCacheDB !== "undefined";
 async function cacheGet(isin, key, date) {
     if (!cacheOK()) return null;
     try { return await IndicatorCacheDB.get(isin, key, date); } catch (e) { return null; }

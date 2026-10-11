@@ -103,15 +103,30 @@ async function fullDownload(base, post, stats) {
   stats.pruned = removed;
 }
 
+// Which daily files really exist? null = unknown -> caller falls back to probing.
+async function listDailyDates(base, dataDate) {
+  try {
+    const idx = await fetchJson(base + "daily/index.json", true);
+    const arr = Array.isArray(idx) ? idx : idx && idx.dates;
+    if (!Array.isArray(arr)) return null;
+    const set = new Set(arr.filter((d) => ISO.test(d)));
+    return set.has(dataDate) ? set : null; // manifest older than m.json -> don't trust it
+  } catch (e) { return null; }
+}
+
 async function dailyUpdate(base, dataDate, post, stats) {
   const meta = await ChartDataDB.getMeta();
-  const dates = datesAfter(meta.lastDate, dataDate);
+  const candidates = datesAfter(meta.lastDate, dataDate);
+  const avail = candidates.length ? await listDailyDates(base, dataDate) : null;
+  const probing = !avail;                                   // fallback: old behaviour
+  const dates = avail ? candidates.filter((d) => avail.has(d)) : candidates;
   stats.dailyChecked = dates.length;
   stats.dailyApplied = [];
+  stats.manifest = !probing;
   if (!dates.length) return;
 
   const limited = pool(DAILY_CONCURRENCY);
-  const jobs = dates.map((d) => limited(() => fetchJson(`${base}daily/${d}.json`, true)));
+  const jobs = dates.map((d) => limited(() => fetchJson(`${base}daily/${d}.json`, probing)));
   jobs.forEach((p) => p.catch(() => {})); // errors are handled in order below
 
   const applied = []; // [{date, day}] kept for the repair step

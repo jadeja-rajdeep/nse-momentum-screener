@@ -704,8 +704,11 @@
 
     // Cache-first indicator lookup (same IndexedDB keys the charts use). Never
     // throws: any failure just means "no target for this indicator".
+    // SHARE_RAW_CACHE = false: full per-bar payloads are no longer stored/read in ScreenerIndicatorCache;
+    // indicators are recomputed from the stored candles each time. Set true to restore cache-first lookups.
+    const SHARE_RAW_CACHE = false;
     async function getIndicator(isin, key, compute, loadData) {
-        const db = typeof IndicatorCacheDB !== "undefined" ? IndicatorCacheDB : null; // indicator-db.js loads async
+        const db = SHARE_RAW_CACHE && typeof IndicatorCacheDB !== "undefined" ? IndicatorCacheDB : null; // indicator-db.js loads async
         const date = typeof CURRENT_DATA_DATE !== "undefined" ? CURRENT_DATA_DATE : "";
         try {
             if (db) {
