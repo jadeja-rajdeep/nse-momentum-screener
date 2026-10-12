@@ -9,10 +9,10 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v131";
+const CACHE_VERSION = "nse-screener-v132";
 const DATA_CACHE = "nse-screener-data-v1";
 
-// Price history (data/chart/chunks/*, data/daily/*) is NOT cached here any more:
+// Price history (data/chart/chunks/*, data/chart/daily/*) is NOT cached here any more:
 // helper/chart-sync-worker.js downloads it once into IndexedDB (ChartDataDB) and
 // appends one small daily file afterwards, so a second copy in Cache Storage would
 // only waste disk. The old "nse-screener-chart-v1" cache is no longer in the keep
@@ -182,10 +182,10 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
-    // Chart history (chunks + index + daily files) goes straight to the network:
+    // Chart history (data/chart/chunks/* + data/chart/daily/*: index + chunk + daily files) goes straight to the network:
     // chart-sync-worker.js stores it in IndexedDB itself and revalidates with
     // cache:"no-cache", so the SW must not answer from (or add to) any cache.
-    if (url.pathname.includes("/data/chart/") || url.pathname.includes("/data/daily/")) {
+    if (url.pathname.includes("/data/chart/")) {
         return;
     }
 

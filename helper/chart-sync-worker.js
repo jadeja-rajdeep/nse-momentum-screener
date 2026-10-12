@@ -9,13 +9,14 @@
    Layout it expects on the server:
      data/chart/chunks/index.json        { isin: "chunk_001.json", ... }
      data/chart/chunks/chunk_001.json    { isin: [[time,o,h,l,c,v], ...], ... }   (~100 stocks each)
-     data/daily/YYYY-MM-DD.json          { isin: [time,o,h,l,c,v], ... }
+     data/chart/daily/index.json         [ "YYYY-MM-DD", ... ]   (manifest of existing daily files)
+     data/chart/daily/YYYY-MM-DD.json    { isin: [time,o,h,l,c,v], ... }
 
    Plan on every page load:
      1. Nothing stored (or schema changed, or gap > MAX_DAILY_GAP_DAYS)
           -> read index.json, download every distinct chunk, store per ISIN.
      2. Then, for every calendar day AFTER the newest stored bar up to the m.json
-        data date, try data/daily/<day>.json. 404 = no session that day (weekend /
+        data date, try data/chart/daily/<day>.json. 404 = no session that day (weekend /
         holiday) and is skipped; a file that exists is appended to every ISIN.
         Weekends are tried on purpose: special sessions happen.
      3. ISINs that appear in a daily file but were never stored (new listings) get
@@ -24,6 +25,7 @@
 "use strict";
 importScripts("./chart-db.js"); // defines ChartDataDB
 
+let DAILY_PATH = ""; // set per sync from dataBase: <data/>chart/daily/
 const MAX_DAILY_GAP_DAYS = 90; // older than this: re-download the chunks instead of ~65 daily files
 const CHUNK_CONCURRENCY = 4;
 const DAILY_CONCURRENCY = 6;
@@ -106,7 +108,7 @@ async function fullDownload(base, post, stats) {
 // Which daily files really exist? null = unknown -> caller falls back to probing.
 async function listDailyDates(base, dataDate) {
   try {
-    const idx = await fetchJson(base + "daily/index.json", true);
+    const idx = await fetchJson(DAILY_PATH + "index.json", true);
     const arr = Array.isArray(idx) ? idx : idx && idx.dates;
     if (!Array.isArray(arr)) return null;
     const set = new Set(arr.filter((d) => ISO.test(d)));
@@ -126,7 +128,7 @@ async function dailyUpdate(base, dataDate, post, stats) {
   if (!dates.length) return;
 
   const limited = pool(DAILY_CONCURRENCY);
-  const jobs = dates.map((d) => limited(() => fetchJson(`${base}daily/${d}.json`, probing)));
+  const jobs = dates.map((d) => limited(() => fetchJson(`${DAILY_PATH}${d}.json`, probing)));
   jobs.forEach((p) => p.catch(() => {})); // errors are handled in order below
 
   const applied = []; // [{date, day}] kept for the repair step
@@ -169,6 +171,7 @@ async function repairNewListings(base, unknown, applied, post, stats) {
 
 async function sync(m, post) {
   const base = m.dataBase;
+  DAILY_PATH = base + "chart/daily/";
   const dataDate = ISO.test(m.dataDate || "") ? m.dataDate : istToday();
   const stats = { mode: "daily", dataDate };
 
