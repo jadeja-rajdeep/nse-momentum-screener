@@ -79,6 +79,17 @@ function getAllIndexValues(row) {
         .filter((s) => s && s !== "-" && s !== "—");
 }
 
+/* "Top %" for a rank inside a group (1 = best). Plain rank/total*100 gives the
+   leader of a small group a BAD value (1 of 1 = 100%, 1 of 11 = 9.1%), so a "top 10%"
+   filter would drop the very best stock of every small group. Rule: the group leader
+   is always treated as "top 1%" (or better, in groups of 200+); every other rank keeps
+   the exact rank/total*100. Rounded to kill float noise (3/30*100 etc.). */
+function topPct(rank, total) {
+    if (!total) return NaN;
+    const raw = (rank / total) * 100;
+    return Math.round((rank === 1 ? Math.min(raw, 1) : raw) * 1e6) / 1e6;
+}
+
 /* ---- ranks (verbatim port of the block that used to live in loadData) ---- */
 function computeRanks() {
     peerRank = new Map();
@@ -101,7 +112,7 @@ function computeRanks() {
                 const entry = peerRank.get(r.Code);
                 entry[rankKey] = i + 1;
                 entry[totalKey] = sorted.length;
-                entry[pctKey] = ((i + 1) / sorted.length) * 100;
+                entry[pctKey] = topPct(i + 1, sorted.length);
             });
         });
     };
@@ -128,7 +139,7 @@ function computeRanks() {
             const entry = groupRank.get(g.name);
             entry[rankKey] = rank;
             entry[totalKey] = total;
-            entry[pctKey] = (rank / total) * 100;
+            entry[pctKey] = topPct(rank, total);
         });
     };
     rankGroupsInto(rows, "Industry", "5 Days Chng%", "ind5dRank", "ind5dTotal", "ind5dPct");

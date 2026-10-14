@@ -12799,10 +12799,8 @@
                     simpleFilters: {
                         f_bi_rank_pct: 30,
                         f_ind_rank_pct:50,
-                        f_rmv42_max:50,
                         f_mcap_min: 500,
                         f_to_min: 5,
-                        f_chg5d_min:0,
                         f_sma20_max:0,
                         f_sma50_max:0,
                         f_sma200_max:0
@@ -12811,7 +12809,7 @@
                         f_adv_decl: ["1", "0"],
                         f_priceband: ["10", "20"],
                     },
-                    advQuery: '( AWAY_SMA20 >= AWAY_SMA200 AND AWAY_SMA10 >= AWAY_SMA200 ) AND ( (AFH_2M >= 0 AND AFH_2M < 16) OR (AFH_9M >= 0 AND AFH_9M < 16)  ) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" ) ',
+                    advQuery: '( AWAY_SMA20 >= AWAY_SMA200 AND AWAY_SMA10 >= AWAY_SMA200 ) AND ( (AFH_2M >= 0 AND AFH_2M < 16) OR (AFH_9M >= 0 AND AFH_9M < 16)  ) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" ) AND (RMV_21 <= 50 OR RMV_42 <= 50 ) AND (CHG_5D >= 0 OR (AFH_2M <= 3 OR AFH_9M <=3))',
                 },
                 {
                     id: "good_base",
@@ -12825,18 +12823,16 @@
                         f_bi_rank_pct: 30,
                         f_ind_rank_pct:50,
                         f_afh9m_min: -30,
-                        f_chg5d_min:0,
                         f_chg1m_max: 15,
                         f_dcr5_min: 50,
                         f_dcr10_min: 50,
                         f_dcr15_min: 50,
-                        f_rmv42_max:50,
                     },
                     multiSelectFilters: {
                         f_adv_decl: ["1", "0"],
                         f_priceband: ["5", "10", "20"],
                     },
-                    advQuery: '( ( AFH_2M >= -5 AND AFH_2M <= 6 ) OR ( AFH_3M >= -5 AND AFH_3M <= 6 ) OR ( AFH_4M >= -5 AND AFH_4M <= 6 ) OR ( AFH_5M >= -5 AND AFH_5M <= 6 ) OR ( AFH_6M >= -5 AND AFH_6M <= 6 ) OR ( AFH_9M >= -5 AND AFH_9M <= 6 ) ) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" ) ',
+                    advQuery: '( ( AFH_2M >= -5 AND AFH_2M <= 6 ) OR ( AFH_3M >= -5 AND AFH_3M <= 6 ) OR ( AFH_4M >= -5 AND AFH_4M <= 6 ) OR ( AFH_5M >= -5 AND AFH_5M <= 6 ) OR ( AFH_6M >= -5 AND AFH_6M <= 6 ) OR ( AFH_9M >= -5 AND AFH_9M <= 6 ) ) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" ) AND (RMV_21 <= 50 OR RMV_42 <= 50 ) AND (CHG_5D >= 0 OR (AFH_2M <= 3 OR AFH_9M <=3))',
                 },
                 {
                     id: "reversal",
@@ -12857,11 +12853,9 @@
                         f_chg6m_max: 10,
                         f_afh9m_min: -26,
                         f_rvol_avg_3m_min: 0.9,
-                        f_chg5d_min:0,
                         f_dcr5_min: 50,
                         f_dcr10_min: 50,
                         f_dcr15_min: 50,
-                        f_rmv42_max:50,
                     },
                     /*
                     checkFilters: {
@@ -12872,7 +12866,7 @@
                         f_adv_decl: ["1", "0"],
                         f_priceband: ["5", "10", "20"],
                     },
-                    advQuery: '( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" )',
+                    advQuery: '( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" ) AND (RMV_21 <= 50 OR RMV_42 <= 50 ) AND (CHG_5D >= 0 OR (AFH_2M <= 3 OR AFH_9M <=3))',
                 },
                 {
                     id: "industry",
@@ -12891,18 +12885,16 @@
                         f_afh1m_max: 6,
                         f_afh9m_min: -26,
                         f_rvol_avg_3m_min: 0.9,
-                        f_chg5d_min:0,
                         f_chg1m_max: 15,
                         f_dcr5_min: 50,
                         f_dcr10_min: 50,
                         f_dcr15_min: 50,
-                        f_rmv42_max:50,
                     },
                     multiSelectFilters: {
                         f_adv_decl: ["1", "0"],
                         f_priceband: ["5", "10", "20"],
                     },
-                    advQuery: '( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 ) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" )',
+                    advQuery: '( IND5D_RANK_PCT <= 50 OR IND1M_RANK_PCT <= 50 ) AND ( HL_STRUCTURE = "Yes" OR RS_TREND_5 = "Yes" OR RS_TREND_10 = "Yes" OR HL_STRUCTURE_3M = "Yes" OR LIN_3M >= 0.5 OR LIN_1M >= 0.5 ) AND ( AAI_1M = "Yes" OR AAI_2M = "Yes" OR AAI_3M = "Yes" OR AAI_4M = "Yes" OR AAI_6M = "Yes" ) AND (RMV_21 <= 50 OR RMV_42 <= 50 ) AND (CHG_5D >= 0 OR (AFH_2M <= 3 OR AFH_9M <=3))',
                 },
             ];
 
