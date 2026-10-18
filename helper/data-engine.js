@@ -127,7 +127,7 @@
        chart settings need (e.g. "ema_50_close") to its computed result.
        Resolves null when a newer thumbnail pass superseded this request.
        Rejects if the stock has no stored candles or an indicator fails. */
-    E.loadChartBundle = async function (isin, mode, settings, sliceLen, gen) {
+    E.loadChartBundle = async function (isin, mode, settings, sliceLen, gen, timeframe) {
         try {
             // daily indicator-cache wipe + ChartDataDB sync (first-visit download / daily append) must finish first
             if (window.indicatorCacheFresh) await window.indicatorCacheFresh;
@@ -140,6 +140,7 @@
             sliceLen: sliceLen || 0,
             gen: gen || 0,
             dataDate: CURRENT_DATA_DATE,
+            timeframe: timeframe || "daily",
         });
         if (r.cancelled) return null;
         if (r.errors && r.errors.length) throw new Error("indicator error for " + isin + ": " + r.errors.join("; "));

@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v133";
+const CACHE_VERSION = "nse-screener-v134";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Price history (data/chart/chunks/*, data/chart/daily/*) is NOT cached here any more:

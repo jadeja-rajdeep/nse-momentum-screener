@@ -575,9 +575,13 @@ async function handleChart(m) {
     }
     if (!CHARTDB_OK) throw new Error("helper/chart-db.js failed to load in data-worker.js");
     const { isin, mode, settings: S, sliceLen, gen, dataDate } = m;
+    const timeframe = ["weekly", "monthly"].includes(m.timeframe) ? m.timeframe : "daily";
     // [[time,o,h,l,c,v], ...] -> [{time,open,high,low,close,v}, ...] (what the calculators and the chart code expect)
-    const data = await ChartDataDB.getCandles(isin);
-    if (!data) throw new Error("no chart data stored for " + isin);
+    const dailyData = await ChartDataDB.getCandles(isin);
+    if (!dailyData) throw new Error("no chart data stored for " + isin);
+    // IndexedDB remains daily-only. Build chart intervals in memory from those
+    // daily candles; no aggregated bars are ever persisted or cached.
+    const data = timeframe === "daily" ? dailyData : aggregateChartCandles(dailyData, timeframe);
 
     // A newer thumbnail pass started while we were downloading — skip the maths.
     if (mode === "thumb" && gen < chartGen) return { cancelled: true };
@@ -595,8 +599,9 @@ async function handleChart(m) {
     }
     (S.avwap || []).forEach((avwap) => {
         if (!avwap.enabled || avwap.date == "") return;
-        avwap.multipliers = [avwap.multiplier0,avwap.multiplier1, avwap.multiplier2];
-        add("avwap_"+avwap.date + "_" + avwap.source + "_" + avwap.multiplier0 + "_" + avwap.multiplier1 + "_" + avwap.multiplier2, () => calculateAnchoredVWAP(data, avwap));
+        const settings = { ...avwap, multipliers: [avwap.multiplier0,avwap.multiplier1, avwap.multiplier2] };
+        if (timeframe !== "daily") settings.date = chartPeriodStart(settings.date, timeframe);
+        add("avwap_"+settings.date + "_" + settings.source + "_" + settings.multiplier0 + "_" + settings.multiplier1 + "_" + settings.multiplier2, () => calculateAnchoredVWAP(data, settings));
     });
     (S.afh_avwap || []).forEach((avwap) => {
         if (!avwap.enabled || avwap.length < 15) return;
@@ -635,10 +640,10 @@ async function handleChart(m) {
 
     const runTask = async ({ key, fn }) => {
         try {
-            let v = await cacheGet(isin, key, dataDate);
+            let v = timeframe === "daily" ? await cacheGet(isin, key, dataDate) : null;
             if (!v) {
                 v = fn();
-                await cacheSet(isin, key, dataDate, v);
+                if (timeframe === "daily") await cacheSet(isin, key, dataDate, v);
             }
             ind[key] = v;
         } catch (e) {
@@ -665,6 +670,47 @@ async function handleChart(m) {
         return { data: data.slice(sliceLen), ind, errors };
     }
     return { data, ind, errors };
+}
+
+function aggregateChartCandles(dailyCandles, timeframe) {
+    const groups = new Map();
+    for (const candle of dailyCandles) {
+        const dateText = typeof candle.time === "string" ? candle.time.slice(0, 10) : "";
+        const parts = dateText.split("-").map(Number);
+        if (parts.length !== 3 || parts.some((part) => !Number.isFinite(part))) continue;
+        const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+        let key;
+        if (timeframe === "monthly") {
+            key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-01`;
+        } else {
+            const weekday = date.getUTCDay() || 7; // Monday-based exchange week
+            date.setUTCDate(date.getUTCDate() - weekday + 1);
+            key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+        }
+        let bar = groups.get(key);
+        if (!bar) {
+            bar = { time: key, open: candle.open, high: candle.high, low: candle.low, close: candle.close, v: Number(candle.v) || 0 };
+            groups.set(key, bar);
+        } else {
+            bar.high = Math.max(bar.high, candle.high);
+            bar.low = Math.min(bar.low, candle.low);
+            bar.close = candle.close;
+            bar.v += Number(candle.v) || 0;
+        }
+    }
+    return Array.from(groups.values());
+}
+
+function chartPeriodStart(dateText, timeframe) {
+    const parts = String(dateText || "").slice(0, 10).split("-").map(Number);
+    if (parts.length !== 3 || parts.some((part) => !Number.isFinite(part))) return dateText;
+    const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+    if (timeframe === "monthly") {
+        return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-01`;
+    }
+    const weekday = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() - weekday + 1);
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
 }
 
 /* ───────────────────────────── MESSAGE ROUTER ───────────────────────────── */

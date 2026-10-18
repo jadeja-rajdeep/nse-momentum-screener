@@ -4043,6 +4043,45 @@
                 gap: 0;
                 pointer-events: none;
             }
+            #chartModal .chart-timeframe-tools {
+                position: absolute;
+                left: 4px;
+                bottom: 2px;
+                z-index: 7;
+                display: flex;
+                align-items: center;
+                gap: 0;
+                overflow: hidden;
+                border: 1px solid rgba(128, 128, 128, 0.5);
+                border-radius: 5px;
+                pointer-events: none;
+            }
+            #chartModal .chart-timeframe-btn {
+                pointer-events: auto;
+                min-width: 28px;
+                height: 22px;
+                padding: 0 5px;
+                border: 0;
+                border-right: 1px solid rgba(128, 128, 128, 0.5);
+                border-radius: 0;
+                background: transparent;
+                color: var(--muted);
+                font-size: 11px;
+                font-weight: 700;
+                line-height: 1;
+                cursor: pointer;
+                opacity: 0.78;
+                -webkit-tap-highlight-color: transparent;
+            }
+            #chartModal .chart-timeframe-btn:last-child {
+                border-right: 0;
+            }
+            #chartModal .chart-timeframe-btn:hover,
+            #chartModal .chart-timeframe-btn.active {
+                opacity: 1;
+                color: #0d6efd;
+                background: transparent;
+            }
             #chartModal .chart-fit-btn {
                 pointer-events: auto;
                 width: 24px;
@@ -8486,6 +8525,25 @@
                                 <span>Logarithmic price scale (main chart)</span>
                             </label>
                         </div>
+                        <div class="chart-field-row" style="margin-top: 10px; gap: 12px">
+                            <div class="chart-field">
+                                <label for="chartDefaultTimeframe">Default chart timeframe</label>
+                                <select id="chartDefaultTimeframe" data-cpath="defaultTimeframe">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            <div class="chart-field">
+                                <label for="chartSettingsProfile">Edit indicator lengths for</label>
+                                <select id="chartSettingsProfile">
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="tv-modal-meta" style="margin-top: 6px">Indicator lengths are separate per chart timeframe. Advanced Indicator Query continues to use Daily candles and Daily lengths.</div>
                     </div>
 
                     <!-- VOLUME -->
@@ -10186,6 +10244,16 @@
             // inputs use — so the DOM, the storage shape, and the object you
             // pull in the chart code all line up 1:1.
             const CHART_KEY = "nse_screener_chart_settings";
+            let chartSettingsDraft = null;
+            let chartSettingsEditingProfile = "daily";
+            const CHART_PERIOD_PATHS = [
+                "volume.maLength",
+                ...[0, 1, 2, 3, 4, 5].map((i) => `ma.${i}.length`),
+                ...[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `afh.${i}.length`),
+                ...[0, 1, 2].flatMap((i) => [`supertrend.${i}.atrLength`, `pivottrendline.${i}.length`, `afh_avwap.${i}.length`]),
+                "rsi.length", "rsi.smoothingLength",
+                "macd.fastLength", "macd.slowLength", "macd.signalLength",
+            ];
 
             // Common candle-source options shared by MA / RSI / MACD.
             const CHART_SOURCES = [
@@ -10203,8 +10271,9 @@
             const CHART_AFH_DEFAULT_COLORS = ["#eeeeee", "#e4e4e4", "#dadada", "#d0d0d0", "#c6c6c6", "#bdbdbd", "#b3b3b3", "#a9a9a9"];
 
             function defaultChartSettings() {
-                return {
+                const settings = {
                     enabled: true,
+                    defaultTimeframe: "daily",
                     // Main-pane price scale mode: false = Normal (0), true = Logarithmic (1)
                     logScale: false,
                     volume: {
@@ -10288,6 +10357,11 @@
                         signalLineColor: "#f59e0b",
                     },
                 };
+                settings.timeframeLengths = {
+                    weekly: scaleChartPeriods(settings, 5),
+                    monthly: scaleChartPeriods(settings, 21),
+                };
+                return settings;
             }
 
             // path helpers — "ma.0.length" style dot paths, array indices included
@@ -10328,10 +10402,51 @@
                 const raw = localStorage.getItem(CHART_KEY);
                 if (!raw) return defaultChartSettings();
                 try {
-                    return chartMergeDefaults(defaultChartSettings(), JSON.parse(raw));
+                    const saved = JSON.parse(raw);
+                    const settings = chartMergeDefaults(defaultChartSettings(), saved);
+                    if (!["daily", "weekly", "monthly"].includes(settings.defaultTimeframe)) settings.defaultTimeframe = "daily";
+                    if (!saved.timeframeLengths || !saved.timeframeLengths.weekly || !saved.timeframeLengths.monthly) {
+                        settings.timeframeLengths = settings.timeframeLengths || {};
+                        if (!saved.timeframeLengths || !saved.timeframeLengths.weekly) settings.timeframeLengths.weekly = scaleChartPeriods(settings, 5);
+                        if (!saved.timeframeLengths || !saved.timeframeLengths.monthly) settings.timeframeLengths.monthly = scaleChartPeriods(settings, 21);
+                    }
+                    return settings;
                 } catch {
                     return defaultChartSettings();
                 }
+            }
+
+            function scaleChartPeriods(settings, divisor) {
+                const values = {};
+                CHART_PERIOD_PATHS.forEach((path) => {
+                    const raw = Number(chartGetPath(settings, path));
+                    if (!Number.isFinite(raw) || raw <= 0) return;
+                    const min = path.startsWith("afh.") || path.startsWith("afh_avwap.") ? 15 : 1;
+                    values[path] = Math.max(min, Math.round(raw / divisor));
+                });
+                if (values["macd.fastLength"] && values["macd.slowLength"] <= values["macd.fastLength"]) {
+                    values["macd.slowLength"] = values["macd.fastLength"] + 1;
+                }
+                return values;
+            }
+
+            function chartSettingsForTimeframe(settings, timeframe) {
+                const effective = JSON.parse(JSON.stringify(settings));
+                if (timeframe !== "daily") {
+                    const profile = settings.timeframeLengths && settings.timeframeLengths[timeframe];
+                    CHART_PERIOD_PATHS.forEach((path) => {
+                        if (profile && Number.isFinite(Number(profile[path]))) chartSetPath(effective, path, Number(profile[path]));
+                    });
+                }
+                return effective;
+            }
+
+            function chartTimeframeBarDivisor(timeframe) {
+                return timeframe === "weekly" ? 5 : timeframe === "monthly" ? 21 : 1;
+            }
+
+            function chartVisibleBarsForTimeframe(dailyBars, timeframe) {
+                return Math.max(timeframe === "daily" ? 1 : 12, Math.round(dailyBars / chartTimeframeBarDivisor(timeframe)));
             }
 
             function saveChartSettingsToStorage(settings) {
@@ -10471,9 +10586,12 @@
                 });
             }
 
-            function populateChartSettingsForm(settings) {
+            function populateChartSettingsForm(settings, profile = "daily") {
                 document.querySelectorAll("#chartSettingsModal [data-cpath]").forEach((el) => {
-                    const val = chartGetPath(settings, el.dataset.cpath);
+                    const path = el.dataset.cpath;
+                    const val = profile !== "daily" && CHART_PERIOD_PATHS.includes(path)
+                        ? settings.timeframeLengths?.[profile]?.[path]
+                        : chartGetPath(settings, path);
                     if (val === undefined) return;
                     if (el.type === "checkbox") {
                         el.checked = !!val;
@@ -10481,6 +10599,34 @@
                         el.value = val;
                     }
                 });
+            }
+
+            function captureChartSettingsForm(settings, profile = "daily") {
+                document.querySelectorAll("#chartSettingsModal [data-cpath]").forEach((el) => {
+                    const path = el.dataset.cpath;
+                    let val;
+                    if (el.type === "checkbox") val = el.checked;
+                    else if (el.type === "number") {
+                        val = parseFloat(el.value);
+                        if (isNaN(val)) val = 0;
+                    } else val = el.value;
+
+                    if (profile !== "daily" && CHART_PERIOD_PATHS.includes(path)) {
+                        if (!settings.timeframeLengths) settings.timeframeLengths = { weekly: {}, monthly: {} };
+                        if (!settings.timeframeLengths[profile]) settings.timeframeLengths[profile] = {};
+                        settings.timeframeLengths[profile][path] = val;
+                    } else {
+                        chartSetPath(settings, path, val);
+                    }
+                });
+                return settings;
+            }
+
+            function switchChartSettingsProfile() {
+                if (!chartSettingsDraft) chartSettingsDraft = loadChartSettings();
+                captureChartSettingsForm(chartSettingsDraft, chartSettingsEditingProfile);
+                chartSettingsEditingProfile = document.getElementById("chartSettingsProfile")?.value || "daily";
+                populateChartSettingsForm(chartSettingsDraft, chartSettingsEditingProfile);
             }
 
             function openChartSettingsModal() {
@@ -10491,7 +10637,12 @@
                 renderChartAvwapRows();
                 renderChartAfhAvwapRows();
                 populateChartSourceSelects();
-                populateChartSettingsForm(loadChartSettings());
+                chartSettingsDraft = loadChartSettings();
+                chartSettingsEditingProfile = chartSettingsDraft.defaultTimeframe || "daily";
+                const profileSelect = document.getElementById("chartSettingsProfile");
+                if (profileSelect) profileSelect.value = chartSettingsEditingProfile;
+                populateChartSettingsForm(chartSettingsDraft, chartSettingsEditingProfile);
+                if (profileSelect) profileSelect.onchange = switchChartSettingsProfile;
                 document.getElementById("chartSettingsModal").classList.add("open");
             }
 
@@ -10513,7 +10664,8 @@
                 renderChartSupertrendRows();
                 renderChartPivotTrendLineRows();
                 populateChartSourceSelects();
-                populateChartSettingsForm(loadChartSettings());
+                chartSettingsDraft = loadChartSettings();
+                populateChartSettingsForm(chartSettingsDraft, chartSettingsEditingProfile);
                 const el = document.querySelector('#chartSettingsModal [data-cpath="logScale"]');
                 if (el) el.checked = !!on;
                 saveChartSettings(true);
@@ -10521,20 +10673,9 @@
 
             function saveChartSettings(silent=false) {
                 const oldSettings = loadChartSettings(); // ← NEW: snapshot before overwrite
-                const settings = defaultChartSettings();
-                document.querySelectorAll("#chartSettingsModal [data-cpath]").forEach((el) => {
-                    let val;
-                    if (el.type === "checkbox") {
-                        val = el.checked;
-                    } else if (el.type === "number") {
-                        val = parseFloat(el.value);
-                        if (isNaN(val)) val = 0;
-                    } else {
-                        val = el.value;
-                    }
-                    chartSetPath(settings, el.dataset.cpath, val);
-                });
+                const settings = captureChartSettingsForm(chartSettingsDraft || loadChartSettings(), chartSettingsEditingProfile);
                 saveChartSettingsToStorage(settings);
+                chartSettingsDraft = settings;
                 if(silent===false){
                     closeChartSettingsModal();
                     window.dispatchEvent(
@@ -15084,7 +15225,9 @@
                     window.gc();
                 }
 
-                const chartSettings = getChartSettings();
+                const savedChartSettings = getChartSettings();
+                const timeframe = savedChartSettings.defaultTimeframe || "daily";
+                const chartSettings = chartSettingsForTimeframe(savedChartSettings, timeframe);
                 let otherHeight = calculateChartHeight();
 
                 let chartDaysDataLength = -42;
@@ -15105,6 +15248,7 @@
                 } else {
                     chartDaysDataLength = -189; // 2K/4K/ultrawide monitors
                 }
+                chartDaysDataLength = -chartVisibleBarsForTimeframe(Math.abs(chartDaysDataLength), timeframe);
 
                 const chartRightPriceScaleMode=chartSettings.logScale ? LightweightCharts.PriceScaleMode.Logarithmic : LightweightCharts.PriceScaleMode.Normal;
 
@@ -15132,7 +15276,7 @@
 
                     try {
                         // Fetch + JSON parse + every indicator calculation run in a chart worker.
-                        const bundle = await DataEngine.loadChartBundle(isin, "thumb", chartSettings, chartDaysDataLength, myGeneration);
+                        const bundle = await DataEngine.loadChartBundle(isin, "thumb", chartSettings, chartDaysDataLength, myGeneration, timeframe);
                         if (!bundle) return; // superseded by a newer thumbnail pass
                         const { data, ind: chartInd } = bundle;
 
@@ -15196,6 +15340,11 @@
                                     text: scriptName,
                                     color: "rgba(100,100,100, 0.5)",
                                     fontSize: 14,
+                                },
+                                {
+                                    text: `${timeframe[0].toUpperCase()}${timeframe.slice(1)}`,
+                                    color: "rgba(100,100,100, 0.45)",
+                                    fontSize: 12,
                                 },
                             ],
                         });
@@ -15506,6 +15655,8 @@
 
             var currentFullScreenBtn = null;
             var lastFullScreenBtn = null;
+            var activeChartTimeframe = null;
+            var fullChartRenderGeneration = 0;
             var allowRenderChartWatchlistDrawer = true;
             var allowRenderTriggeredAlertChartwatchlistDrawer = true;
             const chartWatchlistState = {
@@ -16119,6 +16270,7 @@
 
             function openChartModal(Caller) {
                 currentFullScreenBtn = Caller;
+                const renderGeneration = ++fullChartRenderGeneration;
                 if (!Caller.classList.contains("chart-watchlist-stock") && !Caller.classList.contains("pa-triggered-item")) {
                     lastFullScreenBtn = Caller;
                 }
@@ -16129,7 +16281,10 @@
 
                 document.getElementById("toggelChartFinancialDetail").dataset.isin = isin;
 
-                const chartSettings = getChartSettings();
+                const savedChartSettings = getChartSettings();
+                const timeframe = activeChartTimeframe || savedChartSettings.defaultTimeframe || "daily";
+                activeChartTimeframe = timeframe;
+                const chartSettings = chartSettingsForTimeframe(savedChartSettings, timeframe);
                 const chartModal = document.getElementById("chartModal");
                 const openedFromWatchlist = Boolean(Caller.dataset.watchlistId);
                 // A drawer selection replaces the chart in an already-open modal.
@@ -16206,7 +16361,8 @@
                 (async () => {
                     try {
                         // Fetch + JSON parse + every indicator calculation run in a chart worker.
-                        const bundle = await DataEngine.loadChartBundle(isin, "full", chartSettings, 0, 0);
+                        const bundle = await DataEngine.loadChartBundle(isin, "full", chartSettings, 0, 0, timeframe);
+                        if (renderGeneration !== fullChartRenderGeneration || !chartModal.classList.contains("open")) return;
                         const { data, ind: chartInd } = bundle;
 
                         const chartWidth = screenWidth;
@@ -16294,6 +16450,11 @@
                                     color: "rgba(100,100,100, 0.5)",
                                     fontSize: 14,
                                 },
+                                {
+                                    text: `${timeframe[0].toUpperCase()}${timeframe.slice(1)}`,
+                                    color: "rgba(100,100,100, 0.45)",
+                                    fontSize: 12,
+                                },
                             ],
                         });
 
@@ -16345,6 +16506,25 @@
                             // keep touches/mouse on the buttons from reaching the chart
                             ["mousedown", "touchstart", "pointerdown", "dblclick"].forEach((ev) =>
                                 fitTools.addEventListener(ev, (e) => e.stopPropagation(), { passive: true }),
+                            );
+
+                            const timeframeTools = document.createElement("div");
+                            timeframeTools.className = "chart-timeframe-tools";
+                            timeframeTools.setAttribute("role", "group");
+                            timeframeTools.setAttribute("aria-label", "Chart timeframe");
+                            timeframeTools.innerHTML = [["daily", "D"], ["weekly", "W"], ["monthly", "M"]]
+                                .map(([value, label]) => `<button type="button" class="chart-timeframe-btn${timeframe === value ? " active" : ""}" data-timeframe="${value}" title="${value[0].toUpperCase()}${value.slice(1)} candles" aria-pressed="${timeframe === value}">${label}</button>`)
+                                .join("");
+                            chartMain.appendChild(timeframeTools);
+                            timeframeTools.addEventListener("click", (e) => {
+                                const btn = e.target.closest(".chart-timeframe-btn");
+                                if (!btn || btn.dataset.timeframe === activeChartTimeframe) return;
+                                e.stopPropagation();
+                                activeChartTimeframe = btn.dataset.timeframe;
+                                openChartModal(Caller);
+                            });
+                            ["mousedown", "touchstart", "pointerdown", "dblclick"].forEach((ev) =>
+                                timeframeTools.addEventListener(ev, (e) => e.stopPropagation(), { passive: true }),
                             );
                         }
 
@@ -16973,6 +17153,7 @@
                         } else {
                             chartDaysDataLength = 126; // 2K/4K/ultrawide monitors
                         }
+                        chartDaysDataLength = chartVisibleBarsForTimeframe(chartDaysDataLength, timeframe);
 
                         // Reset button handler.
                         // IMPORTANT: #resetChart is a static button that lives outside the
@@ -17036,6 +17217,8 @@
             }
 
             function closeChartModal() {
+                fullChartRenderGeneration++;
+                activeChartTimeframe = null;
                 if (chartPaneObserver) {
                     chartPaneObserver.disconnect();
                     chartPaneObserver = null;
