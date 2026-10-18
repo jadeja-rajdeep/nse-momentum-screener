@@ -10244,7 +10244,6 @@
             // inputs use — so the DOM, the storage shape, and the object you
             // pull in the chart code all line up 1:1.
             const CHART_KEY = "nse_screener_chart_settings";
-            const LAST_MAIN_CHART_TIMEFRAME_KEY = "nse_screener_last_main_chart_timeframe";
             let chartSettingsDraft = null;
             let chartSettingsEditingProfile = "daily";
             const CHART_PERIOD_PATHS = [
@@ -10275,6 +10274,7 @@
                 const settings = {
                     enabled: true,
                     defaultTimeframe: "daily",
+                    lastMainTimeframe: null,
                     // Main-pane price scale mode: false = Normal (0), true = Logarithmic (1)
                     logScale: false,
                     volume: {
@@ -10406,6 +10406,7 @@
                     const saved = JSON.parse(raw);
                     const settings = chartMergeDefaults(defaultChartSettings(), saved);
                     if (!["daily", "weekly", "monthly"].includes(settings.defaultTimeframe)) settings.defaultTimeframe = "daily";
+                    if (!["daily", "weekly", "monthly"].includes(settings.lastMainTimeframe)) settings.lastMainTimeframe = null;
                     if (!saved.timeframeLengths || !saved.timeframeLengths.weekly || !saved.timeframeLengths.monthly) {
                         settings.timeframeLengths = settings.timeframeLengths || {};
                         if (!saved.timeframeLengths || !saved.timeframeLengths.weekly) settings.timeframeLengths.weekly = scaleChartPeriods(settings, 5);
@@ -15345,7 +15346,7 @@
                                 {
                                     text: `${timeframe[0].toUpperCase()}${timeframe.slice(1)}`,
                                     color: "rgba(100,100,100, 0.45)",
-                                    fontSize: 11,
+                                    fontSize: 12,
                                 },
                             ],
                         });
@@ -16284,7 +16285,7 @@
                 document.getElementById("toggelChartFinancialDetail").dataset.isin = isin;
 
                 const savedChartSettings = getChartSettings();
-                const storedTimeframe = localStorage.getItem(LAST_MAIN_CHART_TIMEFRAME_KEY);
+                const storedTimeframe = savedChartSettings.lastMainTimeframe;
                 const storedTimeframeIsValid = ["daily", "weekly", "monthly"].includes(storedTimeframe);
                 const timeframe = activeChartTimeframe || (storedTimeframeIsValid ? storedTimeframe : savedChartSettings.defaultTimeframe || "daily");
                 if (activeChartTimeframe === null) activeChartTimeframeWasSelected = storedTimeframeIsValid;
@@ -16527,7 +16528,13 @@
                                 e.stopPropagation();
                                 activeChartTimeframe = btn.dataset.timeframe;
                                 activeChartTimeframeWasSelected = true;
-                                localStorage.setItem(LAST_MAIN_CHART_TIMEFRAME_KEY, activeChartTimeframe);
+                                const latestSettings = loadChartSettings();
+                                latestSettings.lastMainTimeframe = activeChartTimeframe;
+                                try {
+                                    saveChartSettingsToStorage(latestSettings);
+                                } catch (storageError) {
+                                    console.warn("[Chart] Could not save the last main-chart timeframe:", storageError);
+                                }
                                 openChartModal(Caller);
                             });
                             ["mousedown", "touchstart", "pointerdown", "dblclick"].forEach((ev) =>
