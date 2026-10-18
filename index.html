@@ -10244,6 +10244,7 @@
             // inputs use — so the DOM, the storage shape, and the object you
             // pull in the chart code all line up 1:1.
             const CHART_KEY = "nse_screener_chart_settings";
+            const LAST_MAIN_CHART_TIMEFRAME_KEY = "nse_screener_last_main_chart_timeframe";
             let chartSettingsDraft = null;
             let chartSettingsEditingProfile = "daily";
             const CHART_PERIOD_PATHS = [
@@ -15344,7 +15345,7 @@
                                 {
                                     text: `${timeframe[0].toUpperCase()}${timeframe.slice(1)}`,
                                     color: "rgba(100,100,100, 0.45)",
-                                    fontSize: 12,
+                                    fontSize: 11,
                                 },
                             ],
                         });
@@ -15656,6 +15657,7 @@
             var currentFullScreenBtn = null;
             var lastFullScreenBtn = null;
             var activeChartTimeframe = null;
+            var activeChartTimeframeWasSelected = false;
             var fullChartRenderGeneration = 0;
             var allowRenderChartWatchlistDrawer = true;
             var allowRenderTriggeredAlertChartwatchlistDrawer = true;
@@ -16282,7 +16284,10 @@
                 document.getElementById("toggelChartFinancialDetail").dataset.isin = isin;
 
                 const savedChartSettings = getChartSettings();
-                const timeframe = activeChartTimeframe || savedChartSettings.defaultTimeframe || "daily";
+                const storedTimeframe = localStorage.getItem(LAST_MAIN_CHART_TIMEFRAME_KEY);
+                const storedTimeframeIsValid = ["daily", "weekly", "monthly"].includes(storedTimeframe);
+                const timeframe = activeChartTimeframe || (storedTimeframeIsValid ? storedTimeframe : savedChartSettings.defaultTimeframe || "daily");
+                if (activeChartTimeframe === null) activeChartTimeframeWasSelected = storedTimeframeIsValid;
                 activeChartTimeframe = timeframe;
                 const chartSettings = chartSettingsForTimeframe(savedChartSettings, timeframe);
                 const chartModal = document.getElementById("chartModal");
@@ -16521,6 +16526,8 @@
                                 if (!btn || btn.dataset.timeframe === activeChartTimeframe) return;
                                 e.stopPropagation();
                                 activeChartTimeframe = btn.dataset.timeframe;
+                                activeChartTimeframeWasSelected = true;
+                                localStorage.setItem(LAST_MAIN_CHART_TIMEFRAME_KEY, activeChartTimeframe);
                                 openChartModal(Caller);
                             });
                             ["mousedown", "touchstart", "pointerdown", "dblclick"].forEach((ev) =>
@@ -17218,7 +17225,7 @@
 
             function closeChartModal() {
                 fullChartRenderGeneration++;
-                activeChartTimeframe = null;
+                if (!activeChartTimeframeWasSelected) activeChartTimeframe = null;
                 if (chartPaneObserver) {
                     chartPaneObserver.disconnect();
                     chartPaneObserver = null;
