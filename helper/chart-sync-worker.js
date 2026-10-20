@@ -169,6 +169,56 @@ async function repairNewListings(base, unknown, applied, post, stats) {
   }
 }
 
+/* ---------------- resync (split / bonus / rights) ----------------
+   data/chart/resync/<YYYY-MM-DD>.json = ["ISIN", ...]   (no file = nothing that day)
+   For every day AFTER the last resync check (meta.resyncDate) up to the m.json data date,
+   collect the flagged ISINs, re-download their whole records from the chunk files
+   (putChunk REPLACES the record), then re-apply daily files newer than the chunk.
+   meta.resyncDate is written LAST, so a failure is simply retried on the next load. */
+async function resyncUpdate(base, dataDate, baseline, post, stats) {
+  const dates = datesAfter(baseline, dataDate);
+  stats.resyncChecked = dates.length;
+  if (!dates.length) return;
+
+  // 1. ISINs flagged on any of those days (404 = no file = nothing flagged)
+  const limited = pool(DAILY_CONCURRENCY);
+  const lists = await Promise.all(
+    dates.map((d) => limited(() => fetchJson(`${base}chart/resync/${d}.json`, true)))
+  );
+  const flagged = new Set();
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue;
+    for (const k of list) if (typeof k === "string" && k.trim()) flagged.add(k.trim());
+  }
+
+  if (flagged.size) {
+    // 2. which chunk files hold them (existing isin -> chunk map)
+    const chunksBase = base + "chart/chunks/";
+    const index = await fetchJson(chunksBase + "index.json");
+    const isins = new Set([...flagged].filter((k) => index[k]));
+    stats.resyncIsins = isins.size;
+    stats.resyncMissing = [...flagged].filter((k) => !index[k]); // flagged but not in the chunk map
+
+    if (isins.size) {
+      // 3. each distinct chunk once; only the flagged ISINs are written (whole record replaced)
+      const files = [...new Set([...isins].map((k) => index[k]))].sort();
+      const { newest } = await downloadChunks(chunksBase, files, post, "resync", isins);
+
+      // 4. if the chunk's last bar is older than the data date, top those days back up
+      if (ISO.test(newest || "")) {
+        for (const d of datesAfter(newest, dataDate)) {
+          const day = await fetchJson(`${DAILY_PATH}${d}.json`, true);
+          if (!day) continue;
+          const partial = {};
+          for (const k of isins) if (day[k]) partial[k] = day[k];
+          if (Object.keys(partial).length) await ChartDataDB.applyDaily(d, partial);
+        }
+      }
+    }
+  }
+  await ChartDataDB.setMeta({ resyncDate: dataDate }); // saved LAST
+}
+
 async function sync(m, post) {
   const base = m.dataBase;
   DAILY_PATH = base + "chart/daily/";
@@ -178,12 +228,22 @@ async function sync(m, post) {
   const meta = await ChartDataDB.getMeta();
   const have = meta && meta.schema === ChartDataDB.SCHEMA && ISO.test(meta.lastDate || "") && (await ChartDataDB.count()) > 0;
   const gap = have ? Math.round((toUtc(dataDate) - toUtc(meta.lastDate)) / DAY) : Infinity;
+  // Where the last resync check stopped. Installs from before this feature have no
+  // resyncDate yet, so they start from lastDate (read BEFORE dailyUpdate moves it).
+  const resyncBaseline = have ? (ISO.test(meta.resyncDate || "") ? meta.resyncDate : meta.lastDate) : null;
 
   if (!have || gap > MAX_DAILY_GAP_DAYS) {
     stats.mode = "full";
     await fullDownload(base, post, stats);
+    await ChartDataDB.setMeta({ resyncDate: dataDate }); // fresh chunks are already adjusted
   }
   await dailyUpdate(base, dataDate, post, stats);
+
+  if (stats.mode !== "full" && resyncBaseline && resyncBaseline < dataDate) {
+    await resyncUpdate(base, dataDate, resyncBaseline, post, stats);
+  } else {
+    stats.resyncSkipped = true; // already checked for this data date: no network at all
+  }
 
   const end = await ChartDataDB.getMeta();
   stats.lastDate = end && end.lastDate;

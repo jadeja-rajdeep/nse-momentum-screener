@@ -60,6 +60,7 @@
                 if (m.type === "PROGRESS") {
                     emit({ status: "syncing", phase: m.phase, done: m.done, total: m.total });
                     if (m.phase === "full") showPill(`Downloading chart data… ${m.done}/${m.total}`);
+                    else if (m.phase === "resync") showPill(`Adjusting split/bonus stocks… ${m.done}/${m.total}`);
                     else if (m.total > 3) showPill(`Updating chart data… ${m.done}/${m.total}`);
                 } else if (m.type === "DONE") finish({ ok: true, stats: m.stats });
                 else if (m.type === "ERROR") finish({ ok: false, error: m.error });
