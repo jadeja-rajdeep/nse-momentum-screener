@@ -15631,6 +15631,7 @@
             }
 
             function resizeThumbnailChart() {
+                if (generatingThumbCharts) return;
                 const chartSettings = getChartSettings();
                 if (chartSettings.enabled !== true) return;
                 if (chartSettings.enabled == true) {
@@ -17330,9 +17331,21 @@
                 () => {
                     const footer = document.querySelector("footer");
                     if (footer) footer.style.display = "none";
-                    requestAnimationFrame(()=>{
-                        //resize the thumbchart.
-                        resizeThumbnailChart();
+                    requestAnimationFrame(() => {
+                        // Charts may still be waiting for the download / daily sync, and
+                        // they were sized while the footer was visible. Wait ONCE until
+                        // every thumb chart on screen has been created, then resize once.
+                        // (Runs only for this first click; nothing else is touched.)
+                        const started = Date.now();
+                        const waitTimer = setInterval(() => {
+                            const divs = document.querySelectorAll(".thumb-chart");
+                            const timedOut = Date.now() - started > 120000; // give up after 2 min
+                            if (!divs.length || timedOut) return clearInterval(waitTimer);
+                            const allCreated = !generatingThumbCharts && Array.from(divs).every((d) => thumbCharts[d.dataset.isin]);
+                            if (!allCreated) return;
+                            clearInterval(waitTimer);
+                            requestAnimationFrame(() => resizeThumbnailChart());
+                        }, 250);
                     });
                 },
                 { passive: true, once: true },
