@@ -127,6 +127,9 @@ async function dailyUpdate(base, dataDate, post, stats) {
   stats.manifest = !probing;
   if (!dates.length) return;
 
+  // NEW: tell the page real work is starting (manifest mode only, so weekend probing never flashes the pill)
+  if (!probing) post({ type: "PROGRESS", phase: "daily", done: 0, total: dates.length });
+
   const limited = pool(DAILY_CONCURRENCY);
   const jobs = dates.map((d) => limited(() => fetchJson(`${DAILY_PATH}${d}.json`, probing)));
   jobs.forEach((p) => p.catch(() => {})); // errors are handled in order below
@@ -139,6 +142,8 @@ async function dailyUpdate(base, dataDate, post, stats) {
     try { day = await jobs[i]; } catch (err) { failure = err; break; } // stop at the first real failure: never leave a hole
     post({ type: "PROGRESS", phase: "daily", done: i + 1, total: dates.length });
     if (!day) continue; // no file = no session
+    // NEW: the 3000-record write is the slow part, so announce it before it starts
+    post({ type: "PROGRESS", phase: "apply", done: i + 1, total: dates.length });
     const r = await ChartDataDB.applyDaily(dates[i], day);
     r.unknown.forEach((k) => unknown.add(k));
     applied.push({ date: dates[i], day });
