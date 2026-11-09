@@ -9397,6 +9397,26 @@
             //      Friday (2 days old) — always valid, no time gate
             //  (f) [Sunday rule] today is Sunday AND cached Date is 3+ days
             //      old (Thursday or earlier) AND it's before 5 PM IST
+            // Newest date listed in data/chart/daily/index.json (the manifest chart-sync-worker also uses).
+            // Tiny file, always revalidated. null = could not tell (offline / missing / bad format).
+            async function getLatestDailyDate() {
+                try {
+                    const ctrl = new AbortController();
+                    const timer = setTimeout(() => ctrl.abort(), 4000);
+                    const res = await fetch("data/chart/daily/index.json", { cache: "no-cache", signal: ctrl.signal });
+                    clearTimeout(timer);
+                    if (!res.ok) return null;
+                    const j = await res.json();
+                    const arr = Array.isArray(j) ? j : j && j.dates;
+                    if (!Array.isArray(arr)) return null;
+                    let max = "";
+                    for (const d of arr) if (/^\d{4}-\d{2}-\d{2}$/.test(d) && d > max) max = d;
+                    return max || null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
             async function tryLoadFromCacheIfFresh() {
                 if (!("caches" in window)) return null; // Cache API unavailable (no SW support)
 
@@ -9457,6 +9477,12 @@
                         // window.indicatorCacheFresh before any worker reads data.
                         return null;
                     }
+
+                    // The date rules above only GUESS that nothing new exists (weekends, before 5 PM).
+                    // The daily manifest is the truth: if it lists a date newer than the cached m.json,
+                    // don't serve the cache - fetch fresh m.json so ChartSync can pull the pending days.
+                    const latestDaily = await getLatestDailyDate();
+                    if (latestDaily && latestDaily > innerDate) return null;
 
                     return raw;
                 } catch {
