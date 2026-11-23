@@ -634,7 +634,7 @@
                 }
             }
 
-            @media screen and (max-width: 1015px) {
+            @media screen and (max-width: 1134px) {
                 .site-header .toolbar-scroll button span:nth-of-type(2) {
                     display: none;
                 }
@@ -3238,6 +3238,41 @@
             #marketStatModal .ms-legend-btn.off .ms-label { text-decoration: line-through; }
             #marketStatModal .ms-legend-btn.off .ms-dot { background: transparent; border: 1px solid var(--c); }
             #marketStatModal .ms-legend-btn.err { border-color: #ef4444; }
+
+            /* ---- BREAKOUT STOCKS MODAL (full screen) ---- */
+            #signalModal { overflow: hidden; }
+            #signalModal .settings-modal-header { flex: 0 0 auto; }
+            /* body keeps the default .settings-modal-body padding (20px) and gap; it never scrolls itself, only the table does */
+            #signalBody { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+            #signalBody > * { flex: 0 0 auto; }
+            #signalModal .sg-disclaimer { border: 1px solid rgba(245, 158, 11, 0.35); border-left: 3px solid var(--warn); background: rgba(245, 158, 11, 0.08); border-radius: 8px; padding: 10px 14px; font-size: 11.5px; line-height: 1.6; color: var(--text); }
+            #signalModal .sg-disclaimer strong { color: var(--warn); }
+            #signalBody > .sg-table-wrap { flex: 1 1 auto; min-height: 120px; overflow: auto; overscroll-behavior: contain; }
+            #signalModal .ind-table thead th { position: sticky; top: 0; z-index: 2; cursor: default; }
+            #signalModal .ind-table thead th:hover { color: var(--muted); }
+            #signalModal .ind-table tbody tr { cursor: default; }
+            #signalModal .ind-table tbody tr:hover { background: rgba(148, 163, 184, 0.07); }
+            #signalModal .sg-r { text-align: right; }
+            #signalModal .sg-num { font-family: var(--mono); font-size: 11.5px; }
+            #signalModal .sg-sub { font-family: var(--mono); font-size: 10px; margin-left: 4px; }
+            #signalModal .sg-muted { color: var(--muted); }
+            #signalModal .sg-buy { color: var(--success); }
+            #signalModal .sg-sell { color: var(--danger); }
+            #signalModal .sg-pos { color: var(--success); }
+            #signalModal .sg-neg { color: var(--danger); }
+            #signalModal .sg-code { font-weight: 700; }
+            #signalModal .sg-pill { display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; border: 1px solid currentColor; }
+            #signalModal .sg-pill.sg-buy { background: rgba(16, 185, 129, 0.12); }
+            #signalModal .sg-pill.sg-sell { background: rgba(244, 63, 94, 0.12); }
+            #signalModal .sg-pill.sg-pos { background: rgba(16, 185, 129, 0.12); }
+            #signalModal .sg-pill.sg-neg { background: rgba(244, 63, 94, 0.12); }
+            #signalModal .sg-pill.sg-pend { color: var(--warn); background: rgba(245, 158, 11, 0.12); }
+            #signalModal .sg-gain { font-family: var(--mono); font-weight: 700; border-radius: 4px; }
+            #signalModal .sg-gain.sg-pos { background: rgba(16, 185, 129, 0.12); }
+            #signalModal .sg-gain.sg-neg { background: rgba(244, 63, 94, 0.12); }
+            #signalModal .sg-msg { text-align: center; padding: 28px 12px !important; color: var(--muted); white-space: normal !important; }
+            #signalModal input[type="date"] { color-scheme: dark; }
+            [data-theme="light"] #signalModal input[type="date"] { color-scheme: light; }
             /* Export / Import buttons */
             .settings-action-btn {
                 display: flex;
@@ -4375,6 +4410,7 @@
                         <span>🔍</span>
                     </button>
                     <button class="btn-toggle-filters" id="toggleFiltersBtn" onclick="toggleFilters()"><span>⚙</span> <span id="filterBtnLabel">Filters</span></button>
+                    <button class="btn-toggle-filters" id="signalBtn" onclick="openSignalModal()" style="border-color: rgba(244, 63, 94, 0.4); color: #fb7185" title="Breakout stock calls with stoploss and gain / loss"><span>🚀</span> <span id="signalBtnLabel">Breakouts</span></button>
                     <button class="btn-toggle-filters" id="toggleSavedBtn" onclick="toggleSavedPanel()" style="border-color: rgba(245, 158, 11, 0.3); color: var(--accent3)"><span>📌</span> <span id="savedBtnLabel">Saved</span></button>
                     <button class="btn-toggle-filters" id="toggleWatchlistBtn" onclick="toggleWatchlistPanel()" style="border-color: rgba(251, 191, 36, 0.4); color: #fbbf24">
                         <span>⭐</span>
@@ -8866,6 +8902,71 @@
             </div>
         </div>
 
+        <!-- BREAKOUT STOCKS MODAL (script_signal_call.json is fetched once per page load, on first open) -->
+        <div class="settings-modal-overlay p-0" id="signalModal" onclick="closeSignalModalOnOverlay(event)">
+            <div class="settings-modal" onclick="event.stopPropagation()" style="min-width: 100%; max-width: 100%; height: 100vh; height: 100dvh; display: flex; flex-direction: column; margin: 0; border-radius: 0">
+                <div class="settings-modal-header" style="border-radius: 0">
+                    <div>
+                        <div class="settings-modal-title">🚀 Breakout Stocks</div>
+                        <div class="tv-modal-meta" id="signalMeta">Breakout calls · entry, stoploss &amp; gain / loss</div>
+                    </div>
+                    <button type="button" class="peer-modal-close ms-auto" onclick="closeSignalModal()" title="Close (Esc)">✕</button>
+                </div>
+                <div class="settings-modal-body" id="signalBody">
+                    <div class="sg-disclaimer" role="note">
+                        <strong>⚠ Market Disclaimer:</strong> The breakout stock list on this page is shared <strong>for study and educational purposes only</strong>. It is <strong>not</strong> investment advice, a recommendation, or an offer or solicitation to buy or sell any security, and it is not issued by a SEBI-registered investment adviser or research analyst. Investments in the securities market are subject to market risks; read all related documents carefully before investing. Past performance is not indicative of future results. Gain / loss figures are hypothetical: they are calculated from end-of-day prices and stoploss levels, and they ignore brokerage, taxes, charges and slippage, so actual results can be very different. Stoploss levels are not a guarantee against loss. <strong>Do your own research and consult your SEBI-registered financial advisor before taking any investment decision.</strong> You alone are responsible for your trading and investment decisions and any profit or loss arising from them.
+                    </div>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-6 col-md-3 col-xl-2">
+                            <div class="filter-label">From Date</div>
+                            <input class="form-control" id="sg_from" type="date" oninput="signalApplyFilters()" onchange="signalApplyFilters()" />
+                        </div>
+                        <div class="col-6 col-md-3 col-xl-2">
+                            <div class="filter-label">To Date</div>
+                            <input class="form-control" id="sg_to" type="date" oninput="signalApplyFilters()" onchange="signalApplyFilters()" />
+                        </div>
+                        <div class="col-6 col-md-3 col-xl-2">
+                            <div class="filter-label">Script Code</div>
+                            <input class="form-control" id="sg_code" type="text" oninput="signalApplyFilters()" placeholder="e.g. BSE, TATA" autocomplete="off" />
+                        </div>
+                        <div class="col-6 col-md-3 col-xl-2">
+                            <div class="filter-label">Status</div>
+                            <select class="form-select" id="sg_status" onchange="signalApplyFilters()">
+                                <option value="">All</option>
+                                <option value="pending">Pending (open)</option>
+                                <option value="failed">Failed</option>
+                                <option value="success">Success</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3 col-xl-2">
+                            <button type="button" class="btn-toggle-filters" onclick="signalResetFilters()" title="Clear all filters">↺ Reset</button>
+                        </div>
+                    </div>
+                    <div class="ind-table-wrap sg-table-wrap">
+                        <table class="ind-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Code</th>
+                                    <th>Type</th>
+                                    <th class="sg-r">Entry</th>
+                                    <th class="sg-r">Initial SL</th>
+                                    <th class="sg-r">Trailing SL</th>
+                                    <th class="sg-r">CMP / Exit</th>
+                                    <th class="sg-r">Gain / Loss</th>
+                                    <th>Status</th>
+                                    <th>Closed On</th>
+                                </tr>
+                            </thead>
+                            <tbody id="signalRows">
+                                <tr><td class="sg-msg" colspan="10">Open this window to load the breakout calls.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- AUTHOR / ABOUT MODAL -->
         <div class="author-modal-overlay" id="authorModal" onclick="closeAuthorModalOnOverlay(event)">
             <div class="author-modal" onclick="event.stopPropagation()">
@@ -11506,6 +11607,7 @@
                     closeColumnModal();
                     closeChartSettingsModal();
                     closeMarketStatModal();
+                    if (typeof closeSignalModal === "function") closeSignalModal();
                     closeCompareModal();
                     closeFilteredIndustryModal();
                     closeAlertBadgeModal();
@@ -17548,6 +17650,7 @@
 
                 const isChartModalOpen = document.querySelector("#chartModal").classList.contains("open");
                 if (document.getElementById("marketStatModal")?.classList.contains("open")) return;
+                if (document.getElementById("signalModal")?.classList.contains("open")) return;
                 if (isChartModalOpen && e.key !== "s" && e.key !== "S") return;
 
                 if (filtersVisible || isStockSearchOpen()) return;
@@ -18147,6 +18250,215 @@
                 window.marketStatToggleAll = function (open) {
                     const acc = document.getElementById("marketStatBody")._accordion;
                     if (acc) acc.items.forEach((i) => acc.setOpen(i, open));
+                };
+            })();
+        </script>
+        <script>
+            /* =====================================================================
+               BREAKOUT STOCKS MODAL
+               script_signal_call.json (same folder as m.json) is fetched ONCE per
+               page load, the first time the modal is opened. sw.js deliberately
+               bypasses it, so a normal reload is what picks up the daily update.
+               File shape: phpMyAdmin export [header, database, {type:"table", data:[...]}]
+               or a plain array. Row fields (all strings):
+                 c=script code  dt=call date  t=buy|sell  e=entry price
+                 ist=initial stoploss (never changes)  tst=trailing stoploss
+                 s=status (0 = open, anything else = call is over)  sdt=date it ended
+               Gain / loss:
+                 open call   -> (CMP from m.json "Close" - entry) / entry
+                 closed call -> (trailing stoploss - entry) / entry   (sell is mirrored)
+               ===================================================================== */
+            (function () {
+                const SIGNAL_URL = "script_signal_call.json";
+                const ISO = /^\d{4}-\d{2}-\d{2}$/;
+                const modal = () => document.getElementById("signalModal");
+
+                let calls = []; // normalised, newest first (all rows kept)
+                let loaded = false;
+                let loading = false;
+                let priceSrc = null; // the allData array the CMPs were last read from
+                let timer = null;
+
+                const num = (v) => {
+                    const n = parseFloat(v);
+                    return Number.isFinite(n) ? n : NaN;
+                };
+                const pctOf = (price, entry) => (entry > 0 && Number.isFinite(price) ? ((price - entry) / entry) * 100 : NaN);
+                const fPct = (v) => (Number.isFinite(v) ? (v > 0 ? "+" : "") + v.toFixed(2) + "%" : "—");
+                const tone = (v) => (!Number.isFinite(v) ? "sg-muted" : v > 0 ? "sg-pos" : v < 0 ? "sg-neg" : "sg-muted");
+                const price = (v) => (Number.isFinite(v) ? v.toFixed(2) : "—");
+
+                // ---------- parsing ----------
+                function extractRows(raw) {
+                    const out = [];
+                    const take = (x) => {
+                        if (Array.isArray(x)) x.forEach(take);
+                        else if (x && typeof x === "object") {
+                            if (x.type === "table" && Array.isArray(x.data)) x.data.forEach(take);
+                            else if (x.c !== undefined && x.dt !== undefined) out.push(x);
+                            else if (Array.isArray(x.data)) x.data.forEach(take);
+                        }
+                    };
+                    take(raw);
+                    return out;
+                }
+
+                function normalise(rows) {
+                    const list = [];
+                    for (const r of rows) {
+                        // every row is kept as-is: same code + date can come from different signal styles
+                        const sv = parseInt(r.s, 10);
+                        const open = !Number.isFinite(sv) || sv === 0;
+                        const sell = String(r.t || "").toLowerCase() === "sell";
+                        const entry = num(r.e);
+                        const ist = num(r.ist);
+                        const tst = num(r.tst);
+                        const side = sell ? -1 : 1; // sell calls win when price falls
+                        list.push({
+                            code: String(r.c || "").trim(),
+                            dt: ISO.test(r.dt) ? r.dt : "",
+                            sell, open, entry, ist, tst, side,
+                            istPct: pctOf(ist, entry),
+                            tstPct: pctOf(tst, entry),
+                            sdt: ISO.test(r.sdt) && !/^0{4}-/.test(r.sdt) ? r.sdt : "",
+                            px: NaN, // CMP (open) or exit price (closed)
+                            gain: NaN, // % gain / loss, sign already adjusted for buy / sell
+                            pts: NaN, // gain / loss per share
+                        });
+                    }
+                    list.sort((a, b) => (a.dt < b.dt ? 1 : a.dt > b.dt ? -1 : a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
+                    return list;
+                }
+
+                // ---------- prices ----------
+                // Re-uses the screener's code -> row map (_rowByCode, same one runFilterStatesAsync builds).
+                function closeFor(code) {
+                    if (typeof allData === "undefined" || !allData.length) return NaN;
+                    if (typeof _rowByCode === "undefined" || !_rowByCode || _rowByCodeSrc !== allData) {
+                        _rowByCode = new Map(allData.map((r) => [r.Code, r]));
+                        _rowByCodeSrc = allData;
+                    }
+                    const row = _rowByCode.get(code) || _rowByCode.get(code.toUpperCase());
+                    return row ? num(row.Close) : NaN;
+                }
+
+                function refreshPrices() {
+                    priceSrc = typeof allData === "undefined" ? null : allData;
+                    for (const c of calls) {
+                        c.px = c.open ? closeFor(c.code) : c.tst; // closed call exits at its trailing stoploss
+                        c.gain = Number.isFinite(c.px) && c.entry > 0 ? pctOf(c.px, c.entry) * c.side : NaN;
+                        c.pts = Number.isFinite(c.px) ? (c.px - c.entry) * c.side : NaN;
+                    }
+                }
+
+                const statusOf = (c) => (c.open ? "pending" : c.gain > 0 ? "success" : "failed");
+
+                // ---------- rendering ----------
+                function setMeta(text) {
+                    const el = document.getElementById("signalMeta");
+                    if (el) el.textContent = text;
+                }
+                function message(text) {
+                    document.getElementById("signalRows").innerHTML = `<tr><td class="sg-msg" colspan="10">${escHtml(text)}</td></tr>`;
+                }
+
+                function readFilters() {
+                    return {
+                        from: document.getElementById("sg_from").value,
+                        to: document.getElementById("sg_to").value,
+                        codes: document.getElementById("sg_code").value.toUpperCase().split(/[\s,;]+/).filter(Boolean),
+                        status: document.getElementById("sg_status").value,
+                    };
+                }
+
+                function render() {
+                    if (!loaded) return;
+                    if (priceSrc !== (typeof allData === "undefined" ? null : allData)) refreshPrices();
+                    const f = readFilters();
+                    const rows = calls.filter((c) => {
+                        if (f.from && c.dt < f.from) return false;
+                        if (f.to && c.dt > f.to) return false;
+                        if (f.codes.length && !f.codes.some((k) => c.code.toUpperCase().includes(k))) return false;
+                        if (f.status && statusOf(c) !== f.status) return false;
+                        return true;
+                    });
+
+                    let pending = 0, success = 0, failed = 0;
+                    const html = [];
+                    for (const c of rows) {
+                        const st = statusOf(c);
+                        if (st === "pending") pending++;
+                        else if (st === "success") success++;
+                        else failed++;
+                        const side = c.sell ? "sg-sell" : "sg-buy";
+                        const stPill = st === "pending" ? "sg-pend" : st === "success" ? "sg-pos" : "sg-neg";
+                        const stText = st === "pending" ? "Pending" : st === "success" ? "Success" : "Failed";
+                        const pxTag = c.open ? "CMP" : "Exit";
+                        html.push(
+                            `<tr>` +
+                            `<td class="sg-num">${escHtml(c.dt || "—")}</td>` +
+                            `<td class="sg-code ${side}">${escHtml(c.code)}</td>` +
+                            `<td><span class="sg-pill ${side}">${c.sell ? "Sell" : "Buy"}</span></td>` +
+                            `<td class="sg-r sg-num">${price(c.entry)}</td>` +
+                            `<td class="sg-r sg-num">${price(c.ist)}<span class="sg-sub ${tone(c.istPct)}">${fPct(c.istPct)}</span></td>` +
+                            `<td class="sg-r sg-num">${price(c.tst)}<span class="sg-sub ${tone(c.tstPct)}">${fPct(c.tstPct)}</span></td>` +
+                            `<td class="sg-r sg-num">${price(c.px)}<span class="sg-sub sg-muted">${pxTag}</span></td>` +
+                            `<td class="sg-r"><span class="sg-gain sg-num ${tone(c.gain)}" style="padding:2px 8px;display:inline-block">${fPct(c.gain)}</span>` +
+                            `<span class="sg-sub ${tone(c.pts)}">${Number.isFinite(c.pts) ? (c.pts > 0 ? "+" : "") + c.pts.toFixed(2) : ""}</span></td>` +
+                            `<td><span class="sg-pill ${stPill}">${stText}</span></td>` +
+                            `<td class="sg-num ${c.sdt ? "" : "sg-muted"}">${c.sdt || "—"}</td>` +
+                            `</tr>`,
+                        );
+                    }
+                    if (rows.length) document.getElementById("signalRows").innerHTML = html.join("");
+                    else message(calls.length ? "No calls match the selected filters." : "No breakout calls found.");
+
+                    const closed = success + failed;
+                    const win = closed ? ((success / closed) * 100).toFixed(1) + "% win rate on closed" : "no closed calls";
+                    setMeta(`Showing ${rows.length} of ${calls.length} calls · ${pending} pending · ${success} success · ${failed} failed · ${win}`);
+                }
+
+                // ---------- loading (once per page load) ----------
+                async function load() {
+                    loading = true;
+                    message("Loading breakout calls…");
+                    setMeta("Loading…");
+                    try {
+                        // no-cache = always revalidate with the server; sw.js never caches this URL
+                        const res = await fetch(SIGNAL_URL, { cache: "no-cache" });
+                        if (!res.ok) throw new Error("HTTP " + res.status);
+                        calls = normalise(extractRows(await res.json()));
+                        loaded = true;
+                        refreshPrices();
+                        render();
+                    } catch (err) {
+                        console.warn("[Breakouts] failed to load", err);
+                        message("⚠ Could not load " + SIGNAL_URL + " — " + ((err && err.message) || err) + ". Close and reopen this window to try again.");
+                        setMeta("Failed to load");
+                    } finally {
+                        loading = false;
+                    }
+                }
+
+                window.openSignalModal = function () {
+                    modal().classList.add("open");
+                    if (loaded) render(); // already fetched: just refresh CMPs if m.json changed
+                    else if (!loading) load();
+                };
+                window.closeSignalModal = function () {
+                    const el = modal();
+                    if (el) el.classList.remove("open");
+                };
+                window.closeSignalModalOnOverlay = function (e) {
+                    if (e.target === modal()) window.closeSignalModal();
+                };
+                window.signalApplyFilters = function () {
+                    clearTimeout(timer);
+                    timer = setTimeout(render, 80);
+                };
+                window.signalResetFilters = function () {
+                    ["sg_from", "sg_to", "sg_code", "sg_status"].forEach((id) => (document.getElementById(id).value = ""));
+                    render();
                 };
             })();
         </script>

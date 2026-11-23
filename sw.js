@@ -9,7 +9,7 @@
 // m.json directly out of this same DATA_CACHE — skipping the network
 // request entirely and saving the ~4MB download on repeat same-day visits.
 // Keep DATA_CACHE's name in sync with DATA_CACHE_NAME in index.html.
-const CACHE_VERSION = "nse-screener-v140";
+const CACHE_VERSION = "nse-screener-v141";
 const DATA_CACHE = "nse-screener-data-v1";
 
 // Price history (data/chart/chunks/*, data/chart/daily/*) is NOT cached here any more:
@@ -173,6 +173,12 @@ self.addEventListener("fetch", (event) => {
     // request must go straight to the network untouched — otherwise
     // cache.put() throws on them and cacheFirst() answers with a fake 503.
     if (event.request.method !== "GET") {
+        return;
+    }
+
+    // Breakout signal calls (script_signal_call.json) change daily and are fetched by the
+    // page itself with cache:"no-cache": the SW must not answer from, or add to, any cache.
+    if (url.pathname.endsWith("script_signal_call.json")) {
         return;
     }
 
