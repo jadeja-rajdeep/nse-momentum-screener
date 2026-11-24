@@ -579,6 +579,24 @@
     }
 }
 
+@media screen and (max-width: 479px) {
+    #chartModal .settings-modal-header {
+        padding: 8px 3px calc(3px + var(--m-safe-b));
+        gap: 3px;
+    }
+
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay) button[class*="close"],
+    :is(.ss-modal-overlay, .ind-modal-overlay, .help-modal-overlay, .tv-modal-overlay,
+        .settings-modal-overlay, .author-modal-overlay, .peer-modal-overlay)
+    :is(.ss-modal-header, .ind-modal-header, .help-modal-header, .tv-modal-header,
+        .settings-modal-header, .author-modal-header, .peer-modal-header) button {
+        min-width: 32px;
+        min-height: 32px;
+        border-radius: 10px;
+    }
+}
+
 @keyframes m-sheet-up {
     from { opacity: 0.4; transform: translateY(28px); }
     to   { opacity: 1;   transform: none; }
