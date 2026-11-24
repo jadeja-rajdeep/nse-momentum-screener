@@ -3240,10 +3240,8 @@
             #marketStatModal .ms-legend-btn.err { border-color: #ef4444; }
 
             /* ---- BREAKOUT STOCKS MODAL (full screen) ---- */
-            #signalModal { overflow: hidden; }
             #signalModal .settings-modal-header { flex: 0 0 auto; }
             /* body keeps the default .settings-modal-body padding (20px) and gap; it never scrolls itself, only the table does */
-            #signalBody { flex: 1 1 auto; min-height: 0; overflow: hidden; }
             #signalBody > * { flex: 0 0 auto; }
             #signalModal .sg-disclaimer { border: 1px solid rgba(245, 158, 11, 0.35); border-left: 3px solid var(--warn); background: rgba(245, 158, 11, 0.08); border-radius: 8px; padding: 10px 14px; font-size: 11.5px; line-height: 1.6; color: var(--text); }
             #signalModal .sg-disclaimer strong { color: var(--warn); }
@@ -3275,7 +3273,7 @@
             #signalModal .ind-table th:nth-child(1),
             #signalModal .ind-table td:nth-child(1):not(.sg-msg) { position: sticky; left: 0; width: var(--sg-c1w); min-width: var(--sg-c1w); max-width: var(--sg-c1w); box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; }
             #signalModal .ind-table th:nth-child(2),
-            #signalModal .ind-table td:nth-child(2) { position: sticky; left: var(--sg-c1w); border-right: 1px solid var(--border); box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.45); }
+            #signalModal .ind-table td:nth-child(2) { position: sticky !important; left: var(--sg-c1w) !important; border-right: 1px solid var(--border); box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.45); }
             /* sticky body cells need an opaque background, otherwise scrolling cells show through */
             #signalModal .ind-table tbody td:nth-child(1):not(.sg-msg),
             #signalModal .ind-table tbody td:nth-child(2) { background-color: var(--surface); z-index: 1; }
@@ -8942,7 +8940,7 @@
 
         <!-- BREAKOUT STOCKS MODAL (script_signal_call.json is fetched once per page load, on first open) -->
         <div class="settings-modal-overlay p-0" id="signalModal" onclick="closeSignalModalOnOverlay(event)">
-            <div class="settings-modal" onclick="event.stopPropagation()" style="min-width: 100%; max-width: 100%; height: 100vh; height: 100dvh; display: flex; flex-direction: column; margin: 0; border-radius: 0">
+            <div class="settings-modal" onclick="event.stopPropagation()" style="min-width: 100%; max-width: 100%; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; margin: 0; border-radius: 0">
                 <div class="settings-modal-header" style="border-radius: 0">
                     <div>
                         <div class="settings-modal-title">🚀 Breakout Stocks</div>
