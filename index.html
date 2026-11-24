@@ -3252,6 +3252,44 @@
             #signalModal .ind-table thead th:hover { color: var(--muted); }
             #signalModal .ind-table tbody tr { cursor: default; }
             #signalModal .ind-table tbody tr:hover { background: rgba(148, 163, 184, 0.07); }
+            /* performance stats panel (above the table, follows the active filters) */
+            #signalModal .sg-stats { border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); }
+            #signalModal .sg-stats-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 12px; cursor: pointer; user-select: none; font-family: var(--mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+            #signalModal .sg-stats-head:hover { color: var(--text); }
+            #signalModal .sg-stats.collapsed .sg-stats-body, #signalModal .sg-stats.collapsed .sg-stats-inputs { display: none; }
+            #signalModal .sg-stats-inputs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 0 12px 8px; font-family: var(--mono); font-size: 10px; color: var(--muted); }
+            #signalModal .sg-stats-inputs label { display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+            #signalModal .sg-stats-inputs input { width: 118px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 3px 7px; font-family: var(--mono); font-size: 11px; }
+            #signalModal .sg-stats-body { padding: 0 12px 12px; max-height: 34vh; overflow: auto; overscroll-behavior: contain; }
+            #signalModal .sg-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: rgba(148, 163, 184, 0.2); margin-bottom: 4px; }
+            #signalModal .sg-bar span { display: block; height: 100%; }
+            #signalModal .sg-stat-title { font-family: var(--mono); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 10px 0 6px; }
+            #signalModal .sg-stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
+            #signalModal .sg-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; min-width: 0; }
+            #signalModal .sg-stat-l { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            #signalModal .sg-stat-v { font-family: var(--mono); font-size: 15px; font-weight: 700; margin-top: 2px; white-space: nowrap; }
+            #signalModal .sg-stat-s { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            /* freeze first two columns (Date + Code) while scrolling horizontally.
+               Col 1 has a fixed width (--sg-c1w) so col 2 can stick right beside it. */
+            #signalModal .sg-table-wrap { --sg-c1w: 96px; }
+            #signalModal .ind-table th:nth-child(1),
+            #signalModal .ind-table td:nth-child(1):not(.sg-msg) { position: sticky; left: 0; width: var(--sg-c1w); min-width: var(--sg-c1w); max-width: var(--sg-c1w); box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; }
+            #signalModal .ind-table th:nth-child(2),
+            #signalModal .ind-table td:nth-child(2) { position: sticky; left: var(--sg-c1w); border-right: 1px solid var(--border); box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.45); }
+            /* sticky body cells need an opaque background, otherwise scrolling cells show through */
+            #signalModal .ind-table tbody td:nth-child(1):not(.sg-msg),
+            #signalModal .ind-table tbody td:nth-child(2) { background-color: var(--surface); z-index: 1; }
+            #signalModal .ind-table tbody tr:hover td:nth-child(1):not(.sg-msg),
+            #signalModal .ind-table tbody tr:hover td:nth-child(2) { background-image: linear-gradient(rgba(148, 163, 184, 0.07), rgba(148, 163, 184, 0.07)); }
+            /* header cells: stay above both the other headers (z 2) and the frozen body cells (z 1) */
+            #signalModal .ind-table thead th:nth-child(1),
+            #signalModal .ind-table thead th:nth-child(2) { z-index: 4; }
+            /* the "no data / loading" row is one colspan cell, it must not be frozen */
+            #signalModal .ind-table td.sg-msg { position: static; }
+            @media (max-width: 576px) {
+                #signalModal .sg-table-wrap { --sg-c1w: 88px; }
+                #signalModal .ind-table th:nth-child(1), #signalModal .ind-table td:nth-child(1) { padding-left: 8px; padding-right: 6px; }
+            }
             #signalModal .sg-r { text-align: right; }
             #signalModal .sg-num { font-family: var(--mono); font-size: 11.5px; }
             #signalModal .sg-sub { font-family: var(--mono); font-size: 10px; margin-left: 4px; }
@@ -8942,6 +8980,18 @@
                             <button type="button" class="btn-toggle-filters" onclick="signalResetFilters()" title="Clear all filters">↺ Reset</button>
                         </div>
                     </div>
+                    <div class="sg-stats" id="sgStats">
+                        <div class="sg-stats-head" onclick="signalToggleStats()" title="Show / hide stats">
+                            <span>📊 Performance Stats <span id="sgStatsScope" style="text-transform: none; letter-spacing: 0"></span></span>
+                            <span id="sgStatsCaret">▾</span>
+                        </div>
+                        <div class="sg-stats-inputs">
+                            <label>Capital ₹ <input id="sg_capital" type="number" min="1" step="any" value="1000000" oninput="signalSizingChanged()" /></label>
+                            <label>Risk per trade (% of capital) <input id="sg_risk" type="number" min="0.01" max="100" step="any" value="0.27" oninput="signalSizingChanged()" /></label>
+                            <span>Allocation = risk % ÷ initial stoploss distance % of capital. Saved in this browser.</span>
+                        </div>
+                        <div class="sg-stats-body" id="sgStatsBody"><div class="sg-muted" style="font-size: 11px; padding: 6px 0">Stats appear once the calls are loaded.</div></div>
+                    </div>
                     <div class="ind-table-wrap sg-table-wrap">
                         <table class="ind-table">
                             <thead>
@@ -8951,15 +9001,17 @@
                                     <th>Type</th>
                                     <th class="sg-r">Entry</th>
                                     <th class="sg-r">Initial SL</th>
+                                    <th class="sg-r" title="Amount to allocate in rupees and position size as % of capital, sized from the initial stoploss so a stop-out loses about the chosen risk % of capital. Change capital and risk in the Performance Stats panel above">Allocation (₹ · %)</th>
                                     <th class="sg-r">Trailing SL</th>
                                     <th class="sg-r">CMP / Exit</th>
                                     <th class="sg-r">Gain / Loss</th>
+                                    <th class="sg-r" title="Profit / loss in rupees = position size × gain / loss %">P/L ₹</th>
                                     <th>Status</th>
                                     <th>Closed On</th>
                                 </tr>
                             </thead>
                             <tbody id="signalRows">
-                                <tr><td class="sg-msg" colspan="10">Open this window to load the breakout calls.</td></tr>
+                                <tr><td class="sg-msg" colspan="12">Open this window to load the breakout calls.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -18324,6 +18376,11 @@
                             px: NaN, // CMP (open) or exit price (closed)
                             gain: NaN, // % gain / loss, sign already adjusted for buy / sell
                             pts: NaN, // gain / loss per share
+                            irisk: NaN, // initial risk % used for sizing (see capital model)
+                            posPct: NaN, // position size, % of capital
+                            pos: NaN, // position size, rupees
+                            qty: NaN, // whole shares that fit in the position size
+                            pl: NaN, // profit / loss, rupees
                         });
                     }
                     list.sort((a, b) => (a.dt < b.dt ? 1 : a.dt > b.dt ? -1 : a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
@@ -18349,6 +18406,7 @@
                         c.gain = Number.isFinite(c.px) && c.entry > 0 ? pctOf(c.px, c.entry) * c.side : NaN;
                         c.pts = Number.isFinite(c.px) ? (c.px - c.entry) * c.side : NaN;
                     }
+                    applySizing();
                 }
 
                 const statusOf = (c) => (c.open ? "pending" : c.gain > 0 ? "success" : "failed");
@@ -18359,7 +18417,245 @@
                     if (el) el.textContent = text;
                 }
                 function message(text) {
-                    document.getElementById("signalRows").innerHTML = `<tr><td class="sg-msg" colspan="10">${escHtml(text)}</td></tr>`;
+                    document.getElementById("signalRows").innerHTML = `<tr><td class="sg-msg" colspan="12">${escHtml(text)}</td></tr>`;
+                }
+
+                // ---------- capital model ----------
+                // The position is sized so that being stopped out at the INITIAL stoploss loses about RISK_PCT of CAPITAL:
+                //   irisk       = distance to the initial stoploss in %, measured against the stoploss, 2 decimals (<= 0 falls back to 1)
+                //   position %  = RISK_PCT * 100 / irisk          (share of CAPITAL put into the call)
+                //   position Rs = CAPITAL * position % / 100      P/L Rs = position Rs * gain % / 100
+                // Sell calls mirror the distance (their stoploss sits above entry). Capital and risk are editable in the stats panel.
+                const MAX_POS_PCT = Infinity; // cap on one position, % of capital. Infinity = no cap. Use 100 for "no leverage".
+                const DEFAULT_CAPITAL = 1000000;
+                const DEFAULT_RISK = 0.27;
+                const SIZING_KEY = "nse-screener-signal-sizing";
+                let CAPITAL = DEFAULT_CAPITAL;
+                let RISK_PCT = DEFAULT_RISK;
+
+                function applySizing() {
+                    const devider = RISK_PCT * 100;
+                    for (const c of calls) {
+                        let irisk = c.sell ? ((c.ist - c.entry) * 100) / c.ist : ((c.entry - c.ist) * 100) / c.ist;
+                        irisk = Math.round(irisk * 100) / 100;
+                        if (!Number.isFinite(irisk)) { c.irisk = c.posPct = c.pos = c.qty = c.pl = NaN; continue; }
+                        if (irisk <= 0) irisk = 1;
+                        c.irisk = irisk;
+                        c.posPct = Math.min(devider / irisk, MAX_POS_PCT);
+                        c.pos = (CAPITAL * c.posPct) / 100;
+                        c.qty = c.entry > 0 ? Math.floor(c.pos / c.entry) : NaN;
+                        c.pl = Number.isFinite(c.gain) ? (c.pos * c.gain) / 100 : NaN;
+                    }
+                }
+                function readSizing() {
+                    const cap = parseFloat(document.getElementById("sg_capital").value);
+                    const rk = parseFloat(document.getElementById("sg_risk").value);
+                    if (Number.isFinite(cap) && cap > 0) CAPITAL = cap;
+                    if (Number.isFinite(rk) && rk > 0 && rk <= 100) RISK_PCT = rk;
+                }
+                function saveSizing() {
+                    try { localStorage.setItem(SIZING_KEY, JSON.stringify({ capital: CAPITAL, risk: RISK_PCT })); } catch (e) {}
+                }
+                function loadSizing() {
+                    try {
+                        const v = JSON.parse(localStorage.getItem(SIZING_KEY) || "null");
+                        if (v && v.capital > 0) CAPITAL = +v.capital;
+                        if (v && v.risk > 0 && v.risk <= 100) RISK_PCT = +v.risk;
+                    } catch (e) {}
+                    syncSizingInputs();
+                }
+                function syncSizingInputs() {
+                    document.getElementById("sg_capital").value = CAPITAL;
+                    document.getElementById("sg_risk").value = RISK_PCT;
+                }
+                window.signalSizingChanged = function () {
+                    readSizing();
+                    saveSizing();
+                    clearTimeout(timer);
+                    timer = setTimeout(() => { applySizing(); render(); }, 150);
+                };
+                const fInr = (v, signed) => {
+                    if (!Number.isFinite(v)) return "—";
+                    const r = Math.round(v);
+                    return (r < 0 ? "-" : signed && r > 0 ? "+" : "") + "₹" + Math.abs(r).toLocaleString("en-IN");
+                };
+                const capPct = (inr) => fPct((inr / CAPITAL) * 100);
+
+                // ---------- performance stats ----------
+                // Everything below works on the rows currently shown in the table, so the stats follow the filters.
+                // To add a stat: put the number into computeStats(), then add one card line to STAT_GROUPS.
+                const sum = (a) => a.reduce((x, y) => x + y, 0);
+                const avg = (a) => (a.length ? sum(a) / a.length : NaN);
+                const median = (a) => {
+                    if (!a.length) return NaN;
+                    const s = [...a].sort((x, y) => x - y);
+                    const m = s.length >> 1;
+                    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+                };
+                const dayDiff = (a, b) => (a && b ? (Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 864e5 : NaN);
+                const fNum = (v) => (v === Infinity ? "∞" : Number.isFinite(v) ? v.toFixed(2) : "—");
+                const fDays = (v) => (Number.isFinite(v) ? v.toFixed(1) + "d" : "—");
+                const maxBy = (a, fn) => a.reduce((b, x) => (b === null || fn(x) > fn(b) ? x : b), null);
+                const minBy = (a, fn) => a.reduce((b, x) => (b === null || fn(x) < fn(b) ? x : b), null);
+                const gn = (c) => c.gain;
+                const pl = (c) => c.pl;
+                const endOf = (c) => c.sdt || c.dt;
+                const byEnd = (a, b) => (endOf(a) < endOf(b) ? -1 : endOf(a) > endOf(b) ? 1 : a.dt < b.dt ? -1 : a.dt > b.dt ? 1 : 0);
+
+                function streaks(ordered) {
+                    let w = 0, l = 0, bw = 0, bl = 0;
+                    for (const c of ordered) {
+                        if (c.gain > 0) { w++; l = 0; } else { l++; w = 0; }
+                        bw = Math.max(bw, w);
+                        bl = Math.max(bl, l);
+                    }
+                    return { win: bw, loss: bl };
+                }
+
+                function computeStats(rows) {
+                    const closedAll = rows.filter((c) => !c.open); // same wins / losses definition as the table pills + header
+                    const winsAll = closedAll.filter((c) => c.gain > 0);
+                    const hasP = (c) => Number.isFinite(c.gain) && Number.isFinite(c.pl);
+                    const closedG = rows.filter((c) => !c.open && Number.isFinite(c.gain)); // % based stats
+                    const openG = rows.filter((c) => c.open && Number.isFinite(c.gain));
+                    const closedP = closedG.filter(hasP); // rupee based stats (need a position size too)
+                    const openP = openG.filter(hasP);
+                    const winsP = closedP.filter((c) => c.gain > 0);
+                    const lossP = closedP.filter((c) => c.gain <= 0);
+                    const grossWin = sum(winsP.map(pl));
+                    const grossLoss = sum(lossP.map(pl)); // <= 0
+                    const orderedP = [...closedP].sort(byEnd);
+                    let cum = 0, peak = 0, maxDD = 0;
+                    for (const c of orderedP) {
+                        cum += c.pl;
+                        peak = Math.max(peak, cum);
+                        maxDD = Math.max(maxDD, peak - cum);
+                    }
+                    const rMul = closedG.filter((c) => Math.abs(c.istPct) > 0).map((c) => c.gain / Math.abs(c.istPct));
+                    const hold = (list) => avg(list.map((c) => dayDiff(c.dt, c.sdt)).filter(Number.isFinite));
+                    const dates = rows.map((c) => c.dt).filter(Boolean).sort();
+                    const today = new Date().toISOString().slice(0, 10);
+                    const avgWin = avg(winsP.map(pl));
+                    const avgLoss = avg(lossP.map(pl));
+                    const bySide = (isSell) => {
+                        const cl = closedAll.filter((c) => c.sell === isSell);
+                        return { n: cl.length, w: cl.filter((c) => c.gain > 0).length };
+                    };
+                    const sized = rows.filter((c) => Number.isFinite(c.pos));
+                    const realised = sum(closedP.map(pl));
+                    const openPL = sum(openP.map(pl));
+                    return {
+                        total: rows.length,
+                        buy: rows.filter((c) => !c.sell).length,
+                        sell: rows.filter((c) => c.sell).length,
+                        stocks: new Set(rows.map((c) => c.code)).size,
+                        from: dates[0] || "", to: dates[dates.length - 1] || "",
+                        nOpen: rows.filter((c) => c.open).length,
+                        nClosed: closedAll.length, nWin: winsAll.length, nLoss: closedAll.length - winsAll.length,
+                        winRate: closedAll.length ? (winsAll.length / closedAll.length) * 100 : NaN,
+                        buyRate: bySide(false), sellRate: bySide(true),
+                        // rupees
+                        realised, openPL, net: realised + openPL,
+                        openPos: sum(rows.filter((c) => c.open && Number.isFinite(c.pos)).map((c) => c.pos)),
+                        avgPos: avg(sized.map((c) => c.pos)), avgPosPct: avg(sized.map((c) => c.posPct)),
+                        maxDD,
+                        profitFactor: grossLoss < 0 ? grossWin / Math.abs(grossLoss) : grossWin > 0 ? Infinity : NaN,
+                        avgWin, avgLoss,
+                        payoff: avgLoss < 0 && Number.isFinite(avgWin) ? avgWin / Math.abs(avgLoss) : NaN,
+                        expectancy: avg(closedP.map(pl)),
+                        bestPL: maxBy(closedP, pl), worstPL: minBy(closedP, pl),
+                        // percent
+                        median: median(closedG.map(gn)),
+                        avgR: avg(rMul),
+                        avgRisk: avg(closedG.map((c) => Math.abs(c.istPct)).filter(Number.isFinite)),
+                        bestPct: maxBy(closedG, gn), worstPct: minBy(closedG, gn),
+                        streak: streaks([...closedG].sort(byEnd)),
+                        hold: hold(closedG), holdWin: hold(closedG.filter((c) => c.gain > 0)), holdLoss: hold(closedG.filter((c) => c.gain <= 0)),
+                        openIn: openG.filter((c) => c.gain > 0).length, openN: openG.length,
+                        openAvg: avg(openG.map(gn)),
+                        openBest: maxBy(openG, gn), openWorst: minBy(openG, gn),
+                        openAge: avg(rows.filter((c) => c.open && c.dt).map((c) => dayDiff(c.dt, today))),
+                    };
+                }
+
+                const tag = (c) => (c ? `${c.code} · ${c.dt || "—"}` : "");
+                const tagPct = (c) => (c ? `${c.code} · ${c.dt || "—"} · ${fPct(c.gain)}` : "");
+                const signTone = (v) => (!Number.isFinite(v) ? "sg-muted" : v > 0 ? "sg-pos" : v < 0 ? "sg-neg" : "sg-muted");
+                const fSide = (r) => (r.n ? `${((r.w / r.n) * 100).toFixed(1)}% (${r.w}/${r.n})` : "—");
+
+                // one card = { l: label, t: tooltip, v: value text, c: colour class (optional), s: small sub-line (optional) }
+                const STAT_GROUPS = [
+                    { title: "Overview", cards: [
+                        { l: "Total calls", t: "Calls matching the current filters", v: (s) => String(s.total), s: (s) => `${s.buy} buy · ${s.sell} sell` },
+                        { l: "Unique stocks", t: "Distinct script codes among these calls", v: (s) => String(s.stocks) },
+                        { l: "Period", t: "Days between the first and last call date", v: (s) => (s.from ? dayDiff(s.from, s.to) + 1 + " days" : "—"), s: (s) => (s.from ? (s.from === s.to ? s.from : `${s.from} → ${s.to}`) : "") },
+                        { l: "Open / Closed", t: "Pending calls vs calls that already ended", v: (s) => `${s.nOpen} / ${s.nClosed}` },
+                    ] },
+                    { title: "Capital & risk", cards: [
+                        { l: "Net P/L", t: "Realised + open profit and loss in rupees, using the position sizing above", v: (s) => fInr(s.net, true), c: (s) => signTone(s.net), s: (s) => capPct(s.net) + " of capital" },
+                        { l: "Realised P/L", t: "Profit and loss of closed calls in rupees", v: (s) => fInr(s.realised, true), c: (s) => signTone(s.realised), s: (s) => capPct(s.realised) + " of capital" },
+                        { l: "Open P/L", t: "Profit and loss of open calls at the current price, in rupees", v: (s) => fInr(s.openPL, true), c: (s) => signTone(s.openPL), s: (s) => capPct(s.openPL) + " of capital" },
+                        { l: "Open exposure", t: "Money tied up in open calls. Above 100% of capital means taking every open call would need leverage", v: (s) => fInr(s.openPos), c: (s) => (s.openPos > CAPITAL ? "sg-neg" : ""), s: (s) => `${((s.openPos / CAPITAL) * 100).toFixed(1)}% of capital · ${s.nOpen} open` },
+                        { l: "Risk per trade", t: "Rupees lost if a call is stopped out at its initial stoploss (risk % of capital)", v: () => fInr((CAPITAL * RISK_PCT) / 100), s: () => `${RISK_PCT}% of ${fInr(CAPITAL)}` },
+                        { l: "Avg position", t: "Average position size, in rupees and as % of capital", v: (s) => fInr(s.avgPos), s: (s) => (Number.isFinite(s.avgPosPct) ? s.avgPosPct.toFixed(1) + "% of capital" : "") },
+                        { l: "Max drawdown", t: "Largest peak-to-trough fall of the running realised P/L, in order of the date each call ended", v: (s) => fInr(-s.maxDD), c: (s) => (s.maxDD > 0 ? "sg-neg" : "sg-muted"), s: (s) => ((s.maxDD / CAPITAL) * 100).toFixed(2) + "% of capital" },
+                    ] },
+                    { title: "Closed calls: quality", cards: [
+                        { l: "Win rate", t: "Closed calls that ended in profit / all closed calls", v: (s) => (Number.isFinite(s.winRate) ? s.winRate.toFixed(1) + "%" : "—"), c: (s) => (Number.isFinite(s.winRate) ? (s.winRate >= 50 ? "sg-pos" : "sg-neg") : "sg-muted"), s: (s) => `${s.nWin} win · ${s.nLoss} loss` },
+                        { l: "Profit factor", t: "Gross profit divided by gross loss, in rupees. Above 1 means the winners outweigh the losers; above 2 is strong", v: (s) => fNum(s.profitFactor), c: (s) => (Number.isFinite(s.profitFactor) || s.profitFactor === Infinity ? (s.profitFactor > 1 ? "sg-pos" : "sg-neg") : "sg-muted") },
+                        { l: "Expectancy", t: "Average rupee result per closed call = what you would expect from the next call, on average", v: (s) => fInr(s.expectancy, true), c: (s) => signTone(s.expectancy), s: (s) => (Number.isFinite(s.expectancy) ? capPct(s.expectancy) + " of capital / call" : "") },
+                        { l: "Avg win", t: "Average rupee profit of winning closed calls (average loss below)", v: (s) => fInr(s.avgWin, true), c: () => "sg-pos", s: (s) => `avg loss ${fInr(s.avgLoss, true)}` },
+                        { l: "Payoff ratio", t: "Average win divided by average loss. Above 1 means a typical win is bigger than a typical loss", v: (s) => fNum(s.payoff), c: (s) => (Number.isFinite(s.payoff) ? (s.payoff > 1 ? "sg-pos" : "sg-neg") : "sg-muted") },
+                        { l: "Median gain", t: "Middle % result of closed calls. Less affected by a few big winners than the average", v: (s) => fPct(s.median), c: (s) => signTone(s.median) },
+                        { l: "Avg R multiple", t: "Gain divided by the initial stoploss distance. +1R means a call earned as much as it risked", v: (s) => (Number.isFinite(s.avgR) ? (s.avgR > 0 ? "+" : "") + s.avgR.toFixed(2) + "R" : "—"), c: (s) => signTone(s.avgR), s: (s) => `avg stop ${Number.isFinite(s.avgRisk) ? s.avgRisk.toFixed(2) + "%" : "—"}` },
+                    ] },
+                    { title: "Best, worst & streaks", cards: [
+                        { l: "Biggest gain", t: "Closed call that made the most rupees", v: (s) => (s.bestPL ? fInr(s.bestPL.pl, true) : "—"), c: () => "sg-pos", s: (s) => escHtml(tagPct(s.bestPL)) },
+                        { l: "Biggest loss", t: "Closed call that lost the most rupees", v: (s) => (s.worstPL ? fInr(s.worstPL.pl, true) : "—"), c: (s) => (s.worstPL ? signTone(s.worstPL.pl) : "sg-muted"), s: (s) => escHtml(tagPct(s.worstPL)) },
+                        { l: "Best call %", t: "Closed call with the highest % gain", v: (s) => (s.bestPct ? fPct(s.bestPct.gain) : "—"), c: () => "sg-pos", s: (s) => escHtml(tag(s.bestPct)) },
+                        { l: "Worst call %", t: "Closed call with the lowest % result", v: (s) => (s.worstPct ? fPct(s.worstPct.gain) : "—"), c: (s) => (s.worstPct ? signTone(s.worstPct.gain) : "sg-muted"), s: (s) => escHtml(tag(s.worstPct)) },
+                        { l: "Max win streak", t: "Most winning closed calls in a row (ordered by the date each call ended)", v: (s) => String(s.streak.win), c: () => "sg-pos" },
+                        { l: "Max loss streak", t: "Most losing closed calls in a row (ordered by the date each call ended)", v: (s) => String(s.streak.loss), c: (s) => (s.streak.loss ? "sg-neg" : "sg-muted") },
+                        { l: "Avg holding", t: "Average days from call date to the date it ended (closed calls)", v: (s) => fDays(s.hold), s: (s) => `win ${fDays(s.holdWin)} · loss ${fDays(s.holdLoss)}` },
+                        { l: "Buy win rate", t: "Win rate of closed buy calls", v: (s) => fSide(s.buyRate) },
+                        { l: "Sell win rate", t: "Win rate of closed sell calls", v: (s) => fSide(s.sellRate) },
+                    ] },
+                    { title: "Open calls", cards: [
+                        { l: "In profit", t: "Open calls currently above entry (below for sell) / open calls with a price", v: (s) => `${s.openIn} / ${s.openN}`, c: (s) => (s.openN ? (s.openIn * 2 >= s.openN ? "sg-pos" : "sg-neg") : "sg-muted") },
+                        { l: "Avg open P/L", t: "Average % gain / loss of open calls at the current price", v: (s) => fPct(s.openAvg), c: (s) => signTone(s.openAvg) },
+                        { l: "Best open", t: "Open call with the highest % gain right now", v: (s) => (s.openBest ? fPct(s.openBest.gain) : "—"), c: (s) => (s.openBest ? signTone(s.openBest.gain) : "sg-muted"), s: (s) => escHtml(tag(s.openBest)) },
+                        { l: "Worst open", t: "Open call with the lowest % result right now", v: (s) => (s.openWorst ? fPct(s.openWorst.gain) : "—"), c: (s) => (s.openWorst ? signTone(s.openWorst.gain) : "sg-muted"), s: (s) => escHtml(tag(s.openWorst)) },
+                        { l: "Avg age (open)", t: "Average days since the call date of open calls", v: (s) => fDays(s.openAge) },
+                    ] },
+                ];
+
+                function renderStats(rows, total) {
+                    const body = document.getElementById("sgStatsBody");
+                    if (!body) return;
+                    const s = computeStats(rows);
+                    const pct = (n) => (s.total ? ((n / s.total) * 100).toFixed(2) : 0);
+                    const bar =
+                        `<div class="sg-bar" title="${s.nWin} success · ${s.nLoss} failed · ${s.nOpen} pending">` +
+                        `<span style="width:${pct(s.nWin)}%;background:var(--success)"></span>` +
+                        `<span style="width:${pct(s.nLoss)}%;background:var(--danger)"></span>` +
+                        `<span style="width:${pct(s.nOpen)}%;background:var(--warn)"></span></div>`;
+                    body.innerHTML =
+                        bar +
+                        STAT_GROUPS.map(
+                            (grp) =>
+                                `<div class="sg-stat-title">${grp.title}</div><div class="sg-stat-grid">` +
+                                grp.cards
+                                    .map((cd) => {
+                                        const sub = cd.s ? cd.s(s) : "";
+                                        return `<div class="sg-stat" title="${escHtml(cd.t)}"><div class="sg-stat-l">${cd.l}</div>` +
+                                            `<div class="sg-stat-v ${cd.c ? cd.c(s) : ""}">${cd.v(s)}</div>` +
+                                            (sub ? `<div class="sg-stat-s">${sub}</div>` : "") + `</div>`;
+                                    })
+                                    .join("") +
+                                `</div>`,
+                        ).join("");
+                    const scope = document.getElementById("sgStatsScope");
+                    if (scope) scope.textContent = s.total === total ? `· all ${total} calls` : `· filtered: ${s.total} of ${total} calls`;
                 }
 
                 function readFilters() {
@@ -18401,10 +18697,12 @@
                             `<td><span class="sg-pill ${side}">${c.sell ? "Sell" : "Buy"}</span></td>` +
                             `<td class="sg-r sg-num">${price(c.entry)}</td>` +
                             `<td class="sg-r sg-num">${price(c.ist)}<span class="sg-sub ${tone(c.istPct)}">${fPct(c.istPct)}</span></td>` +
+                            `<td class="sg-r sg-num">${fInr(c.pos)}<span class="sg-sub sg-muted">${Number.isFinite(c.posPct) ? c.posPct.toFixed(2) + "%" : ""}${Number.isFinite(c.qty) ? " · " + c.qty.toLocaleString("en-IN") + " qty" : ""}</span></td>` +
                             `<td class="sg-r sg-num">${price(c.tst)}<span class="sg-sub ${tone(c.tstPct)}">${fPct(c.tstPct)}</span></td>` +
                             `<td class="sg-r sg-num">${price(c.px)}<span class="sg-sub sg-muted">${pxTag}</span></td>` +
                             `<td class="sg-r"><span class="sg-gain sg-num ${tone(c.gain)}" style="padding:2px 8px;display:inline-block">${fPct(c.gain)}</span>` +
                             `<span class="sg-sub ${tone(c.pts)}">${Number.isFinite(c.pts) ? (c.pts > 0 ? "+" : "") + c.pts.toFixed(2) : ""}</span></td>` +
+                            `<td class="sg-r sg-num ${tone(c.pl)}">${fInr(c.pl, true)}</td>` +
                             `<td><span class="sg-pill ${stPill}">${stText}</span></td>` +
                             `<td class="sg-num ${c.sdt ? "" : "sg-muted"}">${c.sdt || "—"}</td>` +
                             `</tr>`,
@@ -18416,6 +18714,7 @@
                     const closed = success + failed;
                     const win = closed ? ((success / closed) * 100).toFixed(1) + "% win rate on closed" : "no closed calls";
                     setMeta(`Showing ${rows.length} of ${calls.length} calls · ${pending} pending · ${success} success · ${failed} failed · ${win}`);
+                    renderStats(rows, calls.length);
                 }
 
                 // ---------- loading (once per page load) ----------
@@ -18442,8 +18741,19 @@
 
                 window.openSignalModal = function () {
                     modal().classList.add("open");
+                    if (!statsInit) {
+                        statsInit = true;
+                        loadSizing();
+                        if (window.innerHeight < 760) window.signalToggleStats(); // short screen: keep the table roomy
+                    } else syncSizingInputs();
                     if (loaded) render(); // already fetched: just refresh CMPs if m.json changed
                     else if (!loading) load();
+                };
+                let statsInit = false;
+                window.signalToggleStats = function () {
+                    const el = document.getElementById("sgStats");
+                    el.classList.toggle("collapsed");
+                    document.getElementById("sgStatsCaret").textContent = el.classList.contains("collapsed") ? "▸" : "▾";
                 };
                 window.closeSignalModal = function () {
                     const el = modal();
