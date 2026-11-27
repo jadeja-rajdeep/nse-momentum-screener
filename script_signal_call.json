@@ -3,7 +3,7 @@
 {"type":"database","name":"marketwatcher_nse_v4"},
 {"type":"table","name":"script_signal_call","database":"marketwatcher_nse_v4","data":
 [
-{"c":"SUDEEPPHRM","dt":"2026-11-23","t":"buy","e":"1250","ist":"1112.4","tst":"1200.8","s":"0","sdt":"0000-00-00"}
+{"c":"SUDEEPPHRM","dt":"2026-11-23","t":"buy","e":"1250","ist":"1112.4","tst":"1204.54","s":"0","sdt":"0000-00-00"}
 ]
 }
 ]
